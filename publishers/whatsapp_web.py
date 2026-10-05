@@ -247,7 +247,26 @@ class WhatsAppWebPublisher:
                     break
             time.sleep(1)
 
-        # 2. Olası açılış butonlarına tıkla (Kanalı görüntüle, Aç, Takip et vb.)
+        # 2. Varsa engelleyici diyalogları / modalları ('Özellik henüz sunulmadı', 'Tamam' vb.) hemen kapat
+        for modal_sel in [
+            'button:has-text("Tamam")',
+            'div[role="button"]:has-text("Tamam")',
+            'button:has-text("OK")',
+            'div[role="button"]:has-text("OK")',
+            'div[role="dialog"] button',
+            'button[aria-label="Kapat"]',
+            'button[aria-label="Close"]',
+        ]:
+            try:
+                mb = page.query_selector(modal_sel)
+                if mb and mb.is_visible():
+                    logger.info(f"WhatsApp modalı kapatıldı: {modal_sel}")
+                    mb.click()
+                    time.sleep(1.5)
+            except Exception:
+                pass
+
+        # 3. Olası açılış butonlarına tıkla (Kanalı görüntüle, Aç, Takip et vb.)
         for sel in [
             'button:has-text("Kanalı görüntüle")',
             'div[role="button"]:has-text("Kanalı görüntüle")',
@@ -345,13 +364,31 @@ class WhatsAppWebPublisher:
         except Exception as e_nav:
             logger.warning(f"Kanallar sekmesi hatası: {e_nav}")
 
-        # 5. Alternatif B: Arama kutusuna kanal adını yaz
+        # 5. Alternatif B: Arama kutusuna kanal / grup adını yaz
+        for modal_sel in [
+            'button:has-text("Tamam")',
+            'div[role="button"]:has-text("Tamam")',
+            'button:has-text("OK")',
+            'div[role="button"]:has-text("OK")',
+            'div[role="dialog"] button',
+        ]:
+            try:
+                mb = page.query_selector(modal_sel)
+                if mb and mb.is_visible():
+                    mb.click()
+                    time.sleep(1)
+            except Exception:
+                pass
+
         logger.info("Sol menüden arama kutusu ile aranıyor...")
         try:
             search_box = (
                 page.query_selector('div[contenteditable="true"][data-tab="3"]') or
+                page.query_selector('div[aria-label*="Arama"]') or
+                page.query_selector('div[aria-label*="Search"]') or
                 page.query_selector('button[aria-label*="Ara"]') or
-                page.query_selector('div[role="textbox"][data-tab="3"]')
+                page.query_selector('div[role="textbox"][data-tab="3"]') or
+                page.query_selector('p.selectable-text.copyable-text')
             )
             if search_box:
                 search_box.click()
@@ -361,7 +398,8 @@ class WhatsAppWebPublisher:
                 item = (
                     page.query_selector('span[title*="Kamu Personel"]') or
                     page.query_selector('div[role="listitem"]:has-text("Kamu Personel")') or
-                    page.query_selector('div[data-testid="cell-frame-container"]:has-text("Kamu Personel")')
+                    page.query_selector('div[data-testid="cell-frame-container"]:has-text("Kamu Personel")') or
+                    page.query_selector('div[role="gridcell"]:has-text("Kamu Personel")')
                 )
                 if item:
                     item.click()
