@@ -7,10 +7,25 @@ from loguru import logger
 from config.settings import settings
 from .models import Base, SystemSetting
 
+import os
+
+# Veritabanı URL çözümleme (Streamlit secrets, Ortam değişkeni ve postgres:// uyumluluğu)
+db_url = settings.DATABASE_URL
+try:
+    import streamlit as st
+    if hasattr(st, "secrets") and "DATABASE_URL" in st.secrets:
+        db_url = st.secrets["DATABASE_URL"]
+except Exception:
+    pass
+
+db_url = os.getenv("DATABASE_URL", db_url)
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 # Veritabanı motoru oluşturuluyor
-connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     connect_args=connect_args,
     echo=False
 )
