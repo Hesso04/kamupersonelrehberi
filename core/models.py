@@ -30,6 +30,7 @@ class Platform(str, enum.Enum):
     TELEGRAM = "TELEGRAM"
     WHATSAPP = "WHATSAPP"
     INSTAGRAM = "INSTAGRAM"
+    FACEBOOK = "FACEBOOK"
 
 
 class SystemSetting(Base):

@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from loguru import logger
 
-from core.database import get_db
+from core.database import get_db, get_system_setting
 from core.models import JobAnnouncement, JobStatus
 from graphics.generator import JobCardGenerator
 from .base import BasePublisher
@@ -16,8 +16,8 @@ class PublisherManager:
     """
     Tüm sosyal medya kanallarına gönderimi koordine eden merkezi servis.
     Eğer ilan görseli henüz üretilmemişse dinamik QR kod ile anında üretir,
-    seçilen platformlara (Telegram, WhatsApp, Instagram, Facebook) dağıtır
-    ve veritabanı durumunu günceller.
+    seçilen platformlara (Telegram, WhatsApp, Instagram, Facebook) dağıtır,
+    başarısızlık teşhisini saklar ve veritabanı durumunu günceller.
     """
 
     def __init__(self):
@@ -35,7 +35,7 @@ class PublisherManager:
     ) -> Dict[str, Tuple[bool, str]]:
         """
         Belirtilen ilanı seçilen kanallara gönderir.
-        Görsel kartı istenen tema ile (varsayılan: DARK_NOIR veya ayarlardaki tema) üretir.
+        Görsel kartı istenen tema ile (varsayılan: ROYAL_CRIMSON veya ayarlardaki tema) üretir.
         """
         results = {}
 
@@ -48,17 +48,14 @@ class PublisherManager:
             import re
             from pathlib import Path
             from graphics.generator import to_turkish_date_str, tr_title
-            from core.database import get_system_setting
 
-            # Unvan ve pozisyon temizliği (Örn: "23 SÖZLEŞMELİ PERSONEL Alımı" -> "Sözleşmeli Personel")
             pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
             pos_clean = re.sub(r"^\s*(\d+\s*)+", "", pos_src)
-            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", clean_pos if 'clean_pos' in locals() else pos_clean, flags=re.IGNORECASE)
+            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE)
             pos_clean = pos_clean.strip(" -:,")
             pos_clean = re.sub(r"\bpersoneli\b", "Personel", pos_clean, flags=re.IGNORECASE)
             job.position = tr_title(pos_clean) or "Kamu Personeli"
 
-            # Kontenjan sayısı
             all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", job.title)]
             if len(all_nums) > 1 and ("," in job.title or " ve " in job.title):
                 job.total_positions = sum(all_nums)
@@ -71,7 +68,11 @@ class PublisherManager:
             deadline_str = to_turkish_date_str(job.application_end_date)
 
             # Sosyal medya metnini her zaman kurumsal ve güncel olarak hazırla
-            pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi İlan Linki:</b> {job.source_url or 'https://kamuilan.sbb.gov.tr/'}"
+            clean_link = job.source_url or "https://kamuilan.sbb.gov.tr/"
+            if "ilanDetay.aspx" in clean_link:
+                clean_link = "https://kamuilan.sbb.gov.tr/"
+
+            pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi İlan Linki:</b> {clean_link}"
             job.social_post_text = (
                 f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
                 f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
@@ -85,9 +86,9 @@ class PublisherManager:
                 f"#KamuPersoneli #İlan #KamuAlımı"
             )
 
-            # 1. Otopilot ve her yayında görseli seçili temayla TAZE üret
+            # 1. Görseli seçili temayla TAZE üret
             try:
-                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
+                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
                 image_path = self.card_generator.generate_card(
                     job_id=job.id,
                     institution=job.institution or "Kamu Kurumu",
@@ -108,6 +109,7 @@ class PublisherManager:
 
             upper_channels = [c.upper() for c in channels]
             successful_channels = []
+            failed_channels_log = []
 
             # 2. Telegram Dağıtımı
             if "TELEGRAM" in upper_channels:
@@ -115,6 +117,8 @@ class PublisherManager:
                 results["TELEGRAM"] = (t_success, t_msg)
                 if t_success:
                     successful_channels.append("TELEGRAM")
+                else:
+                    failed_channels_log.append(f"Telegram: {t_msg}")
 
             # 3. WhatsApp Dağıtımı
             if "WHATSAPP" in upper_channels:
@@ -122,6 +126,8 @@ class PublisherManager:
                 results["WHATSAPP"] = (w_success, w_msg)
                 if w_success:
                     successful_channels.append("WHATSAPP")
+                else:
+                    failed_channels_log.append(f"WhatsApp: {w_msg}")
 
             # 4. Instagram Dağıtımı
             if "INSTAGRAM" in upper_channels:
@@ -129,6 +135,8 @@ class PublisherManager:
                 results["INSTAGRAM"] = (i_success, i_msg)
                 if i_success:
                     successful_channels.append("INSTAGRAM")
+                else:
+                    failed_channels_log.append(f"Instagram: {i_msg}")
 
             # 5. Facebook Sayfa Dağıtımı
             if "FACEBOOK" in upper_channels:
@@ -136,16 +144,55 @@ class PublisherManager:
                 results["FACEBOOK"] = (f_success, f_msg)
                 if f_success:
                     successful_channels.append("FACEBOOK")
+                else:
+                    failed_channels_log.append(f"Facebook: {f_msg}")
 
-            # Eğer en az bir kanalda başarıyla yayınlandıysa durumu PUBLISHED yap
+            # Durum Güncellemesi
+            current_channels = job.published_channels.split(",") if job.published_channels else []
+            for sc in successful_channels:
+                if sc not in current_channels:
+                    current_channels.append(sc)
+            job.published_channels = ",".join(current_channels)
+
             if successful_channels:
-                current_channels = job.published_channels.split(",") if job.published_channels else []
-                for sc in successful_channels:
-                    if sc not in current_channels:
-                        current_channels.append(sc)
-                job.published_channels = ",".join(current_channels)
                 job.status = JobStatus.PUBLISHED
                 job.published_at = datetime.utcnow()
-                db.commit()
+
+            if failed_channels_log:
+                err_summary = " | ".join(failed_channels_log)
+                job.admin_notes = f"[Kanal Hatası: {err_summary}]"
+            else:
+                job.admin_notes = "Tüm hedeflenen kanallarda başarıyla yayınlandı."
+
+            db.commit()
 
         return results
+
+    def publish_missing_channels(
+        self,
+        job_id: int,
+        target_channels: Optional[List[str]] = None,
+        theme: Optional[str] = None
+    ) -> Dict[str, Tuple[bool, str]]:
+        """
+        Bir ilan için henüz yayınlanmamış eksik kanalları tespit edip sadece onlara dağıtım yapar.
+        Örn: İlan Telegram'a gitmiş ama Instagram veya Facebook başarısız olmuşsa,
+        sadece Instagram ve Facebook'u yeniden dener, Telegram'a mükerrer mesaj atmaz.
+        """
+        with get_db() as db:
+            job = db.query(JobAnnouncement).filter(JobAnnouncement.id == job_id).first()
+            if not job:
+                return {"error": (False, f"İlan bulunamadı: ID {job_id}")}
+
+            cur_pub = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
+            
+            if not target_channels:
+                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
+                target_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
+
+            missing = [c for c in target_channels if c not in cur_pub]
+            if not missing:
+                return {"info": (True, "Tüm hedeflenen kanallarda zaten yayınlanmış.")}
+
+            logger.info(f"İlan #{job_id} için eksik kanallar tamamlanıyor: {missing}")
+            return self.publish_job(job_id=job_id, channels=missing, theme=theme)

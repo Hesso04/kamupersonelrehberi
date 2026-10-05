@@ -135,7 +135,7 @@ class BackgroundScheduler:
                 if not target_channels:
                     target_channels = ["TELEGRAM"]
 
-                default_theme = get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
+                default_theme = get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
                 logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels} (Tema: {default_theme})")
                 results = publisher.publish_job(j_id, channels=target_channels, theme=default_theme)
                 
@@ -150,6 +150,42 @@ class BackgroundScheduler:
                 logger.error(f"[OTOPİLOT] İlan #{j_id} işleme hatası: {ex}")
 
         return published_count
+
+    def sync_missing_channels(self, limit: int = 5) -> Dict[str, Any]:
+        """
+        Daha önce Telegram'a gitmiş ancak Instagram veya Facebook'a ulaştırılamamış
+        son yayınlanan ilanları tespit eder ve eksik kanalları tamamlar.
+        """
+        raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
+        configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
+        publisher = PublisherManager()
+        default_theme = get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
+
+        synced_count = 0
+        details = []
+
+        with get_db() as db:
+            recent_published = db.query(JobAnnouncement).filter(
+                JobAnnouncement.status == JobStatus.PUBLISHED
+            ).order_by(JobAnnouncement.id.desc()).limit(20).all()
+
+            target_jobs = []
+            for j in recent_published:
+                cur_pub = [c.strip().upper() for c in (j.published_channels or "").split(",") if c.strip()]
+                missing = [c for c in configured_channels if c not in cur_pub]
+                if missing:
+                    target_jobs.append((j.id, missing))
+                if len(target_jobs) >= limit:
+                    break
+
+        for j_id, missing in target_jobs:
+            res = publisher.publish_missing_channels(j_id, target_channels=missing, theme=default_theme)
+            any_succ = any(s for s, _ in res.values())
+            if any_succ:
+                synced_count += 1
+            details.append({"job_id": j_id, "missing": missing, "results": res})
+
+        return {"synced_count": synced_count, "details": details}
 
     def _worker(self):
         logger.info(f"Arka plan zamanlayıcı ve otopilot motoru başlatıldı. Tarama aralığı: {self.interval_minutes} dk.")

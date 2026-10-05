@@ -36,6 +36,7 @@ from publishers.telegram import TelegramPublisher
 from publishers.whatsapp import WhatsAppPublisher
 from publishers.instagram import InstagramPublisher
 from publishers.facebook import FacebookPublisher
+from publishers.meta_helper import MetaHelper
 
 
 def to_turkish_date_str(val) -> str:
@@ -256,9 +257,10 @@ if selected_pace != cur_pace:
     set_system_setting("AUTOPILOT_PACE_PRESET", selected_pace)
 
 st.sidebar.markdown("---")
-# Entegrasyon Durum Özeti
+# Entegrasyon Durum Özeti & Canlı Token Kontrolü
 groq_status = "🟢" if settings.active_groq_api_key else "🔴"
 telegram_status = "🟢" if (settings.active_telegram_bot_token and settings.active_telegram_channel_id) else "🔴"
+
 try:
     wp_check = WhatsAppPublisher()
     if wp_check.is_logged_in():
@@ -267,19 +269,32 @@ try:
         wa_status = "⚪ (Bağlantı Yok)"
 except Exception:
     wa_status = "⚪"
-try:
-    ig_check = InstagramPublisher()
-    ig_status = "🟢" if ig_check.is_configured else "⚪"
-except Exception:
-    ig_status = "⚪"
-try:
-    fb_check = FacebookPublisher()
-    fb_status = "🟢" if fb_check.is_configured else "⚪"
-except Exception:
-    fb_status = "⚪"
+
+@st.cache_data(ttl=60)
+def get_cached_meta_diagnosis(token: Optional[str]) -> dict:
+    if not token or not token.strip():
+        return {"is_valid": False, "is_configured": False, "status_code": "EMPTY", "message": "Belirteç tanımlı değil."}
+    return MetaHelper.diagnose_token(token)
+
+cur_meta_tok = get_system_setting("INSTAGRAM_ACCESS_TOKEN") or get_system_setting("FACEBOOK_ACCESS_TOKEN")
+meta_diag = get_cached_meta_diagnosis(cur_meta_tok)
+
+if not meta_diag.get("is_configured"):
+    ig_status = "⚪ (Ayar Yok)"
+    fb_status = "⚪ (Ayar Yok)"
+elif meta_diag.get("status_code") == "EXPIRED":
+    ig_status = "🔴 (Süresi Doldu)"
+    fb_status = "🔴 (Süresi Doldu)"
+elif not meta_diag.get("is_valid"):
+    ig_status = "🔴 (Hata)"
+    fb_status = "🔴 (Hata)"
+else:
+    ig_status = "🟢 (Aktif)"
+    fb_status = "🟢 (Aktif)"
 
 st.sidebar.markdown(f"**Groq AI:** {groq_status} | **Telegram:** {telegram_status}")
-st.sidebar.markdown(f"**Instagram:** {ig_status} | **Facebook:** {fb_status}")
+st.sidebar.markdown(f"**Instagram:** {ig_status}")
+st.sidebar.markdown(f"**Facebook:** {fb_status}")
 st.sidebar.markdown(f"**WhatsApp:** {wa_status}")
 
 st.sidebar.markdown("---")
@@ -302,6 +317,47 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
         'Metni düzenleyebilir, dinamik QR kodlu görseli kontrol edebilir ve seçtiğiniz kanallara (Telegram, WhatsApp, Instagram) dağıtabilirsiniz.</div>',
         unsafe_allow_html=True,
     )
+
+    # =========================================================================
+    # META TOKEN ACİL DURUM UYARI BARI (INSTAGRAM & FACEBOOK KESİNTİ BİLDİRİMİ)
+    # =========================================================================
+    if meta_diag.get("status_code") == "EXPIRED":
+        st.error(
+            "🚨 **DİKKAT: Meta (Instagram & Facebook) Erişim Belirtecinin (Access Token) Süresi Doldu!**\n\n"
+            "• **Durum:** Telegram otopilotu sorunsuz çalışıyor ancak Meta oturum süresi bittiği için Instagram ve Facebook akış paylaşımları durduruldu.\n"
+            "• **Hızlı Çözüm:** Meta for Developers panelinden yeni aldığınız belirteci aşağıdaki kutuya yapıştırıp 'Güncelle & Başlat'a tıklayın. Sistem anında tüm kanalları yeniden devreye sokacaktır."
+        )
+        c_q_tok, c_q_btn = st.columns([3.5, 1.2])
+        with c_q_tok:
+            new_quick_token = st.text_input(
+                "Yeni Meta Access Token",
+                placeholder="EAAXZAhM1NsdQ...",
+                type="password",
+                key="quick_meta_token_box",
+                label_visibility="collapsed"
+            )
+        with c_q_btn:
+            if st.button("⚡ Belirteci Güncelle & Başlat", type="primary", use_container_width=True, key="quick_save_meta_btn"):
+                if new_quick_token.strip():
+                    set_system_setting("INSTAGRAM_ACCESS_TOKEN", new_quick_token.strip(), is_secret=True)
+                    set_system_setting("FACEBOOK_ACCESS_TOKEN", new_quick_token.strip(), is_secret=True)
+                    st.cache_data.clear()
+                    st.success("✅ Yeni Meta Belirteci kaydedildi! Instagram ve Facebook akışı yeniden aktifleştirildi.")
+                    st.rerun()
+                else:
+                    st.warning("Lütfen yeni belirteci kutuya yapıştırın.")
+
+        with st.expander("📋 30 Saniyede Yeni Token Nasıl Alınır? (Rehber)"):
+            st.markdown("""
+            1. **[Meta for Developers - Graph API Explorer](https://developers.facebook.com/tools/explorer/)** sayfasına gidin.
+            2. Sağ üstten **Meta Uygulamanızı** seçin.
+            3. **User Token** seçiliyken şu izinlerin ekli olduğundan emin olun:
+               - `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`
+               - `instagram_basic`, `instagram_content_publish`
+            4. **Generate Access Token** butonuna tıklayıp onay verin.
+            5. Çıkan `EAA...` kodunu kopyalayıp yukarıdaki kutucuğa yapıştırın ve **⚡ Belirteci Güncelle & Başlat**'a basın!
+            """)
+        st.markdown("---")
 
     # =========================================================================
     # OTOPİLOT & MANUEL ONAY KONTROL BARI
@@ -351,7 +407,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     st.markdown("---")
 
     # Filtreleme ve Arama Barı
-    col_filter, col_search, col_actions = st.columns([2, 2, 2])
+    col_filter, col_search, col_actions = st.columns([2, 2, 2.4])
     with col_filter:
         status_filter = st.selectbox(
             "Durum Filtresi",
@@ -365,16 +421,16 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     with col_actions:
         st.write("")
         st.write("")
-        c_act1, c_act2 = st.columns(2)
+        c_act1, c_act2, c_act3 = st.columns(3)
         with c_act1:
-            if st.button("⚡ İlk 5 AI Formatla", use_container_width=True):
+            if st.button("⚡ AI Formatla", use_container_width=True, help="İlk 5 ilanı AI ile zenginleştirir"):
                 with st.spinner("Yapay zeka analiz ediyor..."):
                     processor = AIProcessor()
                     processed = processor.batch_process_pending(limit=5)
                     st.success(f"{len(processed)} ilan AI tarafından işlendi!")
                     st.rerun()
         with c_act2:
-            if st.button("🎨 İlk 5 Görsel Üret", use_container_width=True):
+            if st.button("🎨 Görsel Üret", use_container_width=True, help="İlk 5 ilan için yeni kart üretir"):
                 with st.spinner("Görsel kartlar üretiliyor..."):
                     generator = JobCardGenerator()
                     with get_db() as db:
@@ -401,6 +457,16 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                         db.commit()
                     st.success("5 adet yüksek çözünürlüklü kurumsal kart üretildi!")
                     st.rerun()
+        with c_act3:
+            if st.button("🔄 Eksikleri Eşitle", use_container_width=True, help="Daha önce sadece Telegram'a gitmiş son 5 ilanın eksik Instagram & Facebook paylaşımlarını tamamlar"):
+                with st.spinner("Eksik kanallar eşitleniyor..."):
+                    sync_info = scheduler.sync_missing_channels(limit=5)
+                    if sync_info["synced_count"] > 0:
+                        st.success(f"🎉 {sync_info['synced_count']} adet ilanın eksik Instagram & Facebook paylaşımları tamamlandı!")
+                    else:
+                        st.info("Eşitlenecek eksik kanal bulunamadı veya belirteç yenilenmesi gerekiyor.")
+                    st.rerun()
+
 
     # Kurum Türü Hızlı Filtresi
     inst_type = st.radio("Kurum Türü:", ["Tümü", "🏛 Üniversiteler", "🏢 Belediyeler", "🇹🇷 Bakanlıklar ve Genel Müdürlükler"], horizontal=True)
@@ -490,12 +556,33 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
             }.get(job.status, "badge-pending")
 
             with st.expander(f"#{job.id} | {job.institution or 'Kurum Belirtilmedi'} - {job.title[:80]}...", expanded=(job.id == jobs[0].id)):
+                cur_pub = (job.published_channels or "").upper()
+                is_tg = "TELEGRAM" in cur_pub
+                is_ig = "INSTAGRAM" in cur_pub
+                is_fb = "FACEBOOK" in cur_pub
+                is_wa = "WHATSAPP" in cur_pub
+
+                tag_tg = "🟢 ✈️ Telegram" if is_tg else "⚪ ✈️ Telegram"
+                tag_ig = "🟢 📸 Instagram" if is_ig else ("🔴 📸 Instagram" if is_tg else "⚪ 📸 Instagram")
+                tag_fb = "🟢 📘 Facebook" if is_fb else ("🔴 📘 Facebook" if is_tg else "⚪ 📘 Facebook")
+                tag_wa = "🟢 💬 WhatsApp" if is_wa else "⚪ 💬 WhatsApp"
+
                 st.markdown(
                     f'<span class="status-badge {badge_class}">{job.status.value}</span> '
-                    f'<b>Kaynak:</b> {job.source_name} | <b>Doğrulandı:</b> {"✅ Evet (.gov.tr)" if job.is_verified else "⚠️ Şüpheli"} '
-                    f'| <b>Yayınlanan Kanallar:</b> {job.published_channels or "Henüz yayınlanmadı"}',
+                    f'<b>Kaynak:</b> {job.source_name} | <b>Doğrulandı:</b> {"✅ Evet (.gov.tr)" if job.is_verified else "⚠️ Şüpheli"}<br>'
+                    f'<b>Kanal Dağıtımı:</b> <code>{tag_tg}</code> | <code>{tag_ig}</code> | <code>{tag_fb}</code> | <code>{tag_wa}</code>',
                     unsafe_allow_html=True,
                 )
+                if job.admin_notes and ("Hata" in job.admin_notes or "Kanal Hatası" in job.admin_notes):
+                    st.caption(f"⚠️ {job.admin_notes}")
+
+                if job.status == JobStatus.PUBLISHED and (not is_ig or not is_fb):
+                    if st.button(f"🔁 Sadece Eksik Kanallara Gönder (#{job.id} ➔ Instagram & Facebook)", key=f"btn_resync_{job.id}"):
+                        with st.spinner("Eksik kanallara dağıtılıyor..."):
+                            pm_res = PublisherManager().publish_missing_channels(job.id)
+                            st.success(f"Gönderim tamamlandı: {pm_res}")
+                            st.rerun()
+
                 st.write("")
 
                 c_left, c_right = st.columns([3, 2])
@@ -1036,10 +1123,14 @@ elif menu == "⚙️ Sistem & API Ayarları":
     cur_ig_acc_id = current_settings.get("INSTAGRAM_ACCOUNT_ID", {}).get("value", "")
     cur_fb_page_id = current_settings.get("FACEBOOK_PAGE_ID", {}).get("value", "1386232411235219")
     cur_fb_token = current_settings.get("FACEBOOK_ACCESS_TOKEN", {}).get("value", "")
-    cur_default_theme = current_settings.get("DEFAULT_CARD_THEME", {}).get("value", "DARK_NOIR")
+    cur_default_theme = current_settings.get("DEFAULT_CARD_THEME", {}).get("value", "ROYAL_CRIMSON")
 
-    # Sekmeli Yapı: 1. Ayarlar Formu, 2. İnteraktif Model Yanıt Test Laboratuvarı
-    tab_settings, tab_test = st.tabs(["⚙️ Yapılandırma ve Anahtarlar", "🧪 İnteraktif Model Yanıt Test Alanı (Playground)"])
+    # Sekmeli Yapı: 1. Ayarlar Formu, 2. Meta Token Asistanı, 3. İnteraktif Model Test Alanı
+    tab_settings, tab_meta, tab_test = st.tabs([
+        "⚙️ Genel Yapılandırma ve Anahtarlar",
+        "🔑 Meta (Instagram & Facebook) Token Asistanı",
+        "🧪 İnteraktif Model Yanıt Test Alanı (Playground)"
+    ])
 
     with tab_settings:
         with st.form("settings_form"):
@@ -1407,7 +1498,97 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 st.rerun()
 
     # =========================================================================
-    # TAB 2: İNTERAKTİF MODEL TEST ALANI (PLAYGROUND)
+    # TAB 2: META (INSTAGRAM & FACEBOOK) TOKEN ASİSTANI
+    # =========================================================================
+    with tab_meta:
+        st.subheader("🔑 Meta (Instagram Business & Facebook Sayfası) Token Asistanı")
+        st.markdown(
+            "Meta Graph API belirteçlerinin süresini denetleyin, kısa ömürlü belirteçleri **60 günlük veya kalıcı** "
+            "belirteçlere dönüştürün ve sayfanıza bağlı Instagram hesaplarını tek tıkla otomatik bağlayın."
+        )
+
+        col_m_diag, col_m_help = st.columns([3, 2])
+        with col_m_diag:
+            st.markdown("##### 1. Canlı Belirteç Teşhis ve Sağlık Kontrolü")
+            inspect_tok = st.text_input(
+                "İncelenecek Meta Access Token (Boş bırakılırsa kayıtlı belirteç test edilir)",
+                type="password",
+                key="input_inspect_meta_token"
+            )
+            target_t = inspect_tok.strip() if inspect_tok.strip() else cur_ig_token
+
+            if st.button("🔍 Belirteci Derinlemesine İncele & Doğrula", key="btn_inspect_token", use_container_width=True):
+                with st.spinner("Meta Graph API ile doğrulanıyor..."):
+                    diag_res = MetaHelper.diagnose_token(target_t)
+                    if diag_res["is_valid"]:
+                        st.success(f"✅ {diag_res['message']} | Tür: {diag_res.get('type')}")
+                    elif diag_res.get("status_code") == "EXPIRED":
+                        st.error(f"❌ {diag_res['message']}")
+                        st.caption(f"Meta Ham Yanıtı: `{diag_res.get('raw_error')}`")
+                    else:
+                        st.warning(f"⚠️ {diag_res['message']}")
+
+            st.markdown("---")
+            st.markdown("##### 2. Otomatik Varlık Keşfi (Sayfa & Instagram ID Bulucu)")
+            st.caption("Belirtecinize bağlı tüm Facebook Sayfalarını ve Instagram İşletme Hesaplarını otomatik tespit eder.")
+            if st.button("🚀 Bağlı Sayfa ve Instagram Hesaplarını Keşfet", key="btn_discover_assets", use_container_width=True):
+                with st.spinner("Hesaplar taranıyor..."):
+                    disc = MetaHelper.discover_connected_assets(target_t)
+                    if disc.get("error"):
+                        st.error(f"Hata: {disc['error']}")
+                    else:
+                        pages = disc.get("pages", [])
+                        igs = disc.get("instagram_accounts", [])
+                        st.success(f"Bulunan Facebook Sayfası: {len(pages)} adet | Instagram Hesabı: {len(igs)} adet")
+                        
+                        if igs:
+                            for ig in igs:
+                                st.info(f"📸 **@{ig['username']}** ({ig.get('name')}) — Instagram ID: `{ig['id']}` (Sayfa: {ig['page_name']})")
+                                if st.button(f"✅ @{ig['username']} Hesabını Sisteme Tanımla", key=f"apply_ig_{ig['id']}"):
+                                    set_system_setting("INSTAGRAM_ACCOUNT_ID", str(ig['id']))
+                                    set_system_setting("FACEBOOK_PAGE_ID", str(ig['page_id']))
+                                    st.success(f"Instagram ID `{ig['id']}` ve Facebook Page ID `{ig['page_id']}` kaydedildi!")
+                                    st.rerun()
+                        elif pages:
+                            for p in pages:
+                                st.info(f"📘 **{p['name']}** — Sayfa ID: `{p['id']}`")
+                                if st.button(f"✅ {p['name']} Sayfasını Tanımla", key=f"apply_pg_{p['id']}"):
+                                    set_system_setting("FACEBOOK_PAGE_ID", str(p['id']))
+                                    if p.get("page_token"):
+                                        set_system_setting("FACEBOOK_ACCESS_TOKEN", p["page_token"], is_secret=True)
+                                    st.success(f"Facebook Sayfası `{p['name']}` kaydedildi!")
+                                    st.rerun()
+                        else:
+                            st.warning("Bu belirtece bağlı yönetici olduğunuz bir Facebook Sayfası bulunamadı.")
+
+        with col_m_help:
+            st.markdown("##### 3. 60 Günlük / Kalıcı Belirteç Dönüştürücü")
+            st.caption("Meta Graph API Explorer'dan aldığınız 1-2 saatlik belirteci 60 güne uzatın.")
+            
+            with st.form("long_lived_token_form"):
+                in_app_id = st.text_input("Meta App ID", placeholder="Örn: 123456789012345")
+                in_app_sec = st.text_input("Meta App Secret", placeholder="Örn: a1b2c3d4e5f6...", type="password")
+                in_short_tok = st.text_input("Kısa Ömürlü Token", value=target_t, type="password")
+                
+                btn_convert = st.form_submit_button("🚀 60 Günlük Belirtece Dönüştür & Kaydet", type="primary", use_container_width=True)
+                if btn_convert:
+                    with st.spinner("Meta OAuth ile dönüştürülüyor..."):
+                        ok_ex, msg_ex, new_tok = MetaHelper.exchange_to_long_lived_token(in_short_tok, in_app_id, in_app_sec)
+                        if ok_ex and new_tok:
+                            set_system_setting("INSTAGRAM_ACCESS_TOKEN", new_tok, is_secret=True)
+                            set_system_setting("FACEBOOK_ACCESS_TOKEN", new_tok, is_secret=True)
+                            st.success(f"🎉 {msg_ex}")
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {msg_ex}")
+
+            st.markdown("""
+            > **İpucu:** Uzun ömürlü belirteç aldığınızda, sistem Facebook Sayfa belirtecinizi **hiç süresi dolmayan (kalıcı)** modda kullanabilir.
+            """)
+
+    # =========================================================================
+    # TAB 3: İNTERAKTİF MODEL TEST ALANI (PLAYGROUND)
     # =========================================================================
     with tab_test:
         st.subheader("🧪 Canlı Yapay Zeka Model Test Laboratuvarı")
