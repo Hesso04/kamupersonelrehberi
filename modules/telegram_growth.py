@@ -178,21 +178,26 @@ def telegram_buyutme_modulu():
         st.subheader("📱 Telegram MTProto Oturum Yönetimi")
         st.caption("Telegram hesabınızı API ID ve Hash ile güvenli şekilde bağlayın. Oturum yerel `data/sessions/` dizininde saklanır.")
 
+        from core.database import get_system_setting, set_system_setting
+
+        db_api_id = get_system_setting("TELEGRAM_API_ID", "37415817")
+        db_api_hash = get_system_setting("TELEGRAM_API_HASH", "c383d82fa1164039d3735ce3285c368a")
+
         col_cred1, col_cred2 = st.columns(2)
         with col_cred1:
             api_id_input = st.text_input(
                 "Telegram API ID",
-                value=st.session_state.get("tg_saved_api_id", ""),
-                placeholder="Örn: 28491823",
-                help="my.telegram.org adresinden temin edeceğiniz sayısal API ID."
+                value=st.session_state.get("tg_saved_api_id", "") or db_api_id,
+                placeholder="Örn: 37415817",
+                help="my.telegram.org adresinden temin ettiğiniz sayısal API ID."
             )
         with col_cred2:
             api_hash_input = st.text_input(
                 "Telegram API Hash",
-                value=st.session_state.get("tg_saved_api_hash", ""),
+                value=st.session_state.get("tg_saved_api_hash", "") or db_api_hash,
                 type="password",
-                placeholder="Örn: 9a7b6c5d4e3f21...",
-                help="my.telegram.org adresinden temin edeceğiniz 32 karakterlik API Hash."
+                placeholder="Örn: c383d82fa116...",
+                help="my.telegram.org adresinden temin ettiğiniz 32 karakterlik API Hash."
             )
 
         # Bilgi Kılavuzu Accordion
