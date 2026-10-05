@@ -16,18 +16,10 @@ import os
 import random
 import time
 from datetime import datetime
-from pathlib import Path
+import threading
+import concurrent.futures
 from typing import List, Dict, Any, Optional
 
-try:
-    import nest_asyncio
-except ImportError:
-    try:
-        from modules import nest_asyncio
-    except ImportError:
-        import sys
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import nest_asyncio
 import pandas as pd
 import streamlit as st
 from telethon import TelegramClient
@@ -57,33 +49,40 @@ from telethon.tl.types import (
 )
 
 # =============================================================================
-# ASYNCIO / STREAMLIT DÖNGÜ (EVENT LOOP) YÖNETİMİ
+# ASYNCIO / STREAMLIT DÖNGÜ YÖNETİMİ (UVICORN / ANYIO UYUMLU İZOLE THREAD)
 # =============================================================================
-# Streamlit iş parçacıklarında (threads) asyncio çakışmalarını önlemek için nest_asyncio'yu uygula
-nest_asyncio.apply()
-
 SESSION_DIR = Path("data/sessions")
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_FILE_PREFIX = str(SESSION_DIR / "telethon_growth_session")
 
 
-def _get_or_create_event_loop() -> asyncio.AbstractEventLoop:
-    """Streamlit thread'i için güvenli asyncio event loop döndürür veya oluşturur."""
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    if loop.is_closed():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return loop
+class AsyncLoopThread:
+    """Telethon için izole tek bir event loop thread'i çalıştırır. Uvicorn/AnyIO ile asla çakışmaz."""
+    _instance = None
+    _lock = threading.Lock()
+
+    def __init__(self):
+        self.loop = asyncio.new_event_loop()
+        self.thread = threading.Thread(target=self._run, daemon=True, name="TelethonLoopThread")
+        self.thread.start()
+
+    def _run(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
+    @classmethod
+    def get_loop(cls):
+        with cls._lock:
+            if cls._instance is None or not cls._instance.thread.is_alive():
+                cls._instance = cls()
+            return cls._instance.loop
 
 
 def run_async(coro):
-    """Asenkron coroutine'leri Streamlit ortamında senkron ve güvenli çalıştırır."""
-    loop = _get_or_create_event_loop()
-    return loop.run_until_complete(coro)
+    """Asenkron coroutine'leri Streamlit ve AnyIO ortamında thread-safe çalıştırır."""
+    loop = AsyncLoopThread.get_loop()
+    future = asyncio.run_coroutine_threadsafe(coro, loop)
+    return future.result()
 
 
 # =============================================================================
@@ -91,7 +90,8 @@ def run_async(coro):
 # =============================================================================
 async def _init_client(api_id: int, api_hash: str) -> TelegramClient:
     """Oturum dosyasını kullanarak veya yenisini açarak Telethon client üretir."""
-    client = TelegramClient(SESSION_FILE_PREFIX, api_id, api_hash.strip())
+    loop = AsyncLoopThread.get_loop()
+    client = TelegramClient(SESSION_FILE_PREFIX, api_id, api_hash.strip(), loop=loop)
     if not client.is_connected():
         await client.connect()
     return client

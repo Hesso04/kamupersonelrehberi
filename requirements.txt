@@ -25,7 +25,6 @@ pillow>=10.3.0
 # Sosyal Medya & Dağıtım Entegrasyonları
 python-telegram-bot>=21.0
 telethon>=1.35.0
-nest-asyncio>=1.6.0
 playwright>=1.44.0
 
 # Loglama ve Yardımcı Araçlar
