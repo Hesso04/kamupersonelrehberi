@@ -77,14 +77,31 @@ class BackgroundScheduler:
                     if job and not job.social_post_text:
                         ai_processor.process_job(job.id)
 
-                # 2. Seçili aktif kanallarda (Telegram vb.) yayınla
-                results = publisher.publish_job(j_id, channels=["TELEGRAM"])
-                t_success, t_msg = results.get("TELEGRAM", (False, ""))
-                if t_success:
+                # 2. Seçili aktif kanallarda (Telegram, Instagram, WhatsApp) yayınla
+                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,WHATSAPP")
+                configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
+
+                target_channels = []
+                if "TELEGRAM" in configured_channels:
+                    target_channels.append("TELEGRAM")
+                if "INSTAGRAM" in configured_channels and getattr(publisher.instagram, "is_configured", False):
+                    target_channels.append("INSTAGRAM")
+                if "WHATSAPP" in configured_channels and (publisher.whatsapp.is_logged_in() or (publisher.whatsapp.token and publisher.whatsapp.phone_number_id)):
+                    target_channels.append("WHATSAPP")
+
+                if not target_channels:
+                    target_channels = ["TELEGRAM"]
+
+                logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels}")
+                results = publisher.publish_job(j_id, channels=target_channels)
+                
+                # Herhangi bir kanalda başarı sağlandıysa başarılı say
+                any_success = any(succ for succ, _ in results.values())
+                if any_success:
                     published_count += 1
-                    logger.info(f"[OTOPİLOT] İlan #{j_id} başarıyla otomatik yayınlandı: {t_msg}")
+                    logger.info(f"[OTOPİLOT] İlan #{j_id} başarıyla otomatik yayınlandı: {results}")
                 else:
-                    logger.warning(f"[OTOPİLOT] İlan #{j_id} yayınlanamadı: {t_msg}")
+                    logger.warning(f"[OTOPİLOT] İlan #{j_id} yayınlanamadı: {results}")
             except Exception as ex:
                 logger.error(f"[OTOPİLOT] İlan #{j_id} işleme hatası: {ex}")
 
@@ -111,10 +128,10 @@ class BackgroundScheduler:
 
                 # 2. Otopilot Motoru (Manuel Onay Kapalıysa Bekleyen Doğrulanmış İlanları Otomatik Yayınla)
                 if not manual_mode:
-                    # Sıradaki ilanı güvenle Telegram'a aktar
+                    # Sıradaki ilanı güvenle seçilen kanallara aktar
                     pub_count = self.run_autopilot_publish(limit=1)
                     if pub_count > 0:
-                        logger.info("[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Telegram hız limiti için 5 sn bekleniyor...")
+                        logger.info("[OTOPİLOT] 1 ilan başarıyla kanallara paylaşıldı. Kanallar arası hız limiti için 5 sn bekleniyor...")
                         if self._stop_event.wait(timeout=5):
                             break
                         continue

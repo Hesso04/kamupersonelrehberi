@@ -25,6 +25,10 @@ class InstagramPublisher(BasePublisher):
     def account_id(self) -> Optional[str]:
         return settings.get_dynamic("INSTAGRAM_ACCOUNT_ID")
 
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.access_token and self.account_id)
+
     def test_connection(self) -> Tuple[bool, str]:
         """Instagram Graph API erişimini ve hesap adını test eder."""
         if not self.access_token:

@@ -149,12 +149,11 @@ menu = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 # Arka Plan Zamanlayıcı Kontrolü
-# Arka Plan Zamanlayıcı Kontrolü
 if not scheduler.is_running:
     scheduler.start(interval_minutes=30)
 
 sched_status = scheduler.get_status()
-st.sidebar.subheader("⏰ Otomatik Tarayıcı")
+st.sidebar.subheader("⏰ Otomatik Tarayıcı & Otopilot")
 if sched_status["is_running"]:
     st.sidebar.success("🟢 Otomatik Tarama & Otopilot Açık")
     if st.sidebar.button("⏹️ Otomasyonu Durdur", use_container_width=True):
@@ -166,12 +165,38 @@ else:
         scheduler.start(interval_minutes=30)
         st.rerun()
 
+# Otopilot Dağıtım Kanalları
+cur_ap_raw = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,WHATSAPP")
+cur_ap_list = [c.strip().upper() for c in cur_ap_raw.split(",") if c.strip()]
+selected_ap_channels = st.sidebar.multiselect(
+    "📢 Otopilot Dağıtım Kanalları",
+    options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+    default=cur_ap_list if cur_ap_list else ["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+    format_func=lambda x: {
+        "TELEGRAM": "✈️ Telegram Kanalı",
+        "INSTAGRAM": "📸 Instagram",
+        "WHATSAPP": "💬 WhatsApp Kanalı"
+    }.get(x, x),
+    help="Otopilot aktifken yeni ilanların eşzamanlı yayınlanacağı kanallar."
+)
+new_ap_str = ",".join(selected_ap_channels)
+if new_ap_str != cur_ap_raw:
+    set_system_setting("AUTOPILOT_CHANNELS", new_ap_str)
+
 st.sidebar.markdown("---")
 # Entegrasyon Durum Özeti
 groq_status = "🟢" if settings.active_groq_api_key else "🔴"
 telegram_status = "🟢" if (settings.active_telegram_bot_token and settings.active_telegram_channel_id) else "🔴"
-wa_status = "🟢" if settings.get_dynamic("WHATSAPP_ACCESS_TOKEN") else "⚪"
-ig_status = "🟢" if settings.get_dynamic("INSTAGRAM_ACCESS_TOKEN") else "⚪"
+try:
+    wp_check = WhatsAppPublisher()
+    wa_status = "🟢" if wp_check.is_logged_in() else "⚪"
+except Exception:
+    wa_status = "⚪"
+try:
+    ig_check = InstagramPublisher()
+    ig_status = "🟢" if ig_check.is_configured else "⚪"
+except Exception:
+    ig_status = "⚪"
 
 st.sidebar.markdown(f"**Groq AI:** {groq_status} | **Telegram:** {telegram_status}")
 st.sidebar.markdown(f"**WhatsApp:** {wa_status} | **Instagram:** {ig_status}")
@@ -199,7 +224,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
         is_manual_active = st.toggle(
             "🛡️ Manuel Onay Modu (İlanlar yayınlanmadan önce yönetici onayı beklesin)",
             value=manual_mode_setting,
-            help="Açıkken: İlanlar bu havuza düşer ve onaylamanızı bekler. Kapalıyken: Güvenilir .gov.tr kaynaklı yeni ilanlar AI tarafından işlenir, görseli ve PDF'iyle birlikte Telegram'a otomatik yayınlanır."
+            help="Açıkken: İlanlar bu havuza düşer ve onaylamanızı bekler. Kapalıyken: Güvenilir .gov.tr kaynaklı yeni ilanlar AI tarafından işlenir, afişiyle birlikte Telegram, Instagram ve WhatsApp kanallarına eşzamanlı otomatik yayınlanır."
         )
         if is_manual_active != manual_mode_setting:
             set_system_setting("MANUAL_APPROVAL_REQUIRED", "true" if is_manual_active else "false")
@@ -209,17 +234,22 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
 
     with col_mode_action:
         if not is_manual_active:
-            if st.button("🚀 Otopilotu Şimdi Çalıştır (Bekleyenleri Otomatik Yayınla)", use_container_width=True, type="primary"):
-                with st.spinner("Otopilot devrede: Doğrulanmış ilanlar Telegram'a aktarılıyor..."):
+            if st.button("🚀 Otopilotu Şimdi Çalıştır (Bekleyenleri Kanallara Dağıt)", use_container_width=True, type="primary"):
+                with st.spinner("Otopilot devrede: Doğrulanmış ilanlar Telegram, WhatsApp ve Instagram'a aktarılıyor..."):
                     pub_count = scheduler.trigger_autopilot_now(limit=5)
                     if pub_count > 0:
-                        st.success(f"{pub_count} adet yeni ilan başarıyla otomatik yayınlandı!")
+                        st.success(f"{pub_count} adet yeni ilan başarıyla seçili kanallara otomatik yayınlandı!")
                     else:
                         st.info("Yayınlanacak bekleyen doğrulanmış ilan bulunamadı.")
                     st.rerun()
 
     if not is_manual_active:
-        st.success("🟢 **OTOPİLOT AKTİF:** Manuel onay kapalı. Doğrulanmış (.gov.tr) kaynaklı ilanlar arka planda otomatik olarak Türkçe afişi ve PDF kılavuzuyla Telegram'a yayınlanmaktadır.")
+        active_ch_names = []
+        if "TELEGRAM" in selected_ap_channels: active_ch_names.append("✈️ Telegram")
+        if "WHATSAPP" in selected_ap_channels: active_ch_names.append("💬 WhatsApp")
+        if "INSTAGRAM" in selected_ap_channels: active_ch_names.append("📸 Instagram")
+        ch_text = ", ".join(active_ch_names) if active_ch_names else "Seçili kanal yok"
+        st.success(f"🟢 **OTOPİLOT AKTİF:** Manuel onay kapalı. Doğrulanmış (.gov.tr) kaynaklı ilanlar arka planda otomatik olarak **{ch_text}** kanallarına yayınlanmaktadır.")
     else:
         st.info("🛡️ **MANUEL ONAY AKTİF:** Yeni gelen ilanlar sosyal kanallara dağıtılmadan önce bu onay havuzunda insan denetiminden geçer.")
 
@@ -992,6 +1022,11 @@ elif menu == "⚙️ Sistem & API Ayarları":
                         wp.logout()
                         st.info("WhatsApp oturumu kapatıldı.")
                         st.rerun()
+
+                debug_img_path = Path("graphics/assets/wa_debug.png")
+                if debug_img_path.exists():
+                    with st.expander("🔍 WhatsApp Web Ekran Görüntüsü / Canlı Durum Teşhisi"):
+                        st.image(str(debug_img_path), caption="Son WhatsApp Web Ekran Görüntüsü", use_container_width=True)
             else:
                 st.warning("🟠 Oturum Kapalı / QR Bekleniyor")
                 st.caption(f"Hedef Kanal: `{cur_wa_phone_id or '0029Vb8mg1DFsn0nmDsQxF1K'}`")
