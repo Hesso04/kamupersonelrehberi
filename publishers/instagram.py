@@ -49,7 +49,16 @@ class InstagramPublisher(BasePublisher):
                 username = data.get("username", "Bilinmeyen")
                 return True, f"Bağlantı Başarılı! Instagram Hesabı: @{username}"
             else:
-                return False, f"Instagram Hatası (HTTP {r.status_code}): {r.text}"
+                err_data = {}
+                try:
+                    err_data = r.json().get("error", {})
+                except Exception:
+                    pass
+                msg = err_data.get("message", r.text)
+                code = err_data.get("code")
+                if code == 190 or "expired" in msg.lower():
+                    return False, f"Instagram Erişim Belirtecinizin (Access Token) süresi dolmuş. Meta for Developers panelinizden yeni bir belirteç alıp kaydediniz. (Detay: {msg})"
+                return False, f"Instagram Hatası (HTTP {r.status_code}): {msg}"
         except Exception as e:
             return False, f"Instagram Bağlantı Hatası: {str(e)}"
 
