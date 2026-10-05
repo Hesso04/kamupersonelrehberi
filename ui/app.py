@@ -37,6 +37,7 @@ from publishers.whatsapp import WhatsAppPublisher
 from publishers.instagram import InstagramPublisher
 from publishers.facebook import FacebookPublisher
 from publishers.meta_helper import MetaHelper
+from modules.telegram_growth import telegram_buyutme_modulu
 
 
 def to_turkish_date_str(val) -> str:
@@ -200,6 +201,7 @@ menu = st.sidebar.radio(
         "🤖 AI Doğrulanmış İlan Danışmanı & Arama",
         "📊 Gösterge Paneli (Dashboard)",
         "🌐 İlan Tarayıcı & Manuel Ekle",
+        "🚀 Telegram Kanal Büyütme & Üye Çekme",
         "⚙️ Sistem & API Ayarları",
     ],
     index=0,
@@ -451,7 +453,8 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 education_level=tj.education_level,
                                 deadline=d_txt,
                                 source_url=tj.source_url,
-                                has_pdf=has_pdf
+                                has_pdf=has_pdf,
+                                title=tj.title or ""
                             )
                             tj.image_path = str(c_path)
                         db.commit()
@@ -732,7 +735,8 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 deadline=deadline_txt,
                                 source_url=job.source_url,
                                 has_pdf=has_pdf_file,
-                                theme=selected_job_theme
+                                theme=selected_job_theme,
+                                title=job.title or ""
                             )
                             with get_db() as db:
                                 target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
@@ -1086,6 +1090,13 @@ elif menu == "🌐 İlan Tarayıcı & Manuel Ekle":
                     processor.process_job(new_id)
 
                     st.success(f"İlan #{new_id} başarıyla eklendi ve AI tarafından işlendi! 'Onay Havuzu' sekmesinden kontrol edebilirsiniz.")
+
+
+# =============================================================================
+# MODÜL: TELEGRAM KANAL BÜYÜTME & AKTİF ÜYE ÇEKME
+# =============================================================================
+elif menu == "🚀 Telegram Kanal Büyütme & Üye Çekme":
+    telegram_buyutme_modulu()
 
 
 # =============================================================================

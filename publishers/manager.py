@@ -88,7 +88,7 @@ class PublisherManager:
 
             # 1. Görseli seçili temayla TAZE üret
             try:
-                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
+                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
                 image_path = self.card_generator.generate_card(
                     job_id=job.id,
                     institution=job.institution or "Kamu Kurumu",
@@ -99,7 +99,8 @@ class PublisherManager:
                     deadline=deadline_str,
                     source_url=job.source_url,
                     has_pdf=has_pdf,
-                    theme=card_theme
+                    theme=card_theme,
+                    title=job.title or ""
                 )
                 job.image_path = str(image_path)
             except Exception as e:

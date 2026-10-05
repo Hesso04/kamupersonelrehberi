@@ -135,7 +135,7 @@ class BackgroundScheduler:
                 if not target_channels:
                     target_channels = ["TELEGRAM"]
 
-                default_theme = get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
+                default_theme = get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
                 logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels} (Tema: {default_theme})")
                 results = publisher.publish_job(j_id, channels=target_channels, theme=default_theme)
                 
@@ -159,7 +159,7 @@ class BackgroundScheduler:
         raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
         configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
         publisher = PublisherManager()
-        default_theme = get_system_setting("DEFAULT_CARD_THEME", "ROYAL_CRIMSON")
+        default_theme = get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
 
         synced_count = 0
         details = []
