@@ -37,7 +37,6 @@ from publishers.whatsapp import WhatsAppPublisher
 from publishers.instagram import InstagramPublisher
 from publishers.facebook import FacebookPublisher
 from publishers.meta_helper import MetaHelper
-from modules.telegram_growth import telegram_buyutme_modulu
 
 
 def to_turkish_date_str(val) -> str:
@@ -1096,7 +1095,12 @@ elif menu == "🌐 İlan Tarayıcı & Manuel Ekle":
 # MODÜL: TELEGRAM KANAL BÜYÜTME & AKTİF ÜYE ÇEKME
 # =============================================================================
 elif menu == "🚀 Telegram Kanal Büyütme & Üye Çekme":
-    telegram_buyutme_modulu()
+    try:
+        from modules.telegram_growth import telegram_buyutme_modulu
+        telegram_buyutme_modulu()
+    except Exception as ex:
+        st.error(f"Telegram Büyütme Modülü yüklenirken bir hata oluştu: {ex}")
+        st.info("Kütüphanelerin güncellenmesi için sağ alttaki 'Manage app' -> 'Reboot app' butonuna tıklayabilirsiniz.")
 
 
 # =============================================================================

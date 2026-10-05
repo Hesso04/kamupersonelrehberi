@@ -19,7 +19,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-import nest_asyncio
+try:
+    import nest_asyncio
+except ImportError:
+    try:
+        from modules import nest_asyncio
+    except ImportError:
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import nest_asyncio
 import pandas as pd
 import streamlit as st
 from telethon import TelegramClient
