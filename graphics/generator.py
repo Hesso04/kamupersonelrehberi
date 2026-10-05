@@ -312,19 +312,43 @@ class JobCardGenerator:
         self.assets_dir.mkdir(parents=True, exist_ok=True)
         self.logo_path = self.assets_dir / "logo.png"
 
-        # Windows Font Tanımları
-        self.font_bold_path = Path("C:/Windows/Fonts/segoeuib.ttf")
-        self.font_regular_path = Path("C:/Windows/Fonts/segoeui.ttf")
+        # Font Tanımları (Öncelik: Proje içi gömülü fontlar -> Windows fontları -> Linux fontları)
+        bundled_bold = self.assets_dir / "fonts" / "font_bold.ttf"
+        bundled_reg = self.assets_dir / "fonts" / "font.ttf"
 
-        if not self.font_bold_path.exists():
+        if bundled_bold.exists() and bundled_reg.exists():
+            self.font_bold_path = bundled_bold
+            self.font_regular_path = bundled_reg
+        elif Path("C:/Windows/Fonts/segoeuib.ttf").exists():
+            self.font_bold_path = Path("C:/Windows/Fonts/segoeuib.ttf")
+            self.font_regular_path = Path("C:/Windows/Fonts/segoeui.ttf")
+        elif Path("C:/Windows/Fonts/arialbd.ttf").exists():
             self.font_bold_path = Path("C:/Windows/Fonts/arialbd.ttf")
             self.font_regular_path = Path("C:/Windows/Fonts/arial.ttf")
+        elif Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf").exists():
+            self.font_bold_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+            self.font_regular_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+        else:
+            self.font_bold_path = bundled_bold
+            self.font_regular_path = bundled_reg
 
     def _get_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
         path = self.font_bold_path if bold else self.font_regular_path
         try:
             return ImageFont.truetype(str(path), size=size)
         except Exception:
+            for alt in [
+                self.assets_dir / "fonts" / "font_bold.ttf",
+                self.assets_dir / "fonts" / "font.ttf",
+                Path("C:/Windows/Fonts/arialbd.ttf"),
+                Path("C:/Windows/Fonts/arial.ttf"),
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            ]:
+                if alt.exists():
+                    try:
+                        return ImageFont.truetype(str(alt), size=size)
+                    except Exception:
+                        pass
             return ImageFont.load_default()
 
     def _wrap_text(self, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> List[str]:
