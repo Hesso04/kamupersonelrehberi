@@ -24,7 +24,7 @@ from core.database import (
     get_system_setting,
 )
 from core.models import JobAnnouncement, JobStatus, Platform
-from core.scheduler import scheduler
+from core.scheduler import scheduler, AUTOPILOT_PACE_PRESETS
 from scrapers.manager import ScraperManager
 from ai.processor import AIProcessor
 from ai.groq_client import GroqClient
@@ -35,6 +35,7 @@ from publishers.manager import PublisherManager
 from publishers.telegram import TelegramPublisher
 from publishers.whatsapp import WhatsAppPublisher
 from publishers.instagram import InstagramPublisher
+from publishers.facebook import FacebookPublisher
 
 
 def to_turkish_date_str(val) -> str:
@@ -222,15 +223,16 @@ else:
         st.rerun()
 
 # Otopilot Dağıtım Kanalları
-cur_ap_raw = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM")
+cur_ap_raw = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
 cur_ap_list = [c.strip().upper() for c in cur_ap_raw.split(",") if c.strip()]
 selected_ap_channels = st.sidebar.multiselect(
     "📢 Otopilot Dağıtım Kanalları",
-    options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
-    default=cur_ap_list if cur_ap_list else ["TELEGRAM", "INSTAGRAM"],
+    options=["TELEGRAM", "INSTAGRAM", "FACEBOOK", "WHATSAPP"],
+    default=[c for c in cur_ap_list if c in ["TELEGRAM", "INSTAGRAM", "FACEBOOK", "WHATSAPP"]],
     format_func=lambda x: {
         "TELEGRAM": "✈️ Telegram Kanalı",
         "INSTAGRAM": "📸 Instagram",
+        "FACEBOOK": "📘 Facebook Sayfası",
         "WHATSAPP": "💬 WhatsApp (Otomatik Bot)"
     }.get(x, x),
     help="Otopilot aktifken yeni ilanların otomatik yayınlanacağı kanallar."
@@ -238,6 +240,20 @@ selected_ap_channels = st.sidebar.multiselect(
 new_ap_str = ",".join(selected_ap_channels)
 if new_ap_str != cur_ap_raw:
     set_system_setting("AUTOPILOT_CHANNELS", new_ap_str)
+
+# Otopilot Paylaşım Temposu (Anti-Spam Koruması)
+cur_pace = get_system_setting("AUTOPILOT_PACE_PRESET", "1_PER_HOUR")
+pace_keys = list(AUTOPILOT_PACE_PRESETS.keys())
+p_idx = pace_keys.index(cur_pace) if cur_pace in pace_keys else 0
+selected_pace = st.sidebar.selectbox(
+    "⏱️ Otopilot Temposu (Spam Koruması)",
+    options=pace_keys,
+    index=p_idx,
+    format_func=lambda k: AUTOPILOT_PACE_PRESETS[k]["short_name"],
+    help="Sosyal medya platformlarının spam filtrelerine takılmamak için ilanlar arası bekleme aralığı."
+)
+if selected_pace != cur_pace:
+    set_system_setting("AUTOPILOT_PACE_PRESET", selected_pace)
 
 st.sidebar.markdown("---")
 # Entegrasyon Durum Özeti
@@ -256,10 +272,15 @@ try:
     ig_status = "🟢" if ig_check.is_configured else "⚪"
 except Exception:
     ig_status = "⚪"
+try:
+    fb_check = FacebookPublisher()
+    fb_status = "🟢" if fb_check.is_configured else "⚪"
+except Exception:
+    fb_status = "⚪"
 
 st.sidebar.markdown(f"**Groq AI:** {groq_status} | **Telegram:** {telegram_status}")
+st.sidebar.markdown(f"**Instagram:** {ig_status} | **Facebook:** {fb_status}")
 st.sidebar.markdown(f"**WhatsApp:** {wa_status}")
-st.sidebar.markdown(f"**Instagram:** {ig_status}")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🔄 Önbelleği Sıfırla & Yenile", use_container_width=True, help="Streamlit önbelleğini temizler ve sistemi en son verilerle yeniler."):
@@ -267,7 +288,7 @@ if st.sidebar.button("🔄 Önbelleği Sıfırla & Yenile", use_container_width=
     st.cache_resource.clear()
     st.rerun()
 
-st.sidebar.caption("v1.3.0 - Çok Temalı & Çok Kanallı Sürüm")
+st.sidebar.caption("v1.4.0 - Çok Temalı, Çok Kanallı & Anti-Spam Otopilot")
 
 
 
@@ -314,10 +335,16 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     if not is_manual_active:
         active_ch_names = []
         if "TELEGRAM" in selected_ap_channels: active_ch_names.append("✈️ Telegram")
-        if "WHATSAPP" in selected_ap_channels: active_ch_names.append("💬 WhatsApp")
         if "INSTAGRAM" in selected_ap_channels: active_ch_names.append("📸 Instagram")
+        if "FACEBOOK" in selected_ap_channels: active_ch_names.append("📘 Facebook")
+        if "WHATSAPP" in selected_ap_channels: active_ch_names.append("💬 WhatsApp")
         ch_text = ", ".join(active_ch_names) if active_ch_names else "Seçili kanal yok"
-        st.success(f"🟢 **OTOPİLOT AKTİF:** Manuel onay kapalı. Doğrulanmış (.gov.tr) kaynaklı ilanlar arka planda otomatik olarak **{ch_text}** kanallarına yayınlanmaktadır.")
+        
+        ap_stat = scheduler.get_autopilot_status()
+        st.success(
+            f"🟢 **OTOPİLOT AKTİF:** Doğrulanmış (.gov.tr) kaynaklı ilanlar **{ch_text}** kanallarına otomatik yayınlanmaktadır. "
+            f"| ⏱️ **Tempo:** `{ap_stat['pace_name']}` | ⏳ **Sonraki İlan Kalan Süre:** `{ap_stat['countdown_str']}`"
+        )
     else:
         st.info("🛡️ **MANUEL ONAY AKTİF:** Yeni gelen ilanlar sosyal kanallara dağıtılmadan önce bu onay havuzunda insan denetiminden geçer.")
 
@@ -386,10 +413,10 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     with c_b_chan:
         b_chans = st.multiselect(
             "Yayın Kanalları:",
-            options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
-            default=["TELEGRAM", "INSTAGRAM"],
+            options=["TELEGRAM", "INSTAGRAM", "FACEBOOK", "WHATSAPP"],
+            default=["TELEGRAM", "INSTAGRAM", "FACEBOOK"],
             key="batch_publish_channels",
-            format_func=lambda x: {"TELEGRAM": "✈️ Telegram", "INSTAGRAM": "📸 Instagram", "WHATSAPP": "💬 WhatsApp (Bot)"}.get(x, x)
+            format_func=lambda x: {"TELEGRAM": "✈️ Telegram", "INSTAGRAM": "📸 Instagram", "FACEBOOK": "📘 Facebook", "WHATSAPP": "💬 WhatsApp (Bot)"}.get(x, x)
         )
     with c_b_btn:
         st.write("")
@@ -639,19 +666,21 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                 st.markdown("---")
                 # Çok Kanallı Dağıtım Seçimi ve Aksiyonlar
                 st.markdown("##### 🚀 Yayınlama Kanallarını Seçin")
-                ch_col1, ch_col2, ch_col3, ch_btn_col = st.columns([1, 1, 1, 3])
-                
+                ch_col1, ch_col2, ch_col3, ch_col4 = st.columns(4)
                 with ch_col1:
-                    use_tg = st.checkbox("Telegram Kanalı", value=True, key=f"ch_tg_{job.id}")
+                    use_tg = st.checkbox("✈️ Telegram", value=True, key=f"ch_tg_{job.id}")
                 with ch_col2:
-                    use_wa = st.checkbox("WhatsApp (Otomatik Bot)", value=False, key=f"ch_wa_{job.id}", help="WhatsApp Web veya Whapi bot ile otomatik göndermeyi dener. Manuel paylaşacaksanız kapalı bırakınız.")
+                    use_ig = st.checkbox("📸 Instagram", value=True, key=f"ch_ig_{job.id}")
                 with ch_col3:
-                    use_ig = st.checkbox("Instagram", value=True, key=f"ch_ig_{job.id}")
+                    use_fb = st.checkbox("📘 Facebook", value=True, key=f"ch_fb_{job.id}")
+                with ch_col4:
+                    use_wa = st.checkbox("💬 WhatsApp (Bot)", value=False, key=f"ch_wa_{job.id}", help="WhatsApp Web veya Whapi bot ile otomatik göndermeyi dener. Manuel paylaşacaksanız kapalı bırakınız.")
 
                 selected_channels = []
                 if use_tg: selected_channels.append("TELEGRAM")
-                if use_wa: selected_channels.append("WHATSAPP")
                 if use_ig: selected_channels.append("INSTAGRAM")
+                if use_fb: selected_channels.append("FACEBOOK")
+                if use_wa: selected_channels.append("WHATSAPP")
 
                 act_col1, act_col2, act_col3 = st.columns([3, 1, 2])
 
@@ -1105,6 +1134,10 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 in_ig_token = st.text_input("Instagram User Access Token", value=cur_ig_token, type="password")
                 in_ig_acc_id = st.text_input("Instagram Account ID", value=cur_ig_acc_id)
 
+                st.markdown("**Facebook Sayfası**")
+                in_fb_page_id = st.text_input("Facebook Page ID", value=cur_fb_page_id or "1386232411235219")
+                in_fb_token = st.text_input("Facebook Page Access Token (Boşsa Instagram ile ortak token kullanılır)", value=cur_fb_token, type="password")
+
             with s_col2:
                 st.markdown("**WhatsApp Kanal Dağıtım Ayarları**")
                 in_wa_channel_url = st.text_input(
@@ -1153,6 +1186,9 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 set_system_setting("WHATSAPP_CHANNEL_URL", in_wa_channel_url, is_secret=False)
                 set_system_setting("INSTAGRAM_ACCESS_TOKEN", in_ig_token, is_secret=True)
                 set_system_setting("INSTAGRAM_ACCOUNT_ID", in_ig_acc_id, is_secret=False)
+                set_system_setting("FACEBOOK_PAGE_ID", in_fb_page_id, is_secret=False)
+                final_fb_tok = in_fb_token.strip() if in_fb_token.strip() else in_ig_token
+                set_system_setting("FACEBOOK_ACCESS_TOKEN", final_fb_tok, is_secret=True)
                 st.success("✅ Tüm ayarlar veritabanına başarıyla kaydedildi!")
                 st.rerun()
 
@@ -1192,7 +1228,7 @@ elif menu == "⚙️ Sistem & API Ayarları":
         st.subheader("🌐 Sosyal Medya & Kanal Canlı Bağlantı Kontrol Merkezi")
         st.caption("Bağlantılarınızı canlı olarak doğrulayabilir, WhatsApp Web QR oturumunu başlatabilir veya test gönderileri yapabilirsiniz.")
 
-        c_tg, c_ig, c_wa = st.columns(3)
+        c_tg, c_ig, c_fb, c_wa = st.columns(4)
 
         # 1. TELEGRAM
         with c_tg:
@@ -1228,7 +1264,25 @@ elif menu == "⚙️ Sistem & API Ayarları":
                     else:
                         st.error(f"❌ {msg}")
 
-        # 3. WHATSAPP AĞ GEÇİDİ & KANAL
+        # 3. FACEBOOK SAYFASI
+        with c_fb:
+            st.markdown("##### 📘 Facebook Sayfası")
+            cur_fb_page_id = current_settings.get("FACEBOOK_PAGE_ID", {}).get("value", "1386232411235219")
+            if cur_fb_page_id and (cur_ig_token or current_settings.get("FACEBOOK_ACCESS_TOKEN", {}).get("value")):
+                st.success(f"🟢 Sayfa ID: `{cur_fb_page_id}`")
+            else:
+                st.warning("🟠 Sayfa ID veya Token Eksik")
+
+            if st.button("🧪 Facebook Bağlantısını Test Et", key="btn_test_fb", use_container_width=True):
+                with st.spinner("Facebook Graph API doğrulanıyor..."):
+                    fp = FacebookPublisher()
+                    ok, msg = fp.test_connection()
+                    if ok:
+                        st.success(f"✅ {msg}")
+                    else:
+                        st.error(f"❌ {msg}")
+
+        # 4. WHATSAPP AĞ GEÇİDİ & KANAL
         with c_wa:
             st.markdown("##### 💬 WhatsApp Kanalı")
             wp = WhatsAppPublisher()

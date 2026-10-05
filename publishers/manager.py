@@ -9,13 +9,14 @@ from .base import BasePublisher
 from .telegram import TelegramPublisher
 from .whatsapp import WhatsAppPublisher
 from .instagram import InstagramPublisher
+from .facebook import FacebookPublisher
 
 
 class PublisherManager:
     """
     Tüm sosyal medya kanallarına gönderimi koordine eden merkezi servis.
     Eğer ilan görseli henüz üretilmemişse dinamik QR kod ile anında üretir,
-    seçilen platformlara (Telegram, WhatsApp, Instagram) dağıtır
+    seçilen platformlara (Telegram, WhatsApp, Instagram, Facebook) dağıtır
     ve veritabanı durumunu günceller.
     """
 
@@ -23,6 +24,7 @@ class PublisherManager:
         self.telegram = TelegramPublisher()
         self.whatsapp = WhatsAppPublisher()
         self.instagram = InstagramPublisher()
+        self.facebook = FacebookPublisher()
         self.card_generator = JobCardGenerator()
 
     def publish_job(
@@ -127,6 +129,13 @@ class PublisherManager:
                 results["INSTAGRAM"] = (i_success, i_msg)
                 if i_success:
                     successful_channels.append("INSTAGRAM")
+
+            # 5. Facebook Sayfa Dağıtımı
+            if "FACEBOOK" in upper_channels:
+                f_success, f_msg = self.facebook.publish(job)
+                results["FACEBOOK"] = (f_success, f_msg)
+                if f_success:
+                    successful_channels.append("FACEBOOK")
 
             # Eğer en az bir kanalda başarıyla yayınlandıysa durumu PUBLISHED yap
             if successful_channels:

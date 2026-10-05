@@ -11,6 +11,46 @@ from core.database import get_db, get_system_setting, set_system_setting
 from core.models import JobAnnouncement, JobStatus
 
 
+AUTOPILOT_PACE_PRESETS = {
+    "1_PER_HOUR": {
+        "name": "Saatte 1 Paylaşım (Anti-Spam / En Güvenli)",
+        "short_name": "Saatte 1 İlan",
+        "desc": "Her 60 dakikada 1 ilan yayınlar. Sosyal medya algoritmaları için ideal ve risksizdir.",
+        "interval_seconds": 3600,
+    },
+    "3_PER_2HOURS": {
+        "name": "2 Saatte 3 Paylaşım (Dengeli Akış)",
+        "short_name": "2 Saatte 3 İlan",
+        "desc": "Her 40 dakikada 1 ilan yayınlar (2 saatte 3 ilan). Yüksek etkileşim sağlar.",
+        "interval_seconds": 2400,
+    },
+    "5_PER_2HOURS": {
+        "name": "2 Saatte 5 Paylaşım (Hızlı İlan Akışı)",
+        "short_name": "2 Saatte 5 İlan",
+        "desc": "Her 24 dakikada 1 ilan yayınlar (2 saatte 5 ilan). Yoğun ilan dönemleri için uygundur.",
+        "interval_seconds": 1440,
+    },
+    "2_PER_HOUR": {
+        "name": "Saatte 2 Paylaşım (30 dk ara)",
+        "short_name": "Saatte 2 İlan",
+        "desc": "Her 30 dakikada 1 ilan yayınlar.",
+        "interval_seconds": 1800,
+    },
+    "1_PER_2HOURS": {
+        "name": "2 Saatte 1 Paylaşım (Sakin Akış - 120 dk ara)",
+        "short_name": "2 Saatte 1 İlan",
+        "desc": "Her 2 saatte 1 ilan yayınlar.",
+        "interval_seconds": 7200,
+    },
+    "TEST_FAST": {
+        "name": "Hızlı Test Modu (3 dk ara)",
+        "short_name": "Test (3 dk)",
+        "desc": "Sistemi ve kanalları hızlıca test etmek için her 3 dakikada bir paylaşır.",
+        "interval_seconds": 180,
+    },
+}
+
+
 class BackgroundScheduler:
     """
     Kamu Personel Rehberi - Arka Plan Otomasyon ve Tarayıcı Servisi.
@@ -40,6 +80,7 @@ class BackgroundScheduler:
         self.is_running = False
         self.interval_minutes = 30
         self.last_run_time: Optional[datetime] = None
+        self.last_autopilot_publish_time: Optional[datetime] = None
         self.last_result: Dict[str, Any] = {}
         self._thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -77,8 +118,8 @@ class BackgroundScheduler:
                     if job and not job.social_post_text:
                         ai_processor.process_job(job.id)
 
-                # 2. Seçili aktif kanallarda (Telegram, Instagram) yayınla
-                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM")
+                # 2. Seçili aktif kanallarda (Telegram, Instagram, Facebook) yayınla
+                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
                 configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
 
                 target_channels = []
@@ -86,6 +127,8 @@ class BackgroundScheduler:
                     target_channels.append("TELEGRAM")
                 if "INSTAGRAM" in configured_channels and getattr(publisher.instagram, "is_configured", False):
                     target_channels.append("INSTAGRAM")
+                if "FACEBOOK" in configured_channels and getattr(publisher.facebook, "is_configured", False):
+                    target_channels.append("FACEBOOK")
                 if "WHATSAPP" in configured_channels and publisher.whatsapp.is_logged_in():
                     target_channels.append("WHATSAPP")
 
@@ -127,15 +170,23 @@ class BackgroundScheduler:
                     scan_res = sm.run_all()
                     self.last_result = scan_res
 
-                # 2. Otopilot Motoru (Manuel Onay Kapalıysa Bekleyen Doğrulanmış İlanları Otomatik Yayınla)
+                # 2. Otopilot Motoru (Manuel Onay Kapalıysa Güvenilir İlanları Belirlenen Tempoda Otomatik Yayınla)
                 if not manual_mode:
-                    # Sıradaki ilanı güvenle seçilen kanallara aktar
-                    pub_count = self.run_autopilot_publish(limit=1)
-                    if pub_count > 0:
-                        logger.info("[OTOPİLOT] 1 ilan başarıyla kanallara paylaşıldı. Kanallar arası hız limiti için 5 sn bekleniyor...")
-                        if self._stop_event.wait(timeout=5):
-                            break
-                        continue
+                    pace_key = get_system_setting("AUTOPILOT_PACE_PRESET", "1_PER_HOUR")
+                    pace_cfg = AUTOPILOT_PACE_PRESETS.get(pace_key, AUTOPILOT_PACE_PRESETS["1_PER_HOUR"])
+                    interval_sec = pace_cfg["interval_seconds"]
+
+                    if self.last_autopilot_publish_time is None:
+                        should_publish = True
+                    else:
+                        elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+                        should_publish = elapsed >= interval_sec
+
+                    if should_publish:
+                        pub_count = self.run_autopilot_publish(limit=1)
+                        if pub_count > 0:
+                            self.last_autopilot_publish_time = now
+                            logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) gereği bir sonraki ilan için {interval_sec} saniye bekleniyor.")
 
             except Exception as e:
                 logger.error(f"Zamanlayıcı / Otopilot döngü hatası: {e}")
@@ -145,6 +196,34 @@ class BackgroundScheduler:
                 break
 
         logger.info("Arka plan zamanlayıcı durduruldu.")
+
+    def get_autopilot_status(self) -> Dict[str, Any]:
+        """Otopilotun güncel durumunu, seçili temposunu ve sonraki paylaşım geri sayımını döndürür."""
+        pace_key = get_system_setting("AUTOPILOT_PACE_PRESET", "1_PER_HOUR")
+        pace_cfg = AUTOPILOT_PACE_PRESETS.get(pace_key, AUTOPILOT_PACE_PRESETS["1_PER_HOUR"])
+        interval_sec = pace_cfg["interval_seconds"]
+
+        now = datetime.now()
+        if self.last_autopilot_publish_time is not None:
+            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+            remaining = max(0, int(interval_sec - elapsed))
+        else:
+            remaining = 0
+
+        rem_min = remaining // 60
+        rem_sec = remaining % 60
+        countdown_str = f"{rem_min} dk {rem_sec} sn" if rem_min > 0 else f"{rem_sec} sn"
+
+        return {
+            "pace_key": pace_key,
+            "pace_name": pace_cfg["name"],
+            "pace_short": pace_cfg["short_name"],
+            "pace_desc": pace_cfg["desc"],
+            "interval_seconds": interval_sec,
+            "remaining_seconds": remaining,
+            "countdown_str": countdown_str,
+            "last_publish_time": self.last_autopilot_publish_time,
+        }
 
     def trigger_autopilot_now(self, limit: int = 5) -> int:
         """Kullanıcı butona bastığında veya ayar değiştiğinde anında otopilot yayını yapar."""
