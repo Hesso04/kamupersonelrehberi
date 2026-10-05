@@ -32,9 +32,9 @@ class WhatsAppPublisher(BasePublisher):
         """WhatsApp Web oturumunun aktif olup olmadığını kontrol eder."""
         return self.web.is_logged_in()
 
-    def start_login_window(self, max_wait: int = 100) -> Tuple[bool, str]:
-        """Kullanıcının QR kod okutması için WhatsApp Web penceresini açar."""
-        return self.web.start_login_window(max_wait=max_wait)
+    def start_login_window(self, max_wait: int = 100, on_qr_ready=None) -> Tuple[bool, str]:
+        """Kullanıcının QR kod okutması için WhatsApp Web oturumunu açar/başlatır."""
+        return self.web.start_login_window(max_wait=max_wait, on_qr_ready=on_qr_ready)
 
     def send_test_message(self) -> Tuple[bool, str]:
         """Kanala test mesajı gönderir."""

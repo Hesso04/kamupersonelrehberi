@@ -1,4 +1,5 @@
 import sys
+import time
 import re
 import json
 from pathlib import Path
@@ -996,18 +997,30 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 st.caption(f"Hedef Kanal: `{cur_wa_phone_id or '0029Vb8mg1DFsn0nmDsQxF1K'}`")
 
                 if st.button("📲 WhatsApp Web Girişi Yap (QR Aç)", key="btn_login_wa", type="primary", use_container_width=True):
-                    st.info("Masaüstünüzde WhatsApp Web açıldı. Lütfen telefonunuzdan (WhatsApp > Bağlı Cihazlar > Cihaz Bağla) QR kodu okutun. 90 saniye bekleniyor...")
-                    with st.spinner("WhatsApp Web QR kodu bekleniyor..."):
-                        ok, msg = wp.start_login_window(max_wait=100)
-                        if ok:
-                            st.success(f"🎉 {msg}")
-                            st.rerun()
-                        else:
-                            st.warning(f"⚠️ {msg}")
+                    qr_box = st.empty()
+                    status_box = st.empty()
+                    status_box.info("⏳ WhatsApp Web başlatılıyor ve QR kod üretiliyor, lütfen birkaç saniye bekleyin...")
+
+                    def render_qr(qr_path_str):
+                        qr_box.image(
+                            qr_path_str,
+                            caption="📱 Telefonunuzdan (WhatsApp > Bağlı Cihazlar > Cihaz Bağla) bu QR kodu taratın!",
+                            width=300
+                        )
+                        status_box.warning("⚡ QR Kod hazır! Telefonunuzdan taratmanız bekleniyor (90 sn)...")
+
+                    ok, msg = wp.start_login_window(max_wait=90, on_qr_ready=render_qr)
+                    if ok:
+                        qr_box.empty()
+                        status_box.success(f"🎉 {msg}")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        status_box.error(f"❌ {msg}")
 
                 qr_file = Path("graphics/assets/whatsapp_qr.png")
                 if qr_file.exists():
-                    st.image(str(qr_file), caption="Alternatif: Telefonunuzdan bu QR kodu taratabilirsiniz", width=200)
+                    st.image(str(qr_file), caption="📱 Son üretilen QR Kod", width=260)
 
     # =========================================================================
     # TAB 2: İNTERAKTİF MODEL TEST ALANI (PLAYGROUND)

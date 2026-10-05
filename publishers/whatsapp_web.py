@@ -1,5 +1,8 @@
+import os
+import sys
 import time
 import re
+import subprocess
 from pathlib import Path
 from typing import Tuple, Optional
 from loguru import logger
@@ -7,6 +10,23 @@ from playwright.sync_api import sync_playwright
 
 from config.settings import settings
 from core.models import JobAnnouncement
+
+
+def ensure_browser_installed():
+    """Linux / Streamlit Cloud ortamında eksik Playwright Chromium tarayıcısını otomatik kurar."""
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            exe = p.chromium.executable_path
+            if not Path(exe).exists():
+                raise FileNotFoundError()
+    except Exception as e:
+        logger.info(f"Playwright Chromium bulunamadı, otomatik kuruluyor: {e}")
+        try:
+            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+            logger.info("Playwright Chromium başarıyla kuruldu.")
+        except Exception as install_err:
+            logger.error(f"Playwright kurulum hatası: {install_err}")
 
 
 class WhatsAppWebPublisher:
@@ -64,20 +84,23 @@ class WhatsAppWebPublisher:
         except Exception as e:
             return False, f"Çıkış hatası: {str(e)}"
 
-    def start_login_window(self, max_wait: int = 100) -> Tuple[bool, str]:
+    def start_login_window(self, max_wait: int = 90, on_qr_ready: Optional[callable] = None) -> Tuple[bool, str]:
         """
-        Kullanıcının telefonundan QR kod okutabilmesi için masaüstünde
-        WhatsApp Web penceresi açar, QR görüntüsünü kaydeder ve oturumu bağlar.
+        Kullanıcının telefonundan QR kod okutabilmesi için WhatsApp Web oturumu başlatır.
+        Bulut ortamında (Linux) arkaplanda headless çalışıp QR kod görselini arayüze aktarır.
         """
-        logger.info("WhatsApp Web QR giriş süreci başlatılıyor...")
+        ensure_browser_installed()
+        is_cloud = (sys.platform != "win32") or not os.environ.get("DISPLAY")
+        headless_mode = bool(is_cloud)
+        logger.info(f"WhatsApp Web QR süreci başlatılıyor (Headless={headless_mode})...")
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch_persistent_context(
                     user_data_dir=str(self.session_dir),
-                    headless=False,
+                    headless=headless_mode,
                     user_agent=self.USER_AGENT,
                     viewport={"width": 1050, "height": 780},
-                    args=["--no-sandbox", "--disable-setuid-sandbox"]
+                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
                 )
                 page = browser.pages[0] if browser.pages else browser.new_page()
                 page.goto("https://web.whatsapp.com", wait_until="domcontentloaded", timeout=60000)
@@ -102,6 +125,11 @@ class WhatsAppWebPublisher:
                                 qr_elem.screenshot(path=str(self.qr_path))
                                 qr_captured = True
                                 logger.info(f"WhatsApp QR görseli kaydedildi: {self.qr_path}")
+                                if on_qr_ready:
+                                    try:
+                                        on_qr_ready(str(self.qr_path))
+                                    except Exception:
+                                        pass
                             except Exception:
                                 pass
 
@@ -146,6 +174,7 @@ class WhatsAppWebPublisher:
             "Resmi kamu personel alımları anlık olarak bu kanaldan paylaşılacaktır. 🏛️📢"
         )
 
+        ensure_browser_installed()
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch_persistent_context(
@@ -153,7 +182,7 @@ class WhatsAppWebPublisher:
                     headless=True,
                     user_agent=self.USER_AGENT,
                     viewport={"width": 1280, "height": 800},
-                    args=["--no-sandbox", "--disable-setuid-sandbox"]
+                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
                 )
                 page = browser.pages[0] if browser.pages else browser.new_page()
                 page.goto(channel_url, wait_until="networkidle", timeout=45000)
@@ -219,6 +248,7 @@ class WhatsAppWebPublisher:
 
         logger.info(f"WhatsApp kanalına ilan yayınlanıyor: {channel_url}")
 
+        ensure_browser_installed()
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch_persistent_context(
@@ -226,7 +256,7 @@ class WhatsAppWebPublisher:
                     headless=True,
                     user_agent=self.USER_AGENT,
                     viewport={"width": 1280, "height": 800},
-                    args=["--no-sandbox", "--disable-setuid-sandbox"]
+                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
                 )
                 page = browser.pages[0] if browser.pages else browser.new_page()
 
