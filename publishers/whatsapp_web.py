@@ -93,22 +93,26 @@ class WhatsAppWebPublisher:
 
     def is_logged_in(self) -> bool:
         """Kayıtlı bir WhatsApp Web oturumunun olup olmadığını kontrol eder."""
-        if self.flag_file.exists():
-            return True
-        # IndexedDB içinde whatsapp verisi var mı
-        leveldb = self.session_dir / "Default" / "IndexedDB" / "https_web.whatsapp.com_0.indexeddb.leveldb"
-        if leveldb.exists() and len(list(leveldb.glob("*.ldb"))) > 0:
-            return True
-        return False
+        return self.flag_file.exists()
 
     def logout(self) -> Tuple[bool, str]:
-        """WhatsApp oturumunu sonlandırır ve flag dosyasını siler."""
+        """WhatsApp oturumunu sonlandırır, profil ve önbellek dosyalarını tamamen sıfırlar."""
         try:
+            import shutil
             if self.flag_file.exists():
-                self.flag_file.unlink()
+                try:
+                    self.flag_file.unlink()
+                except Exception:
+                    pass
             if self.qr_path.exists():
-                self.qr_path.unlink()
-            return True, "WhatsApp Web oturumu yerel olarak sıfırlandı."
+                try:
+                    self.qr_path.unlink()
+                except Exception:
+                    pass
+            if self.session_dir.exists():
+                shutil.rmtree(self.session_dir, ignore_errors=True)
+                self.session_dir.mkdir(parents=True, exist_ok=True)
+            return True, "WhatsApp Web oturumu ve profil önbelleği tamamen sıfırlandı."
         except Exception as e:
             return False, f"Çıkış hatası: {str(e)}"
 
