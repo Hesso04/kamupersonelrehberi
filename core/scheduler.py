@@ -86,14 +86,15 @@ class BackgroundScheduler:
                     target_channels.append("TELEGRAM")
                 if "INSTAGRAM" in configured_channels and getattr(publisher.instagram, "is_configured", False):
                     target_channels.append("INSTAGRAM")
-                if "WHATSAPP" in configured_channels and (publisher.whatsapp.is_logged_in() or (publisher.whatsapp.token and publisher.whatsapp.phone_number_id)):
+                if "WHATSAPP" in configured_channels and publisher.whatsapp.is_logged_in():
                     target_channels.append("WHATSAPP")
 
                 if not target_channels:
                     target_channels = ["TELEGRAM"]
 
-                logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels}")
-                results = publisher.publish_job(j_id, channels=target_channels)
+                default_theme = get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
+                logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels} (Tema: {default_theme})")
+                results = publisher.publish_job(j_id, channels=target_channels, theme=default_theme)
                 
                 # Herhangi bir kanalda başarı sağlandıysa başarılı say
                 any_success = any(succ for succ, _ in results.values())

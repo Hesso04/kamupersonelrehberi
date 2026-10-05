@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from loguru import logger
 
@@ -28,10 +28,12 @@ class PublisherManager:
     def publish_job(
         self,
         job_id: int,
-        channels: List[str] = ["TELEGRAM"]
+        channels: List[str] = ["TELEGRAM"],
+        theme: Optional[str] = None
     ) -> Dict[str, Tuple[bool, str]]:
         """
         Belirtilen ilanı seçilen kanallara gönderir.
+        Görsel kartı istenen tema ile (varsayılan: DARK_NOIR veya ayarlardaki tema) üretir.
         """
         results = {}
 
@@ -44,11 +46,12 @@ class PublisherManager:
             import re
             from pathlib import Path
             from graphics.generator import to_turkish_date_str, tr_title
+            from core.database import get_system_setting
 
             # Unvan ve pozisyon temizliği (Örn: "23 SÖZLEŞMELİ PERSONEL Alımı" -> "Sözleşmeli Personel")
             pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
             pos_clean = re.sub(r"^\s*(\d+\s*)+", "", pos_src)
-            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE)
+            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", clean_pos if 'clean_pos' in locals() else pos_clean, flags=re.IGNORECASE)
             pos_clean = pos_clean.strip(" -:,")
             pos_clean = re.sub(r"\bpersoneli\b", "Personel", pos_clean, flags=re.IGNORECASE)
             job.position = tr_title(pos_clean) or "Kamu Personeli"
@@ -80,8 +83,9 @@ class PublisherManager:
                 f"#KamuPersoneli #İlan #KamuAlımı"
             )
 
-            # 1. Otopilot ve her yayında görseli yeni kurumsal marka vitrini ve filigranla TAZE üret
+            # 1. Otopilot ve her yayında görseli seçili temayla TAZE üret
             try:
+                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
                 image_path = self.card_generator.generate_card(
                     job_id=job.id,
                     institution=job.institution or "Kamu Kurumu",
@@ -91,7 +95,8 @@ class PublisherManager:
                     education_level=job.education_level,
                     deadline=deadline_str,
                     source_url=job.source_url,
-                    has_pdf=has_pdf
+                    has_pdf=has_pdf,
+                    theme=card_theme
                 )
                 job.image_path = str(image_path)
             except Exception as e:

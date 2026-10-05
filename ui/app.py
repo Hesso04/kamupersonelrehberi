@@ -30,7 +30,7 @@ from ai.processor import AIProcessor
 from ai.groq_client import GroqClient
 from ai.llm_client import LLMClient
 from ai.search_assistant import AISearchAssistant
-from graphics.generator import JobCardGenerator
+from graphics.generator import JobCardGenerator, CARD_THEMES
 from publishers.manager import PublisherManager
 from publishers.telegram import TelegramPublisher
 from publishers.whatsapp import WhatsAppPublisher
@@ -79,7 +79,7 @@ def to_turkish_date_str(val) -> str:
 
 # Sayfa Genel Yapılandırması
 st.set_page_config(
-    page_title="Kamu Personel Rehberi - Admin & Otomasyon Portalı",
+    page_title="Kamu Personel Rehberi - Kurumsal Otomasyon Portalı",
     page_icon="🏛",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -88,36 +88,92 @@ st.set_page_config(
 # Veritabanını başlat
 init_db()
 
-# Özel Kurumsal CSS Stilleri
+# =============================================================================
+# ULTRA-MODERN DARK GLASSMORPHISM TASARIM SİSTEMİ
+# =============================================================================
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Ana Başlık ve Alt Başlık */
     .main-header {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #0F172A;
-        margin-bottom: 0.2rem;
+        font-size: 2.1rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.3rem;
     }
     .sub-header {
         font-size: 0.95rem;
-        color: #64748B;
-        margin-bottom: 1.5rem;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-bottom: 1.6rem;
     }
+
+    /* Durum Rozetleri */
     .status-badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-    .badge-pending { background-color: #FEF3C7; color: #92400E; }
-    .badge-ai { background-color: #E0E7FF; color: #3730A3; }
-    .badge-approved { background-color: #D1FAE5; color: #065F46; }
-    .badge-published { background-color: #ECFDF5; color: #047857; border: 1px solid #10B981; }
-    .badge-rejected { background-color: #FEE2E2; color: #991B1B; }
-    
-    .stButton>button {
+        padding: 5px 12px;
         border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        letter-spacing: 0.02em;
+    }
+    .badge-pending { 
+        background: rgba(245, 158, 11, 0.15); 
+        color: #fbbf24; 
+        border: 1px solid rgba(245, 158, 11, 0.35); 
+    }
+    .badge-ai { 
+        background: rgba(99, 102, 241, 0.15); 
+        color: #a5b4fc; 
+        border: 1px solid rgba(99, 102, 241, 0.35); 
+    }
+    .badge-approved { 
+        background: rgba(16, 185, 129, 0.15); 
+        color: #34d399; 
+        border: 1px solid rgba(16, 185, 129, 0.35); 
+    }
+    .badge-published { 
+        background: rgba(16, 185, 129, 0.2); 
+        color: #10b981; 
+        border: 1px solid #10b981;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+    }
+    .badge-rejected { 
+        background: rgba(239, 68, 68, 0.15); 
+        color: #f87171; 
+        border: 1px solid rgba(239, 68, 68, 0.35); 
+    }
+    
+    /* Buton Zarafeti */
+    .stButton>button {
+        border-radius: 10px;
         font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stButton>button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Genişletilebilir Kartlar */
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 14px !important;
+        background: rgba(15, 23, 42, 0.45) !important;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -189,7 +245,10 @@ groq_status = "🟢" if settings.active_groq_api_key else "🔴"
 telegram_status = "🟢" if (settings.active_telegram_bot_token and settings.active_telegram_channel_id) else "🔴"
 try:
     wp_check = WhatsAppPublisher()
-    wa_status = "🟢" if wp_check.is_logged_in() else "⚪"
+    if wp_check.is_logged_in():
+        wa_status = f"🟢 ({wp_check.mode.upper()})"
+    else:
+        wa_status = "⚪ (Bağlantı Yok)"
 except Exception:
     wa_status = "⚪"
 try:
@@ -199,8 +258,17 @@ except Exception:
     ig_status = "⚪"
 
 st.sidebar.markdown(f"**Groq AI:** {groq_status} | **Telegram:** {telegram_status}")
-st.sidebar.markdown(f"**WhatsApp:** {wa_status} | **Instagram:** {ig_status}")
-st.sidebar.caption("v1.2.0 - Çok Kanallı Dağıtım Sürümü")
+st.sidebar.markdown(f"**WhatsApp:** {wa_status}")
+st.sidebar.markdown(f"**Instagram:** {ig_status}")
+
+st.sidebar.markdown("---")
+if st.sidebar.button("🔄 Önbelleği Sıfırla & Yenile", use_container_width=True, help="Streamlit önbelleğini temizler ve sistemi en son verilerle yeniler."):
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    st.rerun()
+
+st.sidebar.caption("v1.3.0 - Çok Temalı & Çok Kanallı Sürüm")
+
 
 
 # =============================================================================
@@ -309,6 +377,46 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
 
     # Kurum Türü Hızlı Filtresi
     inst_type = st.radio("Kurum Türü:", ["Tümü", "🏛 Üniversiteler", "🏢 Belediyeler", "🇹🇷 Bakanlıklar ve Genel Müdürlükler"], horizontal=True)
+
+    # Hızlı Toplu Dağıtım Aksiyon Barı
+    st.markdown("---")
+    c_b_info, c_b_chan, c_b_btn = st.columns([3, 2, 2])
+    with c_b_info:
+        st.markdown("⚡ **Hızlı Toplu Yayınlama:** Bekleyen sıradaki 5 doğrulanmış ilanı seçtiğiniz kanallara tek tıkla yayınlayın.")
+    with c_b_chan:
+        b_chans = st.multiselect(
+            "Yayın Kanalları:",
+            options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+            default=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+            key="batch_publish_channels",
+            format_func=lambda x: {"TELEGRAM": "✈️ Telegram", "INSTAGRAM": "📸 Instagram", "WHATSAPP": "💬 WhatsApp"}.get(x, x)
+        )
+    with c_b_btn:
+        st.write("")
+        if st.button("🚀 İlk 5 İlanı Toplu Yayınla", type="primary", use_container_width=True):
+            if not b_chans:
+                st.warning("Lütfen en az bir yayın kanalı seçin.")
+            else:
+                with st.spinner("Seçili ilanlar kanallara dağıtılıyor..."):
+                    with get_db() as db:
+                        target_batch = db.query(JobAnnouncement).filter(
+                            JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED])
+                        ).order_by(JobAnnouncement.id.asc()).limit(5).all()
+                        batch_ids = [b.id for b in target_batch]
+
+                    if not batch_ids:
+                        st.info("Kuyrukta bekleyen ilan bulunamadı.")
+                    else:
+                        pub_mgr = PublisherManager()
+                        sys_def_theme = get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
+                        succ_count = 0
+                        for b_id in batch_ids:
+                            res = pub_mgr.publish_job(b_id, channels=b_chans, theme=sys_def_theme)
+                            if any(ok for ok, _ in res.values()):
+                                succ_count += 1
+                        st.success(f"🎉 {succ_count} adet ilan seçili kanallara ({', '.join(b_chans)}) başarıyla dağıtıldı!")
+                        st.rerun()
+    st.markdown("---")
 
     # Filtreye göre sorgula
     with get_db() as db:
@@ -482,9 +590,22 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                     else:
                         st.info("Bu ilan için henüz görsel kart üretilmedi.")
 
+                    # Çoklu Renk ve Görsel Tema Seçici
+                    theme_keys = list(CARD_THEMES.keys())
+                    default_theme_sys = get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
+                    cur_idx = theme_keys.index(default_theme_sys) if default_theme_sys in theme_keys else 0
+                    selected_job_theme = st.selectbox(
+                        "🎨 Afiş Tasarım Teması",
+                        options=theme_keys,
+                        index=cur_idx,
+                        format_func=lambda k: CARD_THEMES[k]["name"],
+                        key=f"theme_{job.id}",
+                        help="İlan afişinin renk paletini ve görsel temasını belirleyin."
+                    )
+
                     c_gen, c_ai = st.columns(2)
                     with c_gen:
-                        if st.button("🎨 QR Kodlu Görsel Üret", key=f"btn_img_{job.id}", use_container_width=True):
+                        if st.button("🎨 Seçili Temayla Üret", key=f"btn_img_{job.id}", use_container_width=True):
                             generator = JobCardGenerator()
                             deadline_txt = to_turkish_date_str(job.application_end_date)
                             new_path = generator.generate_card(
@@ -496,7 +617,8 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 education_level=job.education_level,
                                 deadline=deadline_txt,
                                 source_url=job.source_url,
-                                has_pdf=has_pdf_file
+                                has_pdf=has_pdf_file,
+                                theme=selected_job_theme
                             )
                             with get_db() as db:
                                 target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
@@ -504,7 +626,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 if not target.position: target.position = auto_pos
                                 if not target.total_positions or target.total_positions == 1: target.total_positions = auto_count
                                 db.commit()
-                            st.success("Yeni kurumsal görsel kart oluşturuldu!")
+                            st.success(f"Yeni görsel kart oluşturuldu! ({CARD_THEMES[selected_job_theme]['name']})")
                             st.rerun()
 
                     with c_ai:
@@ -546,7 +668,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                             st.warning("Lütfen en az bir paylaşım kanalı seçiniz.")
                         else:
                             publisher = PublisherManager()
-                            results = publisher.publish_job(job.id, channels=selected_channels)
+                            results = publisher.publish_job(job.id, channels=selected_channels, theme=selected_job_theme)
                             success_msgs = []
                             error_msgs = []
                             for ch, (succ, msg) in results.items():
@@ -832,8 +954,12 @@ elif menu == "⚙️ Sistem & API Ayarları":
     cur_tele_channel = current_settings.get("TELEGRAM_CHANNEL_ID", {}).get("value", "@kamupersonelrehberi")
     cur_wa_token = current_settings.get("WHATSAPP_ACCESS_TOKEN", {}).get("value", "")
     cur_wa_phone_id = current_settings.get("WHATSAPP_PHONE_NUMBER_ID", {}).get("value", "")
+    cur_wa_whapi = current_settings.get("WHATSAPP_WHAPI_TOKEN", {}).get("value", "")
+    cur_green_id = current_settings.get("GREEN_API_ID", {}).get("value", "")
+    cur_green_tok = current_settings.get("GREEN_API_TOKEN", {}).get("value", "")
     cur_ig_token = current_settings.get("INSTAGRAM_ACCESS_TOKEN", {}).get("value", "")
     cur_ig_acc_id = current_settings.get("INSTAGRAM_ACCOUNT_ID", {}).get("value", "")
+    cur_default_theme = current_settings.get("DEFAULT_CARD_THEME", {}).get("value", "DARK_NOIR")
 
     # Sekmeli Yapı: 1. Ayarlar Formu, 2. İnteraktif Model Yanıt Test Laboratuvarı
     tab_settings, tab_test = st.tabs(["⚙️ Yapılandırma ve Anahtarlar", "🧪 İnteraktif Model Yanıt Test Alanı (Playground)"])
@@ -907,7 +1033,21 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 in_custom_model = st.text_input("Model Adı", value=cur_custom_model, placeholder="deepseek-chat")
 
             st.markdown("---")
-            # 5. Sosyal Medya Ayarları
+            # 5. Görsel Kart Tasarım & Renk Teması Tercihi
+            st.subheader("🎨 Sosyal Medya Afiş Tasarım & Renk Teması")
+            st.caption("Otomatik otopilot paylaşımlarında ve yeni üretilen kartlarda kullanılacak varsayılan görsel stil.")
+            theme_keys = list(CARD_THEMES.keys())
+            th_idx = theme_keys.index(cur_default_theme) if cur_default_theme in theme_keys else 0
+            in_default_theme = st.selectbox(
+                "Varsayılan Afiş Tasarım Teması",
+                theme_keys,
+                index=th_idx,
+                format_func=lambda k: f"{CARD_THEMES[k]['name']} — {CARD_THEMES[k]['desc']}",
+                help="Kartın arkaplan degradesi, ışıltı rengi, etiket tonları ve çerçeve tipini belirler."
+            )
+
+            st.markdown("---")
+            # 6. Sosyal Medya Ayarları
             st.subheader("📢 Sosyal Medya Dağıtım Kanalları")
             s_col1, s_col2 = st.columns(2)
             with s_col1:
@@ -920,17 +1060,28 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 in_ig_acc_id = st.text_input("Instagram Account ID", value=cur_ig_acc_id)
 
             with s_col2:
-                st.markdown("**WhatsApp**")
+                st.markdown("**WhatsApp Kanal Dağıtım Ayarları**")
                 in_wa_channel_url = st.text_input(
-                    "WhatsApp Kanal Linki / ID",
+                    "WhatsApp Kanal Linki",
                     value=cur_wa_phone_id or "https://whatsapp.com/channel/0029Vb8mg1DFsn0nmDsQxF1K",
-                    help="Resmi kamu alımlarının yayınlanacağı WhatsApp Kanalınızın davet linki veya ID'si."
+                    help="Resmi kamu alımlarının yayınlanacağı WhatsApp Kanalınızın davet linki."
                 )
-                in_wa_token = st.text_input(
-                    "WhatsApp Cloud Token (İsteğe Bağlı)",
-                    value=cur_wa_token,
+                in_wa_whapi_token = st.text_input(
+                    "Whapi.cloud Token (Önerilen Bulut REST API)",
+                    value=cur_wa_whapi,
                     type="password",
-                    help="Yalnızca Meta Cloud API kullanmak isterseniz gereklidir. Yerel otomasyonda boş kalabilir."
+                    help="Whapi.cloud panelinden alabileceğiniz API anahtarı. Bulut ortamında (Streamlit Cloud) tarayıcı açmadan direkt kanala ve gruplara mesaj göndermenizi sağlar."
+                )
+                c_gw1, c_gw2 = st.columns(2)
+                with c_gw1:
+                    in_green_id = st.text_input("Green-API Instance ID", value=cur_green_id)
+                with c_gw2:
+                    in_green_tok = st.text_input("Green-API Token", value=cur_green_tok, type="password")
+
+                in_wa_token = st.text_input(
+                    "WhatsApp Cloud Token (İsteğe Bağlı Meta API)",
+                    value=cur_wa_token,
+                    type="password"
                 )
 
             st.markdown("---")
@@ -945,15 +1096,48 @@ elif menu == "⚙️ Sistem & API Ayarları":
                 set_system_setting("CUSTOM_LLM_BASE_URL", in_custom_url, is_secret=False)
                 set_system_setting("CUSTOM_LLM_API_KEY", in_custom_key, is_secret=True)
                 set_system_setting("CUSTOM_LLM_MODEL", in_custom_model, is_secret=False)
+                set_system_setting("DEFAULT_CARD_THEME", in_default_theme, is_secret=False)
                 set_system_setting("TELEGRAM_BOT_TOKEN", in_tele_token, is_secret=True)
                 set_system_setting("TELEGRAM_CHANNEL_ID", in_tele_channel, is_secret=False)
+                set_system_setting("WHATSAPP_WHAPI_TOKEN", in_wa_whapi_token, is_secret=True)
+                set_system_setting("GREEN_API_ID", in_green_id, is_secret=False)
+                set_system_setting("GREEN_API_TOKEN", in_green_tok, is_secret=True)
                 set_system_setting("WHATSAPP_ACCESS_TOKEN", in_wa_token, is_secret=True)
                 set_system_setting("WHATSAPP_PHONE_NUMBER_ID", in_wa_channel_url, is_secret=False)
                 set_system_setting("WHATSAPP_CHANNEL_URL", in_wa_channel_url, is_secret=False)
                 set_system_setting("INSTAGRAM_ACCESS_TOKEN", in_ig_token, is_secret=True)
                 set_system_setting("INSTAGRAM_ACCOUNT_ID", in_ig_acc_id, is_secret=False)
-                st.success("✅ Tüm ayarlar SQLite veritabanına başarıyla kaydedildi!")
+                st.success("✅ Tüm ayarlar veritabanına başarıyla kaydedildi!")
                 st.rerun()
+
+        # =========================================================================
+        # GÖRSEL TEMA VİTRİNİ & CANLI ÖNİZLEME GALERİSİ
+        # =========================================================================
+        st.markdown("---")
+        st.subheader("🎨 Görsel Tema Vitrini & Canlı Önizleme Galerisi")
+        st.markdown(
+            "Kamu Personel Rehberi görsel motoru, tek düze ve basit afişler yerine 5 farklı yüksek kontrastlı, "
+            "şık ve modern tema ile kart üretir. Beğendiğiniz temayı tek tıkla varsayılan yapabilirsiniz."
+        )
+
+        cols_theme = st.columns(len(CARD_THEMES))
+        gen_preview = JobCardGenerator()
+        for idx, (t_key, t_info) in enumerate(CARD_THEMES.items()):
+            with cols_theme[idx]:
+                st.markdown(f"**{t_info['name']}**")
+                st.caption(t_info['desc'])
+                sample_p = gen_preview.get_theme_sample(t_key)
+                if sample_p.exists():
+                    st.image(str(sample_p), use_container_width=True)
+                
+                is_current = (cur_default_theme == t_key)
+                if is_current:
+                    st.success("Aktif Varsayılan")
+                else:
+                    if st.button("Varsayılan Yap", key=f"set_def_theme_{t_key}", use_container_width=True):
+                        set_system_setting("DEFAULT_CARD_THEME", t_key, is_secret=False)
+                        st.success(f"Varsayılan tema {t_info['name']} olarak ayarlandı!")
+                        st.rerun()
 
         # =========================================================================
         # SOSYAL MEDYA CANLI BAĞLANTI & TEST PANELİ (FORM DIŞINDA)
@@ -998,13 +1182,39 @@ elif menu == "⚙️ Sistem & API Ayarları":
                     else:
                         st.error(f"❌ {msg}")
 
-        # 3. WHATSAPP WEB & KANAL
+        # 3. WHATSAPP AĞ GEÇİDİ & KANAL
         with c_wa:
             st.markdown("##### 💬 WhatsApp Kanalı")
             wp = WhatsAppPublisher()
-            is_wa_online = wp.is_logged_in() if hasattr(wp, "is_logged_in") else False
+            is_wa_online = wp.is_logged_in()
+            active_mode = wp.mode
 
-            if is_wa_online:
+            if active_mode == "whapi":
+                st.success("🟢 Whapi.cloud API Gateway Aktif")
+                st.caption(f"Hedef Kanal: `{wp.channel_url}`")
+                if st.button("🧪 Kanala Test Gönder (Whapi)", key="btn_test_wa_whapi", use_container_width=True):
+                    with st.spinner("Whapi üzerinden test mesajı iletiliyor..."):
+                        ok, msg = wp.send_test_message()
+                        if ok: st.success(f"✅ {msg}")
+                        else: st.error(f"❌ {msg}")
+
+            elif active_mode == "green_api":
+                st.success("🟢 Green-API Gateway Aktif")
+                st.caption(f"Instance: `{wp.green_instance_id}` | Kanal: `{wp.channel_url}`")
+                if st.button("🧪 Kanala Test Gönder (Green-API)", key="btn_test_wa_green", use_container_width=True):
+                    with st.spinner("Green-API üzerinden test mesajı iletiliyor..."):
+                        ok, msg = wp.send_test_message()
+                        if ok: st.success(f"✅ {msg}")
+                        else: st.error(f"❌ {msg}")
+
+            elif active_mode == "cloud":
+                st.success("🟢 Meta Cloud API Aktif")
+                if st.button("🧪 Test Mesajı Gönder (Cloud API)", key="btn_test_wa_cloud", use_container_width=True):
+                    ok, msg = wp.send_test_message()
+                    if ok: st.success(f"✅ {msg}")
+                    else: st.error(f"❌ {msg}")
+
+            elif is_wa_online:
                 st.success("🟢 WhatsApp Web Oturumu Aktif")
                 st.caption(f"Kanal: `{wp.web.get_channel_url()}`")
                 
@@ -1084,6 +1294,15 @@ elif menu == "⚙️ Sistem & API Ayarları":
                         )
                     except Exception:
                         st.image(str(qr_file), width=260)
+
+            # Kanal Linki Doğrulama ve Sıfırlama Butonu
+            st.markdown("---")
+            if st.button("🔗 Doğrulanmış Kanal Linkini Onar (0029Vb8mg1DFsn0nmDsQxF1K)", key="btn_fix_channel_url", use_container_width=True):
+                fixed_url = "https://whatsapp.com/channel/0029Vb8mg1DFsn0nmDsQxF1K"
+                set_system_setting("WHATSAPP_CHANNEL_URL", fixed_url)
+                set_system_setting("WHATSAPP_PHONE_NUMBER_ID", fixed_url)
+                st.success("✅ Kanal linki başarıyla '0029Vb8mg1DFsn0nmDsQxF1K' olarak ayarlandı!")
+                st.rerun()
 
     # =========================================================================
     # TAB 2: İNTERAKTİF MODEL TEST ALANI (PLAYGROUND)
