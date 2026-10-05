@@ -1,0 +1,43 @@
+# Python Sanal Ortam
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled / optimize dosyaları
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Gizli Ortam Değişkenleri ve API Anahtarları
+.env
+.env.local
+.env.*.local
+.streamlit/secrets.toml
+
+# Veritabanı ve Yerel Veriler
+data/*
+!data/.gitkeep
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.db
+
+# WhatsApp Web ve Tarayıcı Oturumları (Çok Gizli)
+data/whatsapp_session/
+whatsapp_session/
+.playwright/
+
+# Görsel Çıktıları ve Önbellek
+graphics/output/*
+!graphics/output/.gitkeep
+
+# IDE ve İşletim Sistemi
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Loglar
+logs/
+*.log

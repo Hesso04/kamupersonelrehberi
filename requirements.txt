@@ -1,0 +1,31 @@
+# Web Arayüzü & Admin Paneli
+streamlit>=1.35.0
+
+# Veri Doğrulama ve Konfigürasyon
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+python-dotenv>=1.0.1
+
+# Veritabanı ve ORM
+sqlalchemy>=2.0.30
+psycopg2-binary>=2.9.9
+
+# Yapay Zeka Motoru
+groq>=0.9.0
+
+# Web Kazıma ve Veri Çekme
+requests>=2.32.0
+beautifulsoup4>=4.12.3
+lxml>=5.2.0
+
+# Görsel İşleme ve Şablon Motoru
+pillow>=10.3.0
+
+# Sosyal Medya & Dağıtım Entegrasyonları
+python-telegram-bot>=21.0
+playwright>=1.44.0
+
+# Loglama ve Yardımcı Araçlar
+loguru>=0.7.2
+qrcode>=8.0.0
+pypdf>=5.0.0
