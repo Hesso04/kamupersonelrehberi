@@ -77,8 +77,8 @@ class BackgroundScheduler:
                     if job and not job.social_post_text:
                         ai_processor.process_job(job.id)
 
-                # 2. Seçili aktif kanallarda (Telegram, Instagram, WhatsApp) yayınla
-                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,WHATSAPP")
+                # 2. Seçili aktif kanallarda (Telegram, Instagram) yayınla
+                raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM")
                 configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
 
                 target_channels = []

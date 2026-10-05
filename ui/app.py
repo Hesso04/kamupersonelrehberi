@@ -222,18 +222,18 @@ else:
         st.rerun()
 
 # Otopilot Dağıtım Kanalları
-cur_ap_raw = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,WHATSAPP")
+cur_ap_raw = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM")
 cur_ap_list = [c.strip().upper() for c in cur_ap_raw.split(",") if c.strip()]
 selected_ap_channels = st.sidebar.multiselect(
     "📢 Otopilot Dağıtım Kanalları",
     options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
-    default=cur_ap_list if cur_ap_list else ["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+    default=cur_ap_list if cur_ap_list else ["TELEGRAM", "INSTAGRAM"],
     format_func=lambda x: {
         "TELEGRAM": "✈️ Telegram Kanalı",
         "INSTAGRAM": "📸 Instagram",
-        "WHATSAPP": "💬 WhatsApp Kanalı"
+        "WHATSAPP": "💬 WhatsApp (Otomatik Bot)"
     }.get(x, x),
-    help="Otopilot aktifken yeni ilanların eşzamanlı yayınlanacağı kanallar."
+    help="Otopilot aktifken yeni ilanların otomatik yayınlanacağı kanallar."
 )
 new_ap_str = ",".join(selected_ap_channels)
 if new_ap_str != cur_ap_raw:
@@ -387,9 +387,9 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
         b_chans = st.multiselect(
             "Yayın Kanalları:",
             options=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
-            default=["TELEGRAM", "INSTAGRAM", "WHATSAPP"],
+            default=["TELEGRAM", "INSTAGRAM"],
             key="batch_publish_channels",
-            format_func=lambda x: {"TELEGRAM": "✈️ Telegram", "INSTAGRAM": "📸 Instagram", "WHATSAPP": "💬 WhatsApp"}.get(x, x)
+            format_func=lambda x: {"TELEGRAM": "✈️ Telegram", "INSTAGRAM": "📸 Instagram", "WHATSAPP": "💬 WhatsApp (Bot)"}.get(x, x)
         )
     with c_b_btn:
         st.write("")
@@ -644,7 +644,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                 with ch_col1:
                     use_tg = st.checkbox("Telegram Kanalı", value=True, key=f"ch_tg_{job.id}")
                 with ch_col2:
-                    use_wa = st.checkbox("WhatsApp Kanalı", value=True, key=f"ch_wa_{job.id}")
+                    use_wa = st.checkbox("WhatsApp (Otomatik Bot)", value=False, key=f"ch_wa_{job.id}", help="WhatsApp Web veya Whapi bot ile otomatik göndermeyi dener. Manuel paylaşacaksanız kapalı bırakınız.")
                 with ch_col3:
                     use_ig = st.checkbox("Instagram", value=True, key=f"ch_ig_{job.id}")
 
@@ -712,6 +712,52 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                         if "ilanDetay.aspx" in clean_url:
                             clean_url = "https://kamuilan.sbb.gov.tr/"
                         st.link_button("🌐 Resmi Haber / Duyuru Sayfası", clean_url, use_container_width=True)
+
+                # =============================================================
+                # WHATSAPP İÇİN HIZLI MANUEL PAYLAŞIM PANELİ
+                # =============================================================
+                with st.expander("💬 WhatsApp İçin Manuel Paylaşım Araçları (Tek Tıkla Kopyala & İndir)", expanded=False):
+                    wa_col_text, wa_col_actions = st.columns([3, 2])
+
+                    wa_formatted_text = (
+                        f"📢 *{auto_inst} Personel Alım İlanı*\n\n"
+                        f"🏛 *Kurum:* {auto_inst}\n"
+                        f"📋 *Kadro / Pozisyon:* {auto_pos}\n"
+                        f"👥 *Kontenjan:* {auto_count} Kişi\n"
+                        f"🗓 *Son Başvuru Tarihi:* {deadline_str}\n"
+                        f"🎓 *Öğrenim:* {job.education_level or 'Kılavuzda belirtilen'}\n"
+                        f"🎯 *KPSS:* {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n\n"
+                        f"🔗 *Resmi Kaynak Linki:*\n{clean_src_url}\n\n"
+                        f"⚠️ *Kamu Personel Rehberi teyitli resmi kamu ilanıdır.*\n"
+                        f"#KamuPersoneli #İlan #MemurAlımı"
+                    )
+
+                    with wa_col_text:
+                        st.text_area(
+                            "WhatsApp Formatlı Metin (*Kalın* fontlarla hazır):",
+                            value=wa_formatted_text,
+                            height=140,
+                            key=f"wa_copy_text_{job.id}",
+                            help="Metni kopyalayıp doğrudan WhatsApp kanalınıza veya grubunuza yapıştırabilirsiniz."
+                        )
+
+                    with wa_col_actions:
+                        st.write("")
+                        import urllib.parse
+                        wa_web_share_url = f"https://web.whatsapp.com/send?text={urllib.parse.quote(wa_formatted_text)}"
+                        st.link_button("📲 WhatsApp Web'de Aç (Metin Yazılı)", wa_web_share_url, use_container_width=True)
+
+                        if img_path and img_path.exists():
+                            with open(img_path, "rb") as f_img_wa:
+                                st.download_button(
+                                    label="🖼️ Afiş Görselini İndir",
+                                    data=f_img_wa.read(),
+                                    file_name=f"{job.id}_{auto_inst}_Afis.png",
+                                    mime="image/png",
+                                    key=f"dl_wa_img_{job.id}",
+                                    use_container_width=True
+                                )
+
 
 
 # =============================================================================
