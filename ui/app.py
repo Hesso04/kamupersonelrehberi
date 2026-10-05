@@ -1002,12 +1002,24 @@ elif menu == "⚙️ Sistem & API Ayarları":
                     status_box.info("⏳ WhatsApp Web başlatılıyor ve QR kod üretiliyor, lütfen birkaç saniye bekleyin...")
 
                     def render_qr(qr_path_str):
-                        qr_box.image(
-                            qr_path_str,
-                            caption="📱 Telefonunuzdan (WhatsApp > Bağlı Cihazlar > Cihaz Bağla) bu QR kodu taratın!",
-                            width=300
-                        )
-                        status_box.warning("⚡ QR Kod hazır! Telefonunuzdan taratmanız bekleniyor (90 sn)...")
+                        import base64
+                        try:
+                            with open(qr_path_str, "rb") as f_img:
+                                b64_str = base64.b64encode(f_img.read()).decode("utf-8")
+                            qr_box.markdown(
+                                f"""
+                                <div style="background: #ffffff; padding: 20px; border-radius: 16px; width: 330px; margin: 10px auto; box-shadow: 0 8px 30px rgba(0,0,0,0.5); text-align: center;">
+                                    <img src="data:image/png;base64,{b64_str}" style="width: 290px; height: 290px; display: block; margin: 0 auto; border-radius: 8px;" />
+                                    <div style="color: #0f172a; font-size: 13px; font-weight: 700; margin-top: 12px; font-family: system-ui, -apple-system, sans-serif;">
+                                        📱 WhatsApp &gt; Bağlı Cihazlar &gt; Cihaz Bağla
+                                    </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        except Exception:
+                            qr_box.image(qr_path_str, width=300)
+                        status_box.warning("⚡ Yüksek Çözünürlüklü QR Kod hazır! Telefonunuzdan (WhatsApp > Bağlı Cihazlar) okutun.")
 
                     ok, msg = wp.start_login_window(max_wait=90, on_qr_ready=render_qr)
                     if ok:
@@ -1020,7 +1032,23 @@ elif menu == "⚙️ Sistem & API Ayarları":
 
                 qr_file = Path("graphics/assets/whatsapp_qr.png")
                 if qr_file.exists():
-                    st.image(str(qr_file), caption="📱 Son üretilen QR Kod", width=260)
+                    import base64
+                    try:
+                        with open(qr_file, "rb") as f_img:
+                            b64_str = base64.b64encode(f_img.read()).decode("utf-8")
+                        st.markdown(
+                            f"""
+                            <div style="background: #ffffff; padding: 15px; border-radius: 14px; width: 280px; margin: 10px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center;">
+                                <img src="data:image/png;base64,{b64_str}" style="width: 250px; height: 250px; display: block; margin: 0 auto; border-radius: 6px;" />
+                                <div style="color: #334155; font-size: 12px; font-weight: 600; margin-top: 8px; font-family: system-ui, sans-serif;">
+                                    Son üretilen QR Kod
+                                </div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                    except Exception:
+                        st.image(str(qr_file), width=260)
 
     # =========================================================================
     # TAB 2: İNTERAKTİF MODEL TEST ALANI (PLAYGROUND)

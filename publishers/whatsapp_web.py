@@ -29,6 +29,34 @@ def ensure_browser_installed():
             logger.error(f"Playwright kurulum hatası: {install_err}")
 
 
+def make_clean_qr_image(raw_data: str, target_path: Path):
+    """Raw data-ref kodundan telefon kameralarının anında okuyacağı yüksek kontrastlı, beyaz kenarlıklı QR üretir."""
+    import qrcode
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(raw_data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(str(target_path))
+
+
+def pad_canvas_screenshot(img_path: Path):
+    """Ekran görüntüsünün etrafına 50px genişliğinde beyaz sessiz alan (quiet zone) ekler."""
+    from PIL import Image
+    try:
+        im = Image.open(img_path).convert("RGBA")
+        padded = Image.new("RGB", (im.width + 100, im.height + 100), (255, 255, 255))
+        padded.paste(im, (50, 50), im if im.mode == "RGBA" else None)
+        padded.save(str(img_path), "PNG")
+    except Exception as e:
+        logger.warning(f"QR padding hatası: {e}")
+
+
 class WhatsAppWebPublisher:
     """
     Yerel WhatsApp Web ve WhatsApp Kanalları (Channels) Otomasyonu.
@@ -109,27 +137,49 @@ class WhatsAppWebPublisher:
                 logged_in = False
                 qr_captured = False
 
+                last_ref = None
                 while time.time() - start_time < max_wait:
-                    time.sleep(2)
-                    
-                    # 1. Henüz taranmadıysa ve QR tuvali görünürse ekran görüntüsünü al
-                    if not qr_captured:
-                        qr_elem = (
-                            page.query_selector('canvas[aria-label*="QR"]') or 
-                            page.query_selector('canvas') or 
-                            page.query_selector('div[data-ref]')
-                        )
-                        if qr_elem:
+                    time.sleep(1.5)
+
+                    # A. Süre dolup "Yenile" butonu belirdiyse otomatik tıkla
+                    reload_btn = (
+                        page.query_selector('button:has-text("Yenile")') or 
+                        page.query_selector('span[data-icon="refresh"]') or 
+                        page.query_selector('div[role="button"]:has(span[data-icon="refresh"])')
+                    )
+                    if reload_btn:
+                        try:
+                            reload_btn.click()
+                            time.sleep(1.5)
+                        except Exception:
+                            pass
+
+                    # B. data-ref niteliği varsa doğrudan %100 net, beyaz kenarlıklı QR üret
+                    ref_elem = page.query_selector('div[data-ref]')
+                    data_ref = ref_elem.get_attribute("data-ref") if ref_elem else None
+
+                    if data_ref and data_ref != last_ref:
+                        last_ref = data_ref
+                        try:
+                            make_clean_qr_image(data_ref, self.qr_path)
+                            logger.info(f"WhatsApp data-ref yakalandı ve net QR üretildi: {self.qr_path}")
+                            if on_qr_ready:
+                                on_qr_ready(str(self.qr_path))
+                        except Exception as e:
+                            logger.warning(f"QR oluşturma hatası: {e}")
+
+                    # C. data-ref henüz yoksa canvas ekran görüntüsünü al ve beyaz margin ekle
+                    elif not last_ref:
+                        qr_canvas = page.query_selector('canvas[aria-label*="QR"]') or page.query_selector('canvas')
+                        if qr_canvas:
                             try:
                                 self.qr_path.parent.mkdir(parents=True, exist_ok=True)
-                                qr_elem.screenshot(path=str(self.qr_path))
-                                qr_captured = True
-                                logger.info(f"WhatsApp QR görseli kaydedildi: {self.qr_path}")
+                                qr_canvas.screenshot(path=str(self.qr_path))
+                                pad_canvas_screenshot(self.qr_path)
+                                last_ref = "canvas"
+                                logger.info(f"WhatsApp canvas yakalandı ve beyaz çerçeve ile kaydedildi: {self.qr_path}")
                                 if on_qr_ready:
-                                    try:
-                                        on_qr_ready(str(self.qr_path))
-                                    except Exception:
-                                        pass
+                                    on_qr_ready(str(self.qr_path))
                             except Exception:
                                 pass
 
