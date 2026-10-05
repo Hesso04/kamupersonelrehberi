@@ -1034,6 +1034,8 @@ elif menu == "⚙️ Sistem & API Ayarları":
     cur_green_tok = current_settings.get("GREEN_API_TOKEN", {}).get("value", "")
     cur_ig_token = current_settings.get("INSTAGRAM_ACCESS_TOKEN", {}).get("value", "")
     cur_ig_acc_id = current_settings.get("INSTAGRAM_ACCOUNT_ID", {}).get("value", "")
+    cur_fb_page_id = current_settings.get("FACEBOOK_PAGE_ID", {}).get("value", "1386232411235219")
+    cur_fb_token = current_settings.get("FACEBOOK_ACCESS_TOKEN", {}).get("value", "")
     cur_default_theme = current_settings.get("DEFAULT_CARD_THEME", {}).get("value", "DARK_NOIR")
 
     # Sekmeli Yapı: 1. Ayarlar Formu, 2. İnteraktif Model Yanıt Test Laboratuvarı
