@@ -55,8 +55,12 @@ from telethon.tl.types import (
     Channel,
     Chat,
     User,
+    InputPeerUser,
     UserStatusOnline,
     UserStatusRecently,
+    UserStatusLastWeek,
+    UserStatusLastMonth,
+    UserStatusOffline,
 )
 
 # =============================================================================
@@ -419,20 +423,41 @@ def telegram_buyutme_modulu():
                 scrape_limit = st.number_input(
                     "Maks. Taranacak Üye",
                     min_value=50,
-                    max_value=3000,
-                    value=300,
+                    max_value=5000,
+                    value=500,
                     step=50,
-                    help="Gruptan taranacak maksimum katılımcı sayısı."
+                    help="Gruptan toplanacak maksimum hedef aktif üye sayısı."
+                )
+
+            col_opt1, col_opt2 = st.columns([2, 2])
+            with col_opt1:
+                activity_filter = st.selectbox(
+                    "⏱️ Aktiflik Kapsamı (Zaman Filtresi)",
+                    options=[
+                        "⚡ Son 7 Gün (Önerilen - Yüksek Verim & Canlı Kitle)",
+                        "🔥 Son 24 Saat & Çevrimiçi (Süper Aktif - En Dar)",
+                        "👥 Son 30 Gün (Geniş Kitle)",
+                        "🌐 Tümü (Tüm Kayıtlı Üyeler)"
+                    ],
+                    index=0,
+                    help="Telegram kullanıcılarının çoğu son görülmesini gizler. 'Son 7 Gün' seçildiğinde hem yakın zamanda girenler hem de gizli son görülmesi olan aktif adaylar yakalanır."
+                )
+            with col_opt2:
+                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                username_only = st.checkbox(
+                    "Sadece @kullaniciadi Olanları Çek",
+                    value=False,
+                    help="İşaret kaldırıldığında kullanıcı adı olmayan üyeler de 'ID & Access Hash' ile listeye eklenir. Telegram API bu kişileri grubunuza sorunsuz ekler ve bulunan üye sayısını 2-3 katına çıkarır!"
                 )
 
             # Filtre Bilgisi Kartı
             st.markdown("""
             <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid #10b981; padding: 12px; border-radius: 6px; margin: 12px 0;">
-                <b style="color: #10b981;">🛡️ Aktif Filtreleme Kuralları (Anti-Ban & Yüksek Etkileşim):</b>
+                <b style="color: #10b981;">🚀 Yüksek Verimli Çok Aşamalı Kazıma Motoru (Deep Scraping):</b>
                 <ul style="color: #cbd5e1; margin: 6px 0 0 0; padding-left: 20px; font-size: 0.9rem;">
-                    <li><b>Sadece Çevrimiçi & Son 24 Saat:</b> <code>UserStatusOnline</code> veya <code>UserStatusRecently</code> durumundaki gerçek aktif üyeler.</li>
-                    <li><b>Sadece Kullanıcı Adı Olanlar:</b> <code>@username</code> sahibi olanlar (Telegram API üzerinden sorunsuz eklenebilenler).</li>
-                    <li><b>Bot ve Silinmiş Hesap Filtresi:</b> Botlar ve silinmiş sahte hesaplar otomatik olarak elenir.</li>
+                    <li><b>1. Aşama (Doğrudan Katılımcı):</b> Telegram genel katılımcı listesi taranır.</li>
+                    <li><b>2. Aşama (A-Z Alfabetik Derin Arama):</b> Telegram'ın tek sorguda koyduğu üye limitini aşmak için A'dan Z'ye harf taramasıyla binlerce üye taranır.</li>
+                    <li><b>3. Aşama (Canlı Grup Sohbeti):</b> Grupta 'Üyeleri Gizle' açık olsa bile sohbet geçmişinden soru soran ve aktif mesaj atan adaylar toplanır.</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -481,7 +506,7 @@ def telegram_buyutme_modulu():
                             except Exception:
                                 pass
 
-                        # 3. Gruba katılmayı dene (Özellikle katılımcı listesini görmek veya mesajları okumak için)
+                        # 3. Gruba katılmayı dene
                         try:
                             from telethon.tl.functions.channels import JoinChannelRequest
                             await client(JoinChannelRequest(target_entity))
@@ -491,61 +516,118 @@ def telegram_buyutme_modulu():
                         collected = []
                         seen_ids = set()
                         total_scanned = 0
-                        use_messages_fallback = False
-                        source_used = "Üye Listesi"
+                        source_used = []
 
-                        # YÖNTEM A: Doğrudan Katılımcı Listesini Tara (iter_participants)
-                        ev_queue.put(('status', f"📋 `{clean_target}` katılımcı listesi taranıyor..."))
+                        def check_activity(u_status):
+                            if "Tümü" in activity_filter:
+                                if isinstance(u_status, UserStatusOnline):
+                                    return True, "🟢 Çevrimiçi"
+                                elif isinstance(u_status, UserStatusRecently):
+                                    return True, "🟡 Son 24 Saat (Recently)"
+                                elif isinstance(u_status, UserStatusLastWeek):
+                                    return True, "🔵 Son 7 Gün"
+                                elif isinstance(u_status, UserStatusLastMonth):
+                                    return True, "⚪ Son 30 Gün"
+                                else:
+                                    return True, "⚪ Kayıtlı Üye"
+                            elif "Son 30 Gün" in activity_filter:
+                                if isinstance(u_status, (UserStatusOnline, UserStatusRecently, UserStatusLastWeek, UserStatusLastMonth)):
+                                    if isinstance(u_status, UserStatusOnline):
+                                        return True, "🟢 Çevrimiçi"
+                                    elif isinstance(u_status, UserStatusRecently):
+                                        return True, "🟡 Son 24 Saat (Recently)"
+                                    elif isinstance(u_status, UserStatusLastWeek):
+                                        return True, "🔵 Son 7 Gün"
+                                    return True, "⚪ Son 30 Gün"
+                                return False, ""
+                            elif "Son 7 Gün" in activity_filter:
+                                if isinstance(u_status, (UserStatusOnline, UserStatusRecently, UserStatusLastWeek)):
+                                    if isinstance(u_status, UserStatusOnline):
+                                        return True, "🟢 Çevrimiçi"
+                                    elif isinstance(u_status, UserStatusRecently):
+                                        return True, "🟡 Son 24 Saat (Recently)"
+                                    return True, "🔵 Son 7 Gün"
+                                return False, ""
+                            else:
+                                if isinstance(u_status, (UserStatusOnline, UserStatusRecently)):
+                                    return True, "🟢 Çevrimiçi" if isinstance(u_status, UserStatusOnline) else "🟡 Son 24 Saat (Recently)"
+                                return False, ""
+
+                        def process_user(u, src_label):
+                            nonlocal total_scanned
+                            total_scanned += 1
+                            if not u or getattr(u, 'bot', False) or getattr(u, 'deleted', False):
+                                return False
+                            if u.id in seen_ids:
+                                return False
+                            if username_only and not getattr(u, 'username', None):
+                                return False
+
+                            is_active, status_desc = check_activity(getattr(u, 'status', None))
+                            if not is_active:
+                                return False
+
+                            seen_ids.add(u.id)
+                            username_val = f"@{u.username}" if getattr(u, 'username', None) else "Yok (ID ile Eklenecek)"
+                            collected.append({
+                                "ID": u.id,
+                                "Access Hash": getattr(u, 'access_hash', 0),
+                                "Kullanıcı Adı": username_val,
+                                "Ad": u.first_name or "",
+                                "Soyad": u.last_name or "",
+                                "Durum": status_desc,
+                                "Kaynak": src_label,
+                                "Kazınma Tarihi": datetime.now().strftime("%Y-%m-%d %H:%M")
+                            })
+                            if src_label not in source_used:
+                                source_used.append(src_label)
+                            return True
+
+                        # 1. AŞAMA: Doğrudan Katılımcı Listesini Tara (iter_participants)
+                        ev_queue.put(('status', f"📋 1. Aşama: `{clean_target}` genel katılımcı listesi taranıyor..."))
                         try:
                             async for user in client.iter_participants(target_entity, limit=scrape_limit):
-                                total_scanned += 1
+                                process_user(user, "Genel Üye Listesi")
                                 if total_scanned % 15 == 0:
-                                    ev_queue.put(('status', f"⏳ Taranan: {total_scanned} üye | Tespit Edilen Aktif: {len(collected)}"))
+                                    ev_queue.put(('status', f"⏳ 1. Aşama: {total_scanned} üye incelendi | Bulunan Uygun: {len(collected)}/{scrape_limit}"))
                                     ev_queue.put(('progress', min(0.9, len(collected) / max(1, scrape_limit))))
-
-                                if not user or user.bot or user.deleted or not user.username:
-                                    continue
-                                if user.id in seen_ids:
-                                    continue
-
-                                if isinstance(user.status, (UserStatusOnline, UserStatusRecently)):
-                                    seen_ids.add(user.id)
-                                    status_desc = "🟢 Çevrimiçi" if isinstance(user.status, UserStatusOnline) else "🟡 Son 24 Saat (Recently)"
-                                    collected.append({
-                                        "ID": user.id,
-                                        "Access Hash": getattr(user, 'access_hash', 0),
-                                        "Kullanıcı Adı": f"@{user.username}",
-                                        "Ad": user.first_name or "",
-                                        "Soyad": user.last_name or "",
-                                        "Durum": status_desc,
-                                        "Kaynak": "Grup Üye Listesi",
-                                        "Kazınma Tarihi": datetime.now().strftime("%Y-%m-%d %H:%M")
-                                    })
-
                                 if len(collected) >= scrape_limit:
                                     break
+                        except Exception:
+                            pass
 
-                            if len(collected) == 0:
-                                use_messages_fallback = True
+                        # 2. AŞAMA: A-Z ALFABETİK DERİN ARAMA (Telegram 200/9 limitini aşar)
+                        if len(collected) < scrape_limit:
+                            ev_queue.put(('status', f"🔎 2. Aşama: A-Z Derin Arama motoru başlatılıyor ({len(collected)}/{scrape_limit})..."))
+                            search_alphabet = [
+                                "a", "e", "i", "o", "u", "s", "k", "m", "t", "r", "n", "l",
+                                "b", "c", "d", "f", "g", "h", "j", "p", "v", "y", "z",
+                                "ç", "ğ", "ö", "ş", "ü", "1", "2"
+                            ]
+                            for char in search_alphabet:
+                                if len(collected) >= scrape_limit:
+                                    break
+                                try:
+                                    ev_queue.put(('status', f"🔎 2. Aşama (A-Z Arama '{char.upper()}'): {len(collected)}/{scrape_limit} üye toplandı..."))
+                                    ev_queue.put(('progress', min(0.95, len(collected) / max(1, scrape_limit))))
+                                    async for user in client.iter_participants(target_entity, search=char, limit=100):
+                                        process_user(user, f"Alfabetik Tarama ({char.upper()})")
+                                        if len(collected) >= scrape_limit:
+                                            break
+                                except Exception:
+                                    continue
 
-                        except (ChatAdminRequiredError, Exception):
-                            use_messages_fallback = True
-
-                        # YÖNTEM B: GİZLİ ÜYE LİSTESİ BYPASS (iter_messages)
-                        # Grupta "Üyeleri Gizle" aktifse veya katılımcı listesinden sonuç gelmediyse:
-                        if use_messages_fallback and len(collected) < scrape_limit:
-                            source_used = "Canlı Grup Sohbeti (Aktif Mesaj Gönderenler - Gizli Liste Bypass)"
-                            ev_queue.put(('status', "⚡ 'Üyeleri Gizle' modu tespit edildi! Akıllı Mesaj Tarayıcısı devrede: Canlı sohbette son mesaj atan gerçek adaylar toplanıyor..."))
-
-                            msg_scan_limit = max(scrape_limit * 8, 1200)
+                        # 3. AŞAMA: CANLI SOHBET MESAJLARINI TARA (Gizli Üye Bypass)
+                        if len(collected) < scrape_limit:
+                            ev_queue.put(('status', f"💬 3. Aşama: Canlı sohbet mesajları taranıyor ({len(collected)}/{scrape_limit})..."))
+                            msg_scan_limit = max(scrape_limit * 10, 2500)
                             msg_count = 0
 
                             async for msg in client.iter_messages(target_entity, limit=msg_scan_limit):
                                 msg_count += 1
-                                total_scanned += 1
-                                if msg_count % 30 == 0:
-                                    ev_queue.put(('status', f"💬 Canlı Mesajlar İnceleniyor: {msg_count} mesaj | Bulunan Süper Aktif: {len(collected)}/{scrape_limit}"))
-                                    ev_queue.put(('progress', min(0.95, len(collected) / max(1, scrape_limit))))
+                                if msg_count % 35 == 0:
+                                    ev_queue.put(('status', f"💬 3. Aşama: {msg_count} canlı mesaj incelendi | Toplanan: {len(collected)}/{scrape_limit}"))
+                                    ev_queue.put(('progress', min(0.98, len(collected) / max(1, scrape_limit))))
 
                                 if not msg:
                                     continue
@@ -559,33 +641,13 @@ def telegram_buyutme_modulu():
 
                                 if not sender or not isinstance(sender, User):
                                     continue
-                                if sender.bot or sender.deleted or not sender.username:
-                                    continue
-                                if sender.id in seen_ids:
-                                    continue
 
-                                seen_ids.add(sender.id)
-                                status_desc = "🔥 Canlı Mesaj Gönderen (Aktif Aday)"
-                                if isinstance(sender.status, UserStatusOnline):
-                                    status_desc = "🟢 Çevrimiçi"
-                                elif isinstance(sender.status, UserStatusRecently):
-                                    status_desc = "🟡 Son 24 Saat"
-
-                                collected.append({
-                                    "ID": sender.id,
-                                    "Access Hash": getattr(sender, 'access_hash', 0),
-                                    "Kullanıcı Adı": f"@{sender.username}",
-                                    "Ad": sender.first_name or "",
-                                    "Soyad": sender.last_name or "",
-                                    "Durum": status_desc,
-                                    "Kaynak": "Canlı Grup Sohbeti (Gizli Liste Bypass)",
-                                    "Kazınma Tarihi": datetime.now().strftime("%Y-%m-%d %H:%M")
-                                })
-
+                                process_user(sender, "Canlı Sohbet (Mesaj Gönderen)")
                                 if len(collected) >= scrape_limit:
                                     break
 
-                        return collected, total_scanned, source_used
+                        source_summary = ", ".join(source_used[:3]) if source_used else "Genel Tarama"
+                        return collected, total_scanned, source_summary
 
                     try:
                         loop = AsyncLoopThread.get_loop()
@@ -614,7 +676,7 @@ def telegram_buyutme_modulu():
                         if scraped_list:
                             status_text.success(f"🎉 Tarama Başarılı! {total_scanned} kayıt/mesaj incelendi, **{len(scraped_list)}** adet süper aktif kamu ve KPSS adayı toplandı! (Yöntem: {source_used})")
                         else:
-                            status_text.warning("⚠️ Tarama tamamlandı ancak grupta kriterlere uyan aktif üye tespit edilemedi. Lütfen limiti artırın veya başka bir grup linki deneyin.")
+                            status_text.warning("⚠️ Tarama tamamlandı ancak grupta seçilen kriterlere uyan aktif üye tespit edilemedi. Lütfen aktiflik filtresini genişletin veya limiti artırın.")
                     except FloodWaitError as e:
                         st.error(f"⏳ Telegram Hız Sınırı (FloodWait): Telegram güvenlik kısıtı nedeniyle lütfen {e.seconds} saniye bekleyin.")
                     except Exception as ex:
@@ -762,7 +824,14 @@ def telegram_buyutme_modulu():
                             ev_q.put(('progress', progress, f"👤 ({idx}/{len(users_pool)}) **{u_name}** gruba davet ediliyor..."))
 
                             try:
-                                target_user_entity = await client.get_input_entity(u_name)
+                                u_id = user_data.get("ID")
+                                u_hash = user_data.get("Access Hash")
+                                if u_id and u_hash:
+                                    target_user_entity = InputPeerUser(user_id=int(u_id), access_hash=int(u_hash))
+                                elif u_name and u_name.startswith("@"):
+                                    target_user_entity = await client.get_input_entity(u_name)
+                                else:
+                                    target_user_entity = await client.get_input_entity(int(u_id))
                                 
                                 # Grup tipine göre davet etme isteği
                                 if isinstance(my_group_entity, Channel):
