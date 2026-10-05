@@ -18,6 +18,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 import threading
+import queue
 import concurrent.futures
 from typing import List, Dict, Any, Optional
 
@@ -26,6 +27,7 @@ import streamlit as st
 from telethon import TelegramClient
 from telethon.errors import (
     ChatAdminRequiredError,
+    ChannelPrivateError,
     FloodWaitError,
     PasswordHashInvalidError,
     PeerFloodError,
@@ -39,8 +41,16 @@ from telethon.errors import (
     UserNotMutualContactError,
     UserPrivacyRestrictedError,
 )
-from telethon.tl.functions.channels import InviteToChannelRequest
-from telethon.tl.functions.messages import AddChatUserRequest
+from telethon.tl.functions.channels import (
+    InviteToChannelRequest,
+    JoinChannelRequest,
+    GetFullChannelRequest,
+)
+from telethon.tl.functions.messages import (
+    AddChatUserRequest,
+    ImportChatInviteRequest,
+    CheckChatInviteRequest,
+)
 from telethon.tl.types import (
     Channel,
     Chat,
@@ -118,10 +128,18 @@ async def _check_active_authorization(api_id: int, api_hash: str):
 def _clean_telegram_target(target_str: str) -> str:
     """Telegram link veya kullanıcı adı girdisini temizler."""
     t = target_str.strip()
-    t = t.replace("https://t.me/", "").replace("http://t.me/", "").replace("t.me/", "")
-    if t.startswith("+"):
-        return t
-    return t
+    if "?" in t:
+        t = t.split("?")[0]
+    if "#" in t:
+        t = t.split("#")[0]
+    t = t.rstrip("/")
+    for prefix in ["https://t.me/", "http://t.me/", "t.me/", "tg://resolve?domain="]:
+        if t.startswith(prefix):
+            t = t[len(prefix):]
+    t = t.replace("joinchat/", "+")
+    if t.startswith("@"):
+        t = t[1:]
+    return t.strip()
 
 
 # =============================================================================
@@ -425,56 +443,188 @@ def telegram_buyutme_modulu():
                 else:
                     client = st.session_state.tg_client
                     clean_target = _clean_telegram_target(target_group_input)
-                    
+
                     progress_bar = st.progress(0.0)
                     status_text = st.empty()
-                    status_text.info(f"🔍 `{clean_target}` grubu taranıyor ve katılımcılar inceleniyor...")
+                    status_text.info(f"🔍 `{clean_target}` hedefi inceleniyor...")
 
-                    async def _scrape_active_members():
+                    async def _scrape_active_members(ev_queue: queue.Queue):
                         if not client.is_connected():
                             await client.connect()
-                        
-                        target_entity = await client.get_entity(clean_target)
+
+                        ev_queue.put(('status', f"🔍 `{clean_target}` Telegram üzerinde çözümleniyor..."))
+
+                        # 1. Entity çözümleme
+                        try:
+                            if clean_target.startswith("+"):
+                                from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
+                                try:
+                                    updates = await client(ImportChatInviteRequest(clean_target[1:]))
+                                    target_entity = updates.chats[0]
+                                except Exception:
+                                    invite = await client(CheckChatInviteRequest(clean_target[1:]))
+                                    target_entity = invite.chat
+                            else:
+                                target_entity = await client.get_entity(clean_target)
+                        except Exception as e:
+                            raise ValueError(f"Hedef grup bulunamadı veya link geçersiz: '{clean_target}' ({type(e).__name__}: {e})")
+
+                        # 2. Eğer Broadcast Kanalı ise ve Megagroup değilse bağlı tartışma grubunu tespit et
+                        if getattr(target_entity, 'broadcast', False) and not getattr(target_entity, 'megagroup', False):
+                            try:
+                                from telethon.tl.functions.channels import GetFullChannelRequest
+                                full_ch = await client(GetFullChannelRequest(target_entity))
+                                linked_id = getattr(full_ch.full_chat, 'linked_chat_id', None)
+                                if linked_id:
+                                    ev_queue.put(('status', "ℹ️ Kanalın bağlı sohbet/tartışma grubu bulundu, üyeler gruptan taranacak..."))
+                                    target_entity = await client.get_entity(linked_id)
+                            except Exception:
+                                pass
+
+                        # 3. Gruba katılmayı dene (Özellikle katılımcı listesini görmek veya mesajları okumak için)
+                        try:
+                            from telethon.tl.functions.channels import JoinChannelRequest
+                            await client(JoinChannelRequest(target_entity))
+                        except Exception:
+                            pass
+
                         collected = []
+                        seen_ids = set()
                         total_scanned = 0
+                        use_messages_fallback = False
+                        source_used = "Üye Listesi"
 
-                        async for user in client.iter_participants(target_entity, limit=scrape_limit):
-                            total_scanned += 1
-                            if total_scanned % 25 == 0:
-                                status_text.info(f"⏳ Taranan: {total_scanned}/{scrape_limit} | Bulunan Aktif: {len(collected)}")
+                        # YÖNTEM A: Doğrudan Katılımcı Listesini Tara (iter_participants)
+                        ev_queue.put(('status', f"📋 `{clean_target}` katılımcı listesi taranıyor..."))
+                        try:
+                            async for user in client.iter_participants(target_entity, limit=scrape_limit):
+                                total_scanned += 1
+                                if total_scanned % 15 == 0:
+                                    ev_queue.put(('status', f"⏳ Taranan: {total_scanned} üye | Tespit Edilen Aktif: {len(collected)}"))
+                                    ev_queue.put(('progress', min(0.9, len(collected) / max(1, scrape_limit))))
 
-                            # Bot veya silinmiş hesap kontrolü
-                            if user.bot or user.deleted:
-                                continue
+                                if not user or user.bot or user.deleted or not user.username:
+                                    continue
+                                if user.id in seen_ids:
+                                    continue
 
-                            # Kullanıcı adı kontrolü
-                            if not user.username:
-                                continue
+                                if isinstance(user.status, (UserStatusOnline, UserStatusRecently)):
+                                    seen_ids.add(user.id)
+                                    status_desc = "🟢 Çevrimiçi" if isinstance(user.status, UserStatusOnline) else "🟡 Son 24 Saat (Recently)"
+                                    collected.append({
+                                        "ID": user.id,
+                                        "Access Hash": getattr(user, 'access_hash', 0),
+                                        "Kullanıcı Adı": f"@{user.username}",
+                                        "Ad": user.first_name or "",
+                                        "Soyad": user.last_name or "",
+                                        "Durum": status_desc,
+                                        "Kaynak": "Grup Üye Listesi",
+                                        "Kazınma Tarihi": datetime.now().strftime("%Y-%m-%d %H:%M")
+                                    })
 
-                            # Sadece son 24 saat / Çevrimiçi kontrolü
-                            if isinstance(user.status, (UserStatusOnline, UserStatusRecently)):
-                                status_desc = "🟢 Çevrimiçi" if isinstance(user.status, UserStatusOnline) else "🟡 Son 24 Saat (Recently)"
+                                if len(collected) >= scrape_limit:
+                                    break
+
+                            if len(collected) == 0:
+                                use_messages_fallback = True
+
+                        except (ChatAdminRequiredError, Exception):
+                            use_messages_fallback = True
+
+                        # YÖNTEM B: GİZLİ ÜYE LİSTESİ BYPASS (iter_messages)
+                        # Grupta "Üyeleri Gizle" aktifse veya katılımcı listesinden sonuç gelmediyse:
+                        if use_messages_fallback and len(collected) < scrape_limit:
+                            source_used = "Canlı Grup Sohbeti (Aktif Mesaj Gönderenler - Gizli Liste Bypass)"
+                            ev_queue.put(('status', "⚡ 'Üyeleri Gizle' modu tespit edildi! Akıllı Mesaj Tarayıcısı devrede: Canlı sohbette son mesaj atan gerçek adaylar toplanıyor..."))
+
+                            msg_scan_limit = max(scrape_limit * 8, 1200)
+                            msg_count = 0
+
+                            async for msg in client.iter_messages(target_entity, limit=msg_scan_limit):
+                                msg_count += 1
+                                total_scanned += 1
+                                if msg_count % 30 == 0:
+                                    ev_queue.put(('status', f"💬 Canlı Mesajlar İnceleniyor: {msg_count} mesaj | Bulunan Süper Aktif: {len(collected)}/{scrape_limit}"))
+                                    ev_queue.put(('progress', min(0.95, len(collected) / max(1, scrape_limit))))
+
+                                if not msg:
+                                    continue
+
+                                sender = msg.sender
+                                if not sender and msg.from_id:
+                                    try:
+                                        sender = await msg.get_sender()
+                                    except Exception:
+                                        continue
+
+                                if not sender or not isinstance(sender, User):
+                                    continue
+                                if sender.bot or sender.deleted or not sender.username:
+                                    continue
+                                if sender.id in seen_ids:
+                                    continue
+
+                                seen_ids.add(sender.id)
+                                status_desc = "🔥 Canlı Mesaj Gönderen (Aktif Aday)"
+                                if isinstance(sender.status, UserStatusOnline):
+                                    status_desc = "🟢 Çevrimiçi"
+                                elif isinstance(sender.status, UserStatusRecently):
+                                    status_desc = "🟡 Son 24 Saat"
+
                                 collected.append({
-                                    "ID": user.id,
-                                    "Access Hash": user.access_hash,
-                                    "Kullanıcı Adı": f"@{user.username}",
-                                    "Ad": user.first_name or "",
-                                    "Soyad": user.last_name or "",
+                                    "ID": sender.id,
+                                    "Access Hash": getattr(sender, 'access_hash', 0),
+                                    "Kullanıcı Adı": f"@{sender.username}",
+                                    "Ad": sender.first_name or "",
+                                    "Soyad": sender.last_name or "",
                                     "Durum": status_desc,
+                                    "Kaynak": "Canlı Grup Sohbeti (Gizli Liste Bypass)",
                                     "Kazınma Tarihi": datetime.now().strftime("%Y-%m-%d %H:%M")
                                 })
 
-                        return collected, total_scanned
+                                if len(collected) >= scrape_limit:
+                                    break
+
+                        return collected, total_scanned, source_used
 
                     try:
-                        scraped_list, total_scanned = run_async(_scrape_active_members())
+                        loop = AsyncLoopThread.get_loop()
+                        ev_q = queue.Queue()
+                        future = asyncio.run_coroutine_threadsafe(_scrape_active_members(ev_q), loop)
+
+                        while not future.done():
+                            while not ev_q.empty():
+                                ev_type, *ev_args = ev_q.get_nowait()
+                                if ev_type == 'status':
+                                    status_text.info(ev_args[0])
+                                elif ev_type == 'progress':
+                                    progress_bar.progress(ev_args[0])
+                            time.sleep(0.1)
+
+                        while not ev_q.empty():
+                            ev_type, *ev_args = ev_q.get_nowait()
+                            if ev_type == 'status':
+                                status_text.info(ev_args[0])
+                            elif ev_type == 'progress':
+                                progress_bar.progress(ev_args[0])
+
+                        scraped_list, total_scanned, source_used = future.result()
                         progress_bar.progress(1.0)
                         st.session_state.scraped_users = scraped_list
-                        status_text.success(f"🎉 Tarama Tamamlandı! {total_scanned} üye incelendi, **{len(scraped_list)}** adet süper aktif kullanıcı tespit edildi.")
+                        if scraped_list:
+                            status_text.success(f"🎉 Tarama Başarılı! {total_scanned} kayıt/mesaj incelendi, **{len(scraped_list)}** adet süper aktif kamu ve KPSS adayı toplandı! (Yöntem: {source_used})")
+                        else:
+                            status_text.warning("⚠️ Tarama tamamlandı ancak grupta kriterlere uyan aktif üye tespit edilemedi. Lütfen limiti artırın veya başka bir grup linki deneyin.")
                     except FloodWaitError as e:
-                        st.error(f"Telegram hız sınırı: Lütfen {e.seconds} saniye sonra tekrar deneyin.")
+                        st.error(f"⏳ Telegram Hız Sınırı (FloodWait): Telegram güvenlik kısıtı nedeniyle lütfen {e.seconds} saniye bekleyin.")
                     except Exception as ex:
-                        st.error(f"Kazıma hatası: {str(ex)}")
+                        err_type = type(ex).__name__
+                        err_str = str(ex).strip() or repr(ex)
+                        st.error(f"❌ Kazıma Hatası ({err_type}): {err_str}")
+                        with st.expander("🔍 Hata Detayları ve Çözüm"):
+                            import traceback
+                            st.code(traceback.format_exc())
+                            st.info("💡 İpucu: Hedef grubun linkinin doğru ve herkese açık olduğunu teyit edin.")
 
             # Kazınan Üyelerin Gösterimi
             if st.session_state.scraped_users:
@@ -585,15 +735,15 @@ def telegram_buyutme_modulu():
                     append_log(f"🎯 Hedef Grup: {clean_my_group} | Hedeflenen Kişi Sayısı: {len(users_pool)}")
                     append_log(f"⏱️ Güvenlik Bekleme Aralığı: {min_delay} - {max_delay} saniye (Rastgele)")
 
-                    async def _add_members_process():
+                    async def _add_members_process(ev_q: queue.Queue):
                         if not client.is_connected():
                             await client.connect()
 
                         try:
                             my_group_entity = await client.get_entity(clean_my_group)
                         except Exception as e:
-                            append_log(f"❌ Hedef grup bulunamadı veya erişilemedi: {str(e)}")
-                            status_placeholder.error(f"Hedef grup bulunamadı: {str(e)}")
+                            ev_q.put(('log', f"❌ Hedef grup bulunamadı veya erişilemedi: {str(e)}"))
+                            ev_q.put(('error', f"Hedef grup bulunamadı: {str(e)}"))
                             return
 
                         success_cnt = 0
@@ -603,14 +753,13 @@ def telegram_buyutme_modulu():
 
                         for idx, user_data in enumerate(users_pool, start=1):
                             if stop_box:
-                                append_log("⏹️ Kullanıcı talebiyle işlem güvenle durduruldu.")
-                                status_placeholder.warning("İşlem kullanıcı tarafından durduruldu.")
+                                ev_q.put(('log', "⏹️ Kullanıcı talebiyle işlem güvenle durduruldu."))
+                                ev_q.put(('warning', "İşlem kullanıcı tarafından durduruldu."))
                                 break
 
                             u_name = user_data["Kullanıcı Adı"]
                             progress = idx / len(users_pool)
-                            progress_bar.progress(progress)
-                            status_placeholder.info(f"👤 ({idx}/{len(users_pool)}) **{u_name}** gruba davet ediliyor...")
+                            ev_q.put(('progress', progress, f"👤 ({idx}/{len(users_pool)}) **{u_name}** gruba davet ediliyor..."))
 
                             try:
                                 target_user_entity = await client.get_input_entity(u_name)
@@ -634,72 +783,121 @@ def telegram_buyutme_modulu():
                                     ))
 
                                 success_cnt += 1
-                                append_log(f"✅ {u_name} başarıyla gruba eklendi! (+1)")
+                                ev_q.put(('log', f"✅ {u_name} başarıyla gruba eklendi! (+1)"))
 
                                 # Anti-Ban Rastgele Bekleme Süresi
                                 if idx < len(users_pool):
                                     sleep_secs = random.randint(min_delay, max_delay)
-                                    append_log(f"⏳ Anti-ban koruması: {sleep_secs} saniye rastgele bekleniyor...")
+                                    ev_q.put(('log', f"⏳ Anti-ban koruması: {sleep_secs} saniye rastgele bekleniyor..."))
                                     for remaining in range(sleep_secs, 0, -1):
                                         if stop_box:
                                             break
-                                        status_placeholder.info(f"⏳ Anti-ban soğuma süresi: {remaining} sn kaldı... (Son eklenen: {u_name})")
+                                        ev_q.put(('status_info', f"⏳ Anti-ban soğuma süresi: {remaining} sn kaldı... (Son eklenen: {u_name})"))
                                         await asyncio.sleep(1)
 
                             except FloodWaitError as e:
-                                append_log(f"⚠️ Telegram FloodWait Limiti: Telegram {e.seconds} saniye beklemeyi zorunlu kıldı.")
+                                ev_q.put(('log', f"⚠️ Telegram FloodWait Limiti: Telegram {e.seconds} saniye beklemeyi zorunlu kıldı."))
                                 for rem in range(e.seconds, 0, -1):
                                     if stop_box:
                                         break
-                                    status_placeholder.warning(f"⚠️ FloodWait Beklemesi: {rem} sn kaldı...")
+                                    ev_q.put(('warning', f"⚠️ FloodWait Beklemesi: {rem} sn kaldı..."))
                                     await asyncio.sleep(1)
-                                append_log("🔄 FloodWait süresi tamamlandı, işleme devam ediliyor...")
+                                ev_q.put(('log', "🔄 FloodWait süresi tamamlandı, işleme devam ediliyor..."))
 
                             except PeerFloodError:
-                                append_log("⛔ KRİTİK HATA (PeerFloodError): Telegram hesabınızı aşırı davet nedeniyle spam kısıtlamasına aldı!")
-                                append_log("🚨 HESAP GÜVENLİĞİ İÇİN DÖNGÜ DERHAL DURDURULDU.")
-                                append_log("💡 Lütfen @SpamBot üzerinden kısıtlamanızı sorgulayın ve 24-48 saat işlem yapmayın.")
-                                status_placeholder.error("⛔ PeerFloodError tespit edildi! Hesap ban koruması devreye girdi ve işlem derhal kesildi.")
+                                ev_q.put(('log', "⛔ KRİTİK HATA (PeerFloodError): Telegram hesabınızı aşırı davet nedeniyle spam kısıtlamasına aldı!"))
+                                ev_q.put(('log', "🚨 HESAP GÜVENLİĞİ İÇİN DÖNGÜ DERHAL DURDURULDU."))
+                                ev_q.put(('log', "💡 Lütfen @SpamBot üzerinden kısıtlamanızı sorgulayın ve 24-48 saat işlem yapmayın."))
+                                ev_q.put(('error', "⛔ PeerFloodError tespit edildi! Hesap ban koruması devreye girdi ve işlem derhal kesildi."))
                                 break
 
                             except UserPrivacyRestrictedError:
                                 privacy_cnt += 1
-                                append_log(f"🔒 {u_name}: Kullanıcının gizlilik ayarları yabancıların gruba eklemesine kapalı. (Atlandı)")
+                                ev_q.put(('log', f"🔒 {u_name}: Kullanıcının gizlilik ayarları yabancıların gruba eklemesine kapalı. (Atlandı)"))
 
                             except UserNotMutualContactError:
                                 privacy_cnt += 1
-                                append_log(f"📇 {u_name}: Kullanıcı sadece karşılıklı rehberinde kayıtlı olanların eklemesine izin veriyor. (Atlandı)")
+                                ev_q.put(('log', f"📇 {u_name}: Kullanıcı sadece karşılıklı rehberinde kayıtlı olanların eklemesine izin veriyor. (Atlandı)"))
 
                             except UserAlreadyParticipantError:
                                 already_cnt += 1
-                                append_log(f"ℹ️ {u_name}: Kullanıcı zaten grubunuzda mevcut. (Atlandı)")
+                                ev_q.put(('log', f"ℹ️ {u_name}: Kullanıcı zaten grubunuzda mevcut. (Atlandı)"))
 
                             except UserChannelsTooMuchError:
                                 already_cnt += 1
-                                append_log(f"⚠️ {u_name}: Kullanıcı 500 grup/kanal limitine ulaşmış. (Atlandı)")
+                                ev_q.put(('log', f"⚠️ {u_name}: Kullanıcı 500 grup/kanal limitine ulaşmış. (Atlandı)"))
 
                             except ChatAdminRequiredError:
-                                append_log("❌ HATA: Hedef grupta kullanıcı ekleme yetkiniz yok! Lütfen admin yetkilerinizi kontrol edin.")
-                                status_placeholder.error("Grupta kullanıcı ekleme yetkisi bulunamadı.")
+                                ev_q.put(('log', "❌ HATA: Hedef grupta kullanıcı ekleme yetkiniz yok! Lütfen admin yetkilerinizi kontrol edin."))
+                                ev_q.put(('error', "Grupta kullanıcı ekleme yetkisi bulunamadı."))
                                 break
 
                             except Exception as ex:
                                 fail_cnt += 1
-                                append_log(f"❌ {u_name}: Hata -> {str(ex)}")
+                                ev_q.put(('log', f"❌ {u_name}: Hata -> {str(ex)}"))
 
                             # Metrikleri güncelle
-                            metric_success.metric("🟢 Başarılı", success_cnt)
-                            metric_privacy.metric("🔒 Gizlilik Engeli", privacy_cnt)
-                            metric_already.metric("ℹ️ Zaten Üye/Limit", already_cnt)
-                            metric_fail.metric("❌ Hata", fail_cnt)
+                            ev_q.put(('metrics', success_cnt, privacy_cnt, already_cnt, fail_cnt))
 
-                        append_log(f"🏁 İşlem Tamamlandı. Toplam Başarılı: {success_cnt}, Gizlilik: {privacy_cnt}, Hata: {fail_cnt}")
-                        status_placeholder.success(f"🏁 Ekleme süreci tamamlandı! Başarıyla eklenen: {success_cnt} üye.")
+                        ev_q.put(('log', f"🏁 İşlem Tamamlandı. Toplam Başarılı: {success_cnt}, Gizlilik: {privacy_cnt}, Hata: {fail_cnt}"))
+                        ev_q.put(('done', f"🏁 Ekleme süreci tamamlandı! Başarıyla eklenen: {success_cnt} üye."))
 
                     try:
-                        run_async(_add_members_process())
+                        loop = AsyncLoopThread.get_loop()
+                        ev_add_q = queue.Queue()
+                        future = asyncio.run_coroutine_threadsafe(_add_members_process(ev_add_q), loop)
+
+                        while not future.done():
+                            while not ev_add_q.empty():
+                                ev_type, *ev_args = ev_add_q.get_nowait()
+                                if ev_type == 'log':
+                                    append_log(ev_args[0])
+                                elif ev_type == 'progress':
+                                    progress_bar.progress(ev_args[0])
+                                    status_placeholder.info(ev_args[1])
+                                elif ev_type == 'status_info':
+                                    status_placeholder.info(ev_args[0])
+                                elif ev_type == 'warning':
+                                    status_placeholder.warning(ev_args[0])
+                                elif ev_type == 'error':
+                                    status_placeholder.error(ev_args[0])
+                                elif ev_type == 'done':
+                                    status_placeholder.success(ev_args[0])
+                                elif ev_type == 'metrics':
+                                    s_cnt, p_cnt, a_cnt, f_cnt = ev_args
+                                    metric_success.metric("🟢 Başarılı", s_cnt)
+                                    metric_privacy.metric("🔒 Gizlilik Engeli", p_cnt)
+                                    metric_already.metric("ℹ️ Zaten Üye/Limit", a_cnt)
+                                    metric_fail.metric("❌ Hata", f_cnt)
+                            time.sleep(0.1)
+
+                        while not ev_add_q.empty():
+                            ev_type, *ev_args = ev_add_q.get_nowait()
+                            if ev_type == 'log':
+                                append_log(ev_args[0])
+                            elif ev_type == 'progress':
+                                progress_bar.progress(ev_args[0])
+                                status_placeholder.info(ev_args[1])
+                            elif ev_type == 'status_info':
+                                status_placeholder.info(ev_args[0])
+                            elif ev_type == 'warning':
+                                status_placeholder.warning(ev_args[0])
+                            elif ev_type == 'error':
+                                status_placeholder.error(ev_args[0])
+                            elif ev_type == 'done':
+                                status_placeholder.success(ev_args[0])
+                            elif ev_type == 'metrics':
+                                s_cnt, p_cnt, a_cnt, f_cnt = ev_args
+                                metric_success.metric("🟢 Başarılı", s_cnt)
+                                metric_privacy.metric("🔒 Gizlilik Engeli", p_cnt)
+                                metric_already.metric("ℹ️ Zaten Üye/Limit", a_cnt)
+                                metric_fail.metric("❌ Hata", f_cnt)
+
+                        future.result()
                     except Exception as ex:
-                        st.error(f"Genel işlem hatası: {str(ex)}")
+                        err_type = type(ex).__name__
+                        err_str = str(ex).strip() or repr(ex)
+                        st.error(f"Genel işlem hatası ({err_type}): {err_str}")
 
 
 # Modül tek başına test edilmek istendiğinde:
