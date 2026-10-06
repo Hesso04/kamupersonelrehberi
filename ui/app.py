@@ -1108,8 +1108,10 @@ elif menu == "🚀 Telegram Kanal Büyütme & Üye Çekme":
 # =============================================================================
 elif menu == "📸 Instagram Büyüme & Otomasyon Merkezi":
     try:
-        from modules.instagram_growth import render_instagram_growth_tab
-        render_instagram_growth_tab()
+        import importlib
+        import modules.instagram_growth as ig_mod
+        importlib.reload(ig_mod)
+        ig_mod.render_instagram_growth_tab()
     except Exception as ex:
         st.error(f"Instagram Büyüme Modülü yüklenirken bir hata oluştu: {ex}")
         st.exception(ex)
