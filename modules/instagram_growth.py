@@ -648,6 +648,9 @@ def render_instagram_growth_tab():
 
         st.markdown("---")
 
+        with get_db() as db:
+            test_jobs = db.query(JobAnnouncement).order_by(JobAnnouncement.id.desc()).limit(15).all()
+
         if test_jobs:
             st.markdown("#### 🎬 İlan İçin Özel Video Üretimi (DM & Yorum Eki)")
             c_v1, c_v2 = st.columns([2, 1])
