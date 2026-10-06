@@ -102,6 +102,7 @@ class InstagramPublisher(BasePublisher):
             f"🗓 Son Başvuru: {d_str}\n"
             f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
             f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"
+            f"📌 İlan No: #{job.id}\n"
             f"📌 İlanı kaydetmeyi ve iş arayan arkadaşınıza göndermeyi unutmayın!\n"
             f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Sıfır bilgi kirliliği.\n\n"
             f"#KamuPersoneli #MemurAlımı #KPSS #PersonelAlımı #İşİlanları #Kamuİlanları #KariyerKapısı #{inst_tag}"
@@ -197,6 +198,7 @@ class InstagramPublisher(BasePublisher):
             pub_res = requests.post(pub_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
             if pub_res.status_code in [200, 201]:
                 post_id = pub_res.json().get("id")
+                MetaHelper.save_post_job_mapping(post_id, job.id)
                 logger.info(f"Carousel başarıyla Instagram'da yayınlandı! (İlan #{job.id}, Post ID: {post_id})")
                 return True, f"Instagram Carousel başarıyla yayınlandı! ({len(child_ids)} Slayt, Post ID: {post_id})"
             else:
@@ -251,6 +253,7 @@ class InstagramPublisher(BasePublisher):
             pub_res = requests.post(pub_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
             if pub_res.status_code in [200, 201]:
                 post_id = pub_res.json().get("id")
+                MetaHelper.save_post_job_mapping(post_id, job.id)
                 logger.info(f"Reels videosu başarıyla Instagram'da yayınlandı! (İlan #{job.id}, Post ID: {post_id})")
                 return True, f"Instagram Reels başarıyla yayınlandı! (Post ID: {post_id})"
             else:

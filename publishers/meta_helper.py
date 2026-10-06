@@ -307,3 +307,23 @@ class MetaHelper:
         """Görsel yükleyici (upload_media_multi_host için geriye dönük uyumluluk takma adı)."""
         return cls.upload_media_multi_host(image_path)
 
+    @classmethod
+    def save_post_job_mapping(cls, post_id: str, job_id: int):
+        """Instagram gönderi ID'si ile veritabanındaki ilan ID'sini kalıcı olarak eşleştirir."""
+        import json
+        map_f = Path("data/ig_post_job_map.json")
+        map_f.parent.mkdir(parents=True, exist_ok=True)
+        current = {}
+        if map_f.exists():
+            try:
+                with open(map_f, "r", encoding="utf-8") as f:
+                    current = json.load(f)
+            except Exception:
+                current = {}
+        current[str(post_id)] = int(job_id)
+        try:
+            with open(map_f, "w", encoding="utf-8") as f:
+                json.dump(current, f, indent=2)
+        except Exception:
+            pass
+
