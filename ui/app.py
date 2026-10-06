@@ -201,6 +201,7 @@ menu = st.sidebar.radio(
         "📊 Gösterge Paneli (Dashboard)",
         "🌐 İlan Tarayıcı & Manuel Ekle",
         "🚀 Telegram Kanal Büyütme & Üye Çekme",
+        "📸 Instagram Büyüme & Otomasyon Merkezi",
         "⚙️ Sistem & API Ayarları",
     ],
     index=0,
@@ -1101,6 +1102,17 @@ elif menu == "🚀 Telegram Kanal Büyütme & Üye Çekme":
     except Exception as ex:
         st.error(f"Telegram Büyütme Modülü yüklenirken bir hata oluştu: {ex}")
         st.info("Kütüphanelerin güncellenmesi için sağ alttaki 'Manage app' -> 'Reboot app' butonuna tıklayabilirsiniz.")
+
+# =============================================================================
+# MODÜL: INSTAGRAM BÜYÜME & VİRAL OTOMASYON MERKEZİ
+# =============================================================================
+elif menu == "📸 Instagram Büyüme & Otomasyon Merkezi":
+    try:
+        from modules.instagram_growth import render_instagram_growth_tab
+        render_instagram_growth_tab()
+    except Exception as ex:
+        st.error(f"Instagram Büyüme Modülü yüklenirken bir hata oluştu: {ex}")
+        st.exception(ex)
 
 
 # =============================================================================

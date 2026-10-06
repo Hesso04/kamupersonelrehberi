@@ -31,6 +31,8 @@ whatsapp_session/
 # Görsel Çıktıları ve Önbellek
 graphics/output/*
 !graphics/output/.gitkeep
+graphics/scratch/*
+!graphics/scratch/.gitkeep
 
 # IDE ve İşletim Sistemi
 .vscode/

@@ -97,24 +97,52 @@ def run_async(coro):
     """Asenkron coroutine'leri Streamlit ve AnyIO ortamında thread-safe çalıştırır."""
     loop = AsyncLoopThread.get_loop()
     future = asyncio.run_coroutine_threadsafe(coro, loop)
-    return future.result()
+    return future.result(timeout=120)
 
 
 # =============================================================================
 # YARDIMCI TELETHON FONKSİYONLARI
 # =============================================================================
-async def _init_client(api_id: int, api_hash: str) -> TelegramClient:
-    """Oturum dosyasını kullanarak veya yenisini açarak Telethon client üretir."""
+
+# Global client cache — Streamlit rerun'larında yeni TelegramClient oluşturmak yerine
+# mevcut olanı (hâlâ bağlı ve yetkili ise) yeniden kullanır.
+_CLIENT_CACHE_LOCK = threading.Lock()
+_CACHED_CLIENT: Optional[TelegramClient] = None
+
+
+async def _get_or_create_client(api_id: int, api_hash: str) -> TelegramClient:
+    """
+    Thread-safe global client cache.
+    Eğer daha önce oluşturulmuş ve hâlâ bağlı/yetkili bir client varsa onu döndürür.
+    Yoksa veya bağlantı koptuysa yeni client oluşturur ve bağlar.
+    """
+    global _CACHED_CLIENT
+    with _CLIENT_CACHE_LOCK:
+        client = _CACHED_CLIENT
+
+    if client is not None:
+        try:
+            if client.is_connected():
+                return client
+            else:
+                await client.connect()
+                return client
+        except Exception:
+            # Mevcut client kullanılamıyorsa yenisini oluştur
+            pass
+
     loop = AsyncLoopThread.get_loop()
-    client = TelegramClient(SESSION_FILE_PREFIX, api_id, api_hash.strip(), loop=loop)
-    if not client.is_connected():
-        await client.connect()
-    return client
+    new_client = TelegramClient(SESSION_FILE_PREFIX, api_id, api_hash.strip(), loop=loop)
+    await new_client.connect()
+
+    with _CLIENT_CACHE_LOCK:
+        _CACHED_CLIENT = new_client
+    return new_client
 
 
 async def _check_active_authorization(api_id: int, api_hash: str):
     """Mevcut bir oturumun aktif ve yetkilendirilmiş olup olmadığını kontrol eder."""
-    client = await _init_client(api_id, api_hash)
+    client = await _get_or_create_client(api_id, api_hash)
     is_auth = await client.is_user_authorized()
     user_info = None
     if is_auth:
@@ -146,6 +174,79 @@ def _clean_telegram_target(target_str: str) -> str:
     return t.strip()
 
 
+def _auto_restore_session():
+    """
+    Her Streamlit rerun'ında çağrılır.
+    Eğer session_state'te oturum bilgisi yoksa ama diskte .session dosyası varsa
+    ve API bilgileri mevcutsa, otomatik olarak oturumu yeniden bağlar.
+    Bu sayede sayfa yenilendiğinde kullanıcı oturumunu kaybetmez.
+    """
+    # Zaten giriş yapılmışsa bir şey yapma
+    if st.session_state.get("tg_is_auth", False) and st.session_state.get("tg_user_info"):
+        # Client'ın hâlâ geçerli olup olmadığını kontrol et
+        client = st.session_state.get("tg_client")
+        if client is not None:
+            try:
+                if client.is_connected():
+                    return  # Her şey yolunda
+            except Exception:
+                pass
+        # Client kaybolmuş veya bağlantı kopmuş, yeniden bağlanmayı dene
+        api_id = st.session_state.get("tg_saved_api_id")
+        api_hash = st.session_state.get("tg_saved_api_hash")
+        if api_id and api_hash:
+            try:
+                client, is_auth, user_info = run_async(
+                    _check_active_authorization(int(api_id), api_hash)
+                )
+                if is_auth:
+                    st.session_state.tg_client = client
+                    st.session_state.tg_is_auth = True
+                    st.session_state.tg_user_info = user_info
+                    return
+            except Exception:
+                pass
+        # Bağlanamazsa durumu sıfırla
+        st.session_state.tg_is_auth = False
+        st.session_state.tg_user_info = None
+        st.session_state.tg_client = None
+        return
+
+    # Session state'te giriş yok — diskte .session var mı ve API bilgileri var mı?
+    session_file = Path(SESSION_FILE_PREFIX + ".session")
+    if not session_file.exists():
+        return
+
+    # Veritabanından veya session_state'ten API bilgilerini al
+    api_id = st.session_state.get("tg_saved_api_id")
+    api_hash = st.session_state.get("tg_saved_api_hash")
+
+    if not api_id or not api_hash:
+        try:
+            from core.database import get_system_setting
+            api_id = get_system_setting("TELEGRAM_API_ID", "")
+            api_hash = get_system_setting("TELEGRAM_API_HASH", "")
+        except Exception:
+            return
+
+    if not api_id or not api_hash:
+        return
+
+    try:
+        client, is_auth, user_info = run_async(
+            _check_active_authorization(int(api_id), api_hash)
+        )
+        if is_auth and user_info:
+            st.session_state.tg_client = client
+            st.session_state.tg_is_auth = True
+            st.session_state.tg_user_info = user_info
+            st.session_state.tg_saved_api_id = str(api_id)
+            st.session_state.tg_saved_api_hash = str(api_hash)
+    except Exception:
+        # Sessiz hata — kullanıcı tekrar giriş yapabilir
+        pass
+
+
 # =============================================================================
 # ANA STREAMLIT MODÜLÜ
 # =============================================================================
@@ -166,25 +267,26 @@ def telegram_buyutme_modulu():
         </div>
     """, unsafe_allow_html=True)
 
-    # Session State Başlatma
-    if "tg_client" not in st.session_state:
-        st.session_state.tg_client = None
-    if "tg_is_auth" not in st.session_state:
-        st.session_state.tg_is_auth = False
-    if "tg_user_info" not in st.session_state:
-        st.session_state.tg_user_info = None
-    if "tg_phone_code_hash" not in st.session_state:
-        st.session_state.tg_phone_code_hash = None
-    if "tg_temp_phone" not in st.session_state:
-        st.session_state.tg_temp_phone = ""
-    if "tg_awaiting_code" not in st.session_state:
-        st.session_state.tg_awaiting_code = False
-    if "tg_awaiting_2fa" not in st.session_state:
-        st.session_state.tg_awaiting_2fa = False
-    if "scraped_users" not in st.session_state:
-        st.session_state.scraped_users = []
-    if "stop_adding_requested" not in st.session_state:
-        st.session_state.stop_adding_requested = False
+    # Session State Başlatma — sadece eksik anahtarları ekle, var olanları ASLA sıfırlama
+    _defaults = {
+        "tg_client": None,
+        "tg_is_auth": False,
+        "tg_user_info": None,
+        "tg_phone_code_hash": None,
+        "tg_temp_phone": "",
+        "tg_awaiting_code": False,
+        "tg_awaiting_2fa": False,
+        "scraped_users": [],
+        "stop_adding_requested": False,
+        "tg_saved_api_id": "",
+        "tg_saved_api_hash": "",
+    }
+    for key, default_val in _defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = default_val
+
+    # Otomatik oturum yenileme — sayfa yenilendiğinde oturumu koru
+    _auto_restore_session()
 
     # 3 Aşamalı Sekme Arayüzü
     tab_auth, tab_scrape, tab_add = st.tabs([
@@ -235,11 +337,11 @@ def telegram_buyutme_modulu():
 
         # Mevcut Oturum Kontrolü
         session_exists = Path(SESSION_FILE_PREFIX + ".session").exists()
-        
+
         if st.session_state.tg_is_auth and st.session_state.tg_user_info:
             u = st.session_state.tg_user_info
             st.success(f"🟢 **Telegram Oturumu Aktif:** {u.get('first_name')} {u.get('last_name')} ({u.get('username')})")
-            
+
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("👤 İsim", f"{u.get('first_name')} {u.get('last_name')}")
             c2.metric("🏷️ Kullanıcı Adı", u.get("username"))
@@ -248,11 +350,22 @@ def telegram_buyutme_modulu():
 
             if st.button("🚪 Oturumu Kapat / Çıkış Yap", type="secondary"):
                 try:
-                    if st.session_state.tg_client:
-                        run_async(st.session_state.tg_client.disconnect())
+                    client = st.session_state.tg_client
+                    if client:
+                        try:
+                            run_async(client.log_out())
+                        except Exception:
+                            try:
+                                run_async(client.disconnect())
+                            except Exception:
+                                pass
                     session_file = Path(SESSION_FILE_PREFIX + ".session")
                     if session_file.exists():
                         session_file.unlink()
+                    # Global cache'i temizle
+                    global _CACHED_CLIENT
+                    with _CLIENT_CACHE_LOCK:
+                        _CACHED_CLIENT = None
                 except Exception as ex:
                     st.warning(f"Oturum temizlenirken not: {ex}")
                 st.session_state.tg_client = None
@@ -260,11 +373,15 @@ def telegram_buyutme_modulu():
                 st.session_state.tg_user_info = None
                 st.session_state.tg_awaiting_code = False
                 st.session_state.tg_awaiting_2fa = False
+                st.session_state.tg_saved_api_id = ""
+                st.session_state.tg_saved_api_hash = ""
                 st.success("Oturum başarıyla kapatıldı.")
                 st.rerun()
 
         elif session_exists and api_id_input and api_hash_input and not st.session_state.tg_awaiting_code:
-            st.info("💾 Cihazınızda kayıtlı bir Telegram oturumu bulundu.")
+            st.info("💾 Cihazınızda kayıtlı bir Telegram oturumu bulundu. Otomatik bağlanma deneniyor...")
+            # Otomatik bağlanma burada zaten _auto_restore_session() ile yapılmış durumda.
+            # Eğer hâlâ bu noktadayız, demek ki oto-bağlanma başarısız olmuş.
             if st.button("🔄 Kayıtlı Oturumu Yeniden Bağla", type="primary"):
                 try:
                     with st.spinner("Oturum doğrulanıyor..."):
@@ -298,9 +415,9 @@ def telegram_buyutme_modulu():
                     else:
                         try:
                             with st.spinner("Telegram ile bağlantı kuruluyor ve SMS/Kod isteniyor..."):
-                                client = run_async(_init_client(int(api_id_input), api_hash_input))
+                                client = run_async(_get_or_create_client(int(api_id_input), api_hash_input))
                                 code_req = run_async(client.send_code_request(phone_input.strip()))
-                                
+
                                 st.session_state.tg_client = client
                                 st.session_state.tg_saved_api_id = api_id_input
                                 st.session_state.tg_saved_api_hash = api_hash_input
@@ -318,7 +435,7 @@ def telegram_buyutme_modulu():
             if st.session_state.tg_awaiting_code and not st.session_state.tg_awaiting_2fa:
                 st.info(f"📱 **{st.session_state.tg_temp_phone}** numarasına gelen Telegram kodunu girin:")
                 sms_code_input = st.text_input("Telegram Doğrulama Kodu", placeholder="12345")
-                
+
                 col_btn1, col_btn2 = st.columns([1, 4])
                 with col_btn1:
                     if st.button("✅ Girişi Tamamla", type="primary"):
@@ -328,9 +445,16 @@ def telegram_buyutme_modulu():
                             try:
                                 with st.spinner("Giriş yapılıyor..."):
                                     client = st.session_state.tg_client
+                                    if not client:
+                                        client = run_async(_get_or_create_client(
+                                            int(st.session_state.tg_saved_api_id),
+                                            st.session_state.tg_saved_api_hash
+                                        ))
+                                        st.session_state.tg_client = client
+
                                     if not client.is_connected():
                                         run_async(client.connect())
-                                    
+
                                     try:
                                         run_async(client.sign_in(
                                             phone=st.session_state.tg_temp_phone,
@@ -373,7 +497,7 @@ def telegram_buyutme_modulu():
             if st.session_state.tg_awaiting_2fa:
                 st.warning("🔐 Hesabınızda İki Adımlı Doğrulama (2FA) bulunmaktadır. Lütfen şifrenizi girin:")
                 password_2fa = st.text_input("2FA Bulut Parolanız", type="password")
-                
+
                 if st.button("🔓 2FA ile Giriş Yap", type="primary"):
                     if not password_2fa:
                         st.warning("Lütfen 2FA parolanızı girin.")
@@ -381,6 +505,13 @@ def telegram_buyutme_modulu():
                         try:
                             with st.spinner("2FA doğrulanıyor..."):
                                 client = st.session_state.tg_client
+                                if not client:
+                                    client = run_async(_get_or_create_client(
+                                        int(st.session_state.tg_saved_api_id),
+                                        st.session_state.tg_saved_api_hash
+                                    ))
+                                    st.session_state.tg_client = client
+
                                 if not client.is_connected():
                                     run_async(client.connect())
                                 run_async(client.sign_in(password=password_2fa))
@@ -466,7 +597,19 @@ def telegram_buyutme_modulu():
                 if not target_group_input:
                     st.error("Lütfen hedef grup linkini girin.")
                 else:
+                    # Client'ı garanti altına al
                     client = st.session_state.tg_client
+                    if not client:
+                        try:
+                            client = run_async(_get_or_create_client(
+                                int(st.session_state.tg_saved_api_id),
+                                st.session_state.tg_saved_api_hash
+                            ))
+                            st.session_state.tg_client = client
+                        except Exception as e:
+                            st.error(f"Telegram bağlantısı kurulamadı: {e}")
+                            return
+
                     clean_target = _clean_telegram_target(target_group_input)
 
                     progress_bar = st.progress(0.0)
@@ -482,7 +625,6 @@ def telegram_buyutme_modulu():
                         # 1. Entity çözümleme
                         try:
                             if clean_target.startswith("+"):
-                                from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
                                 try:
                                     updates = await client(ImportChatInviteRequest(clean_target[1:]))
                                     target_entity = updates.chats[0]
@@ -497,7 +639,6 @@ def telegram_buyutme_modulu():
                         # 2. Eğer Broadcast Kanalı ise ve Megagroup değilse bağlı tartışma grubunu tespit et
                         if getattr(target_entity, 'broadcast', False) and not getattr(target_entity, 'megagroup', False):
                             try:
-                                from telethon.tl.functions.channels import GetFullChannelRequest
                                 full_ch = await client(GetFullChannelRequest(target_entity))
                                 linked_id = getattr(full_ch.full_chat, 'linked_chat_id', None)
                                 if linked_id:
@@ -508,7 +649,6 @@ def telegram_buyutme_modulu():
 
                         # 3. Gruba katılmayı dene
                         try:
-                            from telethon.tl.functions.channels import JoinChannelRequest
                             await client(JoinChannelRequest(target_entity))
                         except Exception:
                             pass
@@ -765,14 +905,38 @@ def telegram_buyutme_modulu():
 
             col_btn_start, col_btn_stop = st.columns([2, 1])
             start_add = col_btn_start.button("🚀 Güvenli Ekleme Sürecini Başlat", type="primary", use_container_width=True)
-            stop_box = col_btn_stop.checkbox("⏹️ İşlemi Güvenle Durdur", help="İşaretlendiğinde mevcut adımdan sonra döngü durdurulur.")
+
+            # Thread-safe stop mekanizması — threading.Event kullanarak async loop'un içinden okunabilir
+            if "tg_stop_event" not in st.session_state:
+                st.session_state.tg_stop_event = threading.Event()
+
+            if col_btn_stop.button("⏹️ İşlemi Güvenle Durdur", use_container_width=True):
+                st.session_state.tg_stop_event.set()
+                st.warning("⏹️ Durdurma sinyali gönderildi. Mevcut adım tamamlandıktan sonra durulacak...")
 
             if start_add:
                 if not my_group_input:
                     st.error("Lütfen hedef grubunuzun linkini veya kullanıcı adını girin.")
                 else:
+                    # Stop event'i sıfırla
+                    st.session_state.tg_stop_event.clear()
+                    stop_event: threading.Event = st.session_state.tg_stop_event
+
                     clean_my_group = _clean_telegram_target(my_group_input)
+
+                    # Client'ı garanti altına al
                     client = st.session_state.tg_client
+                    if not client:
+                        try:
+                            client = run_async(_get_or_create_client(
+                                int(st.session_state.tg_saved_api_id),
+                                st.session_state.tg_saved_api_hash
+                            ))
+                            st.session_state.tg_client = client
+                        except Exception as e:
+                            st.error(f"Telegram bağlantısı kurulamadı: {e}")
+                            return
+
                     users_pool = st.session_state.scraped_users[:max_to_add]
 
                     # Canlı Arayüz Elemanları
@@ -814,7 +978,8 @@ def telegram_buyutme_modulu():
                         fail_cnt = 0
 
                         for idx, user_data in enumerate(users_pool, start=1):
-                            if stop_box:
+                            # Thread-safe stop kontrolü
+                            if stop_event.is_set():
                                 ev_q.put(('log', "⏹️ Kullanıcı talebiyle işlem güvenle durduruldu."))
                                 ev_q.put(('warning', "İşlem kullanıcı tarafından durduruldu."))
                                 break
@@ -832,7 +997,7 @@ def telegram_buyutme_modulu():
                                     target_user_entity = await client.get_input_entity(u_name)
                                 else:
                                     target_user_entity = await client.get_input_entity(int(u_id))
-                                
+
                                 # Grup tipine göre davet etme isteği
                                 if isinstance(my_group_entity, Channel):
                                     await client(InviteToChannelRequest(
@@ -859,7 +1024,7 @@ def telegram_buyutme_modulu():
                                     sleep_secs = random.randint(min_delay, max_delay)
                                     ev_q.put(('log', f"⏳ Anti-ban koruması: {sleep_secs} saniye rastgele bekleniyor..."))
                                     for remaining in range(sleep_secs, 0, -1):
-                                        if stop_box:
+                                        if stop_event.is_set():
                                             break
                                         ev_q.put(('status_info', f"⏳ Anti-ban soğuma süresi: {remaining} sn kaldı... (Son eklenen: {u_name})"))
                                         await asyncio.sleep(1)
@@ -867,7 +1032,7 @@ def telegram_buyutme_modulu():
                             except FloodWaitError as e:
                                 ev_q.put(('log', f"⚠️ Telegram FloodWait Limiti: Telegram {e.seconds} saniye beklemeyi zorunlu kıldı."))
                                 for rem in range(e.seconds, 0, -1):
-                                    if stop_box:
+                                    if stop_event.is_set():
                                         break
                                     ev_q.put(('warning', f"⚠️ FloodWait Beklemesi: {rem} sn kaldı..."))
                                     await asyncio.sleep(1)
@@ -911,37 +1076,13 @@ def telegram_buyutme_modulu():
                         ev_q.put(('log', f"🏁 İşlem Tamamlandı. Toplam Başarılı: {success_cnt}, Gizlilik: {privacy_cnt}, Hata: {fail_cnt}"))
                         ev_q.put(('done', f"🏁 Ekleme süreci tamamlandı! Başarıyla eklenen: {success_cnt} üye."))
 
-                    try:
-                        loop = AsyncLoopThread.get_loop()
-                        ev_add_q = queue.Queue()
-                        future = asyncio.run_coroutine_threadsafe(_add_members_process(ev_add_q), loop)
-
-                        while not future.done():
-                            while not ev_add_q.empty():
-                                ev_type, *ev_args = ev_add_q.get_nowait()
-                                if ev_type == 'log':
-                                    append_log(ev_args[0])
-                                elif ev_type == 'progress':
-                                    progress_bar.progress(ev_args[0])
-                                    status_placeholder.info(ev_args[1])
-                                elif ev_type == 'status_info':
-                                    status_placeholder.info(ev_args[0])
-                                elif ev_type == 'warning':
-                                    status_placeholder.warning(ev_args[0])
-                                elif ev_type == 'error':
-                                    status_placeholder.error(ev_args[0])
-                                elif ev_type == 'done':
-                                    status_placeholder.success(ev_args[0])
-                                elif ev_type == 'metrics':
-                                    s_cnt, p_cnt, a_cnt, f_cnt = ev_args
-                                    metric_success.metric("🟢 Başarılı", s_cnt)
-                                    metric_privacy.metric("🔒 Gizlilik Engeli", p_cnt)
-                                    metric_already.metric("ℹ️ Zaten Üye/Limit", a_cnt)
-                                    metric_fail.metric("❌ Hata", f_cnt)
-                            time.sleep(0.1)
-
+                    def _drain_queue(ev_add_q):
+                        """Kuyruktaki tüm mesajları işle."""
                         while not ev_add_q.empty():
-                            ev_type, *ev_args = ev_add_q.get_nowait()
+                            try:
+                                ev_type, *ev_args = ev_add_q.get_nowait()
+                            except queue.Empty:
+                                break
                             if ev_type == 'log':
                                 append_log(ev_args[0])
                             elif ev_type == 'progress':
@@ -962,6 +1103,16 @@ def telegram_buyutme_modulu():
                                 metric_already.metric("ℹ️ Zaten Üye/Limit", a_cnt)
                                 metric_fail.metric("❌ Hata", f_cnt)
 
+                    try:
+                        loop = AsyncLoopThread.get_loop()
+                        ev_add_q = queue.Queue()
+                        future = asyncio.run_coroutine_threadsafe(_add_members_process(ev_add_q), loop)
+
+                        while not future.done():
+                            _drain_queue(ev_add_q)
+                            time.sleep(0.1)
+
+                        _drain_queue(ev_add_q)
                         future.result()
                     except Exception as ex:
                         err_type = type(ex).__name__

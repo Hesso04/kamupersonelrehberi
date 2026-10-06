@@ -236,67 +236,74 @@ class MetaHelper:
             return False, f"Bağlantı Hatası: {str(e)}", None
 
     @classmethod
-    def upload_image_multi_host(cls, image_path: Path) -> Tuple[Optional[str], str]:
+    def upload_media_multi_host(cls, media_path: Path) -> Tuple[Optional[str], str]:
         """
-        Instagram ve Facebook için yerel görseli çoklu sağlayıcı (Catbox -> Uguu -> ImgBB -> tmpfiles)
-        zincirinden geçirerek Meta'nın anında indirebileceği direkt HTTPS URL'sine dönüştürür.
-        Biri çökse dahi diğeri saniyeler içinde devralır!
+        Instagram ve Facebook için yerel görsel veya MP4 videoyu çoklu sağlayıcı
+        (Catbox -> Uguu -> ImgBB -> tmpfiles) zincirinden geçirerek Meta'nın anında
+        indirebileceği direkt HTTPS URL'sine dönüştürür.
         """
-        if not image_path or not image_path.exists():
-            return None, "Görsel dosyası yerel diskte bulunamadı."
+        if not media_path or not media_path.exists():
+            return None, "Medya dosyası yerel diskte bulunamadı."
 
-        # Sağlayıcı 1: Catbox (Hızlı, Kalıcı, Meta Uyumlu)
+        # Sağlayıcı 1: Catbox (Hızlı, Kalıcı, Meta Uyumlu - Hem Görsel Hem Video)
         try:
-            with open(image_path, "rb") as f:
+            with open(media_path, "rb") as f:
                 r = requests.post(
                     "https://catbox.moe/user/api.php",
                     data={"reqtype": "fileupload"},
                     files={"fileToUpload": f},
-                    timeout=15
+                    timeout=25
                 )
                 if r.status_code == 200:
                     link = r.text.strip()
                     if link.startswith("http"):
-                        logger.info(f"[Görsel Köprüsü 1: Catbox] Başarılı: {link}")
+                        logger.info(f"[Medya Köprüsü 1: Catbox] Başarılı: {link}")
                         return link, "Catbox CDN"
         except Exception as e:
-            logger.warning(f"[Görsel Köprüsü 1: Catbox] Başarısız: {e}")
+            logger.warning(f"[Medya Köprüsü 1: Catbox] Başarısız: {e}")
 
-        # Sağlayıcı 2: Uguu.se (Yedek Hızlı Host)
+        # Sağlayıcı 2: Uguu.se (Yedek Hızlı Host - Hem Görsel Hem Video)
         try:
-            with open(image_path, "rb") as f:
-                r_u = requests.post("https://uguu.se/upload?output=text", files={"files[]": f}, timeout=15)
+            with open(media_path, "rb") as f:
+                r_u = requests.post("https://uguu.se/upload?output=text", files={"files[]": f}, timeout=25)
                 if r_u.status_code == 200:
                     link_u = r_u.text.strip()
                     if link_u.startswith("http"):
-                        logger.info(f"[Görsel Köprüsü 2: Uguu] Başarılı: {link_u}")
+                        logger.info(f"[Medya Köprüsü 2: Uguu] Başarılı: {link_u}")
                         return link_u, "Uguu.se"
         except Exception as ue:
-            logger.warning(f"[Görsel Köprüsü 2: Uguu] Başarısız: {ue}")
+            logger.warning(f"[Medya Köprüsü 2: Uguu] Başarısız: {ue}")
 
-        # Sağlayıcı 3: ImgBB (Kullanıcı API Anahtarı Tanımlıysa)
-        imgbb_key = settings.get_dynamic("IMGBB_API_KEY")
-        if imgbb_key:
-            try:
-                with open(image_path, "rb") as f:
-                    r_i = requests.post(
-                        "https://api.imgbb.com/1/upload",
-                        data={"key": imgbb_key},
-                        files={"image": f},
-                        timeout=20
-                    )
-                    if r_i.status_code == 200:
-                        link_i = r_i.json().get("data", {}).get("url")
-                        if link_i:
-                            logger.info(f"[Görsel Köprüsü 3: ImgBB] Başarılı: {link_i}")
-                            return link_i, "ImgBB Cloud"
-            except Exception as ie:
-                logger.warning(f"[Görsel Köprüsü 3: ImgBB] Başarısız: {ie}")
+        # Sağlayıcı 3: ImgBB (Sadece Görseller İçin ve API Anahtarı Tanımlıysa)
+        if media_path.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
+            imgbb_key = settings.get_dynamic("IMGBB_API_KEY")
+            if imgbb_key:
+                try:
+                    with open(media_path, "rb") as f:
+                        r_i = requests.post(
+                            "https://api.imgbb.com/1/upload",
+                            data={"key": imgbb_key},
+                            files={"image": f},
+                            timeout=20
+                        )
+                        if r_i.status_code == 200:
+                            link_i = r_i.json().get("data", {}).get("url")
+                            if link_i:
+                                logger.info(f"[Medya Köprüsü 3: ImgBB] Başarılı: {link_i}")
+                                return link_i, "ImgBB Cloud"
+                except Exception as ie:
+                    logger.warning(f"[Medya Köprüsü 3: ImgBB] Başarısız: {ie}")
 
         # Sağlayıcı 4: Canlı Sunucu Genel URL'si (Varsa)
         server_url = settings.get_dynamic("SERVER_PUBLIC_URL")
         if server_url:
-            public_link = f"{server_url.rstrip('/')}/static/{image_path.name}"
+            public_link = f"{server_url.rstrip('/')}/static/{media_path.name}"
             return public_link, "Local Server"
 
-        return None, "Hiçbir görsel sağlayıcıya ulaşılamadı."
+        return None, "Hiçbir medya sağlayıcıya ulaşılamadı."
+
+    @classmethod
+    def upload_image_multi_host(cls, image_path: Path) -> Tuple[Optional[str], str]:
+        """Görsel yükleyici (upload_media_multi_host için geriye dönük uyumluluk takma adı)."""
+        return cls.upload_media_multi_host(image_path)
+
