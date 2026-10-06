@@ -12,6 +12,12 @@ from core.models import JobAnnouncement, JobStatus
 
 
 AUTOPILOT_PACE_PRESETS = {
+    "SMART_PEAK": {
+        "name": "🔥 Türkiye Pik Saatleri Modu (09:00, 13:00, 19:00, 21:30 - Maksimum Keşfet & Kaydetme)",
+        "short_name": "Pik Saatler (Günde 4 İlan)",
+        "desc": "Yalnızca Türkiye'de KPSS ve memur adaylarının en aktif olduğu 4 altın pik penceresinde paylaşır. Spam riski sıfırdır, algoritma puanını zirveye çıkarır.",
+        "interval_seconds": 3600,
+    },
     "1_PER_HOUR": {
         "name": "Saatte 1 Paylaşım (Anti-Spam / En Güvenli)",
         "short_name": "Saatte 1 İlan",
@@ -212,17 +218,28 @@ class BackgroundScheduler:
                     pace_cfg = AUTOPILOT_PACE_PRESETS.get(pace_key, AUTOPILOT_PACE_PRESETS["1_PER_HOUR"])
                     interval_sec = pace_cfg["interval_seconds"]
 
-                    if self.last_autopilot_publish_time is None:
-                        should_publish = True
+                    if pace_key == "SMART_PEAK":
+                        # Türkiye yerel saati pik pencereleri:
+                        # Sabah (08:30-10:00), Öğle (12:30-14:00), Akşam (18:30-20:00), Gece (21:00-23:00)
+                        h_m = now.hour + now.minute / 60.0
+                        in_peak = (8.5 <= h_m <= 10.0) or (12.5 <= h_m <= 14.0) or (18.5 <= h_m <= 20.0) or (21.0 <= h_m <= 23.0)
+                        if self.last_autopilot_publish_time is None:
+                            should_publish = in_peak
+                        else:
+                            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+                            should_publish = in_peak and (elapsed >= 3600)
                     else:
-                        elapsed = (now - self.last_autopilot_publish_time).total_seconds()
-                        should_publish = elapsed >= interval_sec
+                        if self.last_autopilot_publish_time is None:
+                            should_publish = True
+                        else:
+                            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+                            should_publish = elapsed >= interval_sec
 
                     if should_publish:
                         pub_count = self.run_autopilot_publish(limit=1)
                         if pub_count > 0:
                             self.last_autopilot_publish_time = now
-                            logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) gereği bir sonraki ilan için {interval_sec} saniye bekleniyor.")
+                            logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) devrede.")
 
             except Exception as e:
                 logger.error(f"Zamanlayıcı / Otopilot döngü hatası: {e}")

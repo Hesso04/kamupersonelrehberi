@@ -5,6 +5,7 @@ import requests
 from loguru import logger
 
 from config.settings import settings
+from core.database import get_system_setting
 from core.models import JobAnnouncement
 from .base import BasePublisher
 from .meta_helper import MetaHelper
@@ -312,30 +313,59 @@ class InstagramPublisher(BasePublisher):
         if not diag["is_valid"]:
             return False, diag["message"]
 
-        # 1. Carousel denemesi (Algoritma için en yüksek kayıt ve paylaşım getiren format)
-        try:
-            from graphics.generator import JobCardGenerator, to_turkish_date_str
-            card_gen = JobCardGenerator()
-            deadline_str = to_turkish_date_str(job.application_end_date)
-            slides = card_gen.generate_carousel_cards(
-                job_id=job.id,
-                institution=job.institution or "Kamu Kurumu",
-                position=job.position or job.title,
-                total_positions=job.total_positions,
-                kpss_requirement=job.kpss_requirement,
-                education_level=job.education_level,
-                deadline=deadline_str,
-                source_url=job.source_url,
-                title=job.title or "",
-                city=job.city
-            )
-            if slides and len(slides) >= 2:
-                succ, msg = self.publish_carousel(job, slides)
-                if succ:
-                    return succ, msg
-                logger.warning(f"Carousel gönderimi başarısız oldu, tekil görsele dönülüyor: {msg}")
-        except Exception as ce:
-            logger.warning(f"Carousel üretme adımı hatası: {ce}, tekil görsel deneniyor...")
+        ig_format = get_system_setting("AUTOPILOT_IG_FORMAT", "SMART_HYBRID")
+        from graphics.generator import JobCardGenerator, to_turkish_date_str
+        card_gen = JobCardGenerator()
+        deadline_str = to_turkish_date_str(job.application_end_date)
+
+        # 1. Reels Denemesi (Büyük Alımlar [>=50 Kişi] veya ALWAYS_REELS modunda)
+        is_large_job = bool(job.total_positions and job.total_positions >= 50)
+        if (ig_format == "SMART_HYBRID" and is_large_job) or ig_format == "ALWAYS_REELS":
+            try:
+                from graphics.reels_engine import ReelsVideoEngine
+                reels_eng = ReelsVideoEngine()
+                ok_r, v_path, r_msg = reels_eng.create_reels_video(
+                    job_id=job.id,
+                    institution=job.institution or "Kamu Kurumu",
+                    position=job.position or job.title,
+                    total_positions=job.total_positions,
+                    kpss_requirement=job.kpss_requirement,
+                    education_level=job.education_level,
+                    deadline=deadline_str,
+                    source_url=job.source_url,
+                    title=job.title or "",
+                    duration_seconds=10
+                )
+                if ok_r and v_path:
+                    succ_r, msg_r = self.publish_reels(job, v_path)
+                    if succ_r:
+                        return succ_r, f"Büyük alım ({job.total_positions} kişi) otomatik Reels videosu olarak yayınlandı! ({msg_r})"
+                    logger.warning(f"Reels yayını başarısız oldu, Carousel deneniyor: {msg_r}")
+            except Exception as re_err:
+                logger.warning(f"Reels üretme istisnası: {re_err}")
+
+        # 2. Carousel Denemesi (4:5 Dikey Çoklu Slayt)
+        if ig_format in ["SMART_HYBRID", "ALWAYS_CAROUSEL", "ALWAYS_REELS"]:
+            try:
+                slides = card_gen.generate_carousel_cards(
+                    job_id=job.id,
+                    institution=job.institution or "Kamu Kurumu",
+                    position=job.position or job.title,
+                    total_positions=job.total_positions,
+                    kpss_requirement=job.kpss_requirement,
+                    education_level=job.education_level,
+                    deadline=deadline_str,
+                    source_url=job.source_url,
+                    title=job.title or "",
+                    city=job.city
+                )
+                if slides and len(slides) >= 2:
+                    succ, msg = self.publish_carousel(job, slides)
+                    if succ:
+                        return succ, msg
+                    logger.warning(f"Carousel gönderimi başarısız oldu, tekil görsele dönülüyor: {msg}")
+            except Exception as ce:
+                logger.warning(f"Carousel üretme adımı hatası: {ce}, tekil görsel deneniyor...")
 
         # 2. Fallback: Tekil Görsel Gönderimi
         image_url, provider_info = self._get_public_image_url(job.image_path)
