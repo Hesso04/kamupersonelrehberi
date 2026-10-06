@@ -389,6 +389,17 @@ def render_instagram_growth_tab():
                     st.write(f"- **Dosya Boyutu:** {Path(v_file).stat().st_size // 1024} KB")
                     st.write(f"- **Süre:** {r_duration} Saniye (Loop / Sonsuz Döngü Uyumlu)")
                     st.write(f"- **Seslendirme:** {r_voice.split(' ')[0]} (Doğal Türkçe)")
+                    with get_db() as db:
+                        tj = db.query(JobAnnouncement).filter(JobAnnouncement.id == r_job_id).first()
+                        if tj:
+                            script_preview = mgr.reels_engine.build_voice_script(
+                                institution=tj.institution or "Kamu Kurumu",
+                                position=tj.position or tj.title,
+                                total_positions=tj.total_positions,
+                                kpss_requirement=tj.kpss_requirement,
+                                deadline=to_turkish_date_str(tj.application_end_date)
+                            )
+                            st.info(f"🎙 **Seslendirilen Metin:**\n\n\"{script_preview}\"")
 
             if pub_r_clicked:
                 v_path_str = st.session_state.get(video_key)

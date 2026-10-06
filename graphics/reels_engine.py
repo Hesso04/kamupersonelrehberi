@@ -77,15 +77,21 @@ class ReelsVideoEngine:
         kpss_requirement: Optional[str],
         deadline: Optional[str]
     ) -> str:
-        """Algoritmayı yakalayan 8-10 saniyelik vurucu Reels seslendirme metni oluşturur."""
+        """
+        Algoritmayı ve izleyiciyi yakalayan 8-12 saniyelik vurucu Reels seslendirme metni.
+        İzleyiciye ne yazması gerektiğini (KILAVUZ) ve karşılığında ne alacağını
+        (Resmi başvuru ekranı linki + kadro dağılımı) tane tane aktarır.
+        """
         tot = total_positions or 1
         pos_clean = position.split("-")[0].strip() if position else "Personel Alımı"
         d_str = to_turkish_date_str(deadline)
         
         script = (
-            f"Flaş kamu ilanı! {institution}, {tot:,} kişilik {pos_clean} kadrosu açtı! "
-            f"Son başvuru {d_str}. "
-            f"Başvuru linki ve kılavuz için yoruma KILAVUZ yazın, anında DM kutunuza gelsin!"
+            f"Flaş kamu ilanı! {institution}, {tot:,} kişilik {pos_clean} kadrosu açtı. "
+            f"Son başvuru tarihi {d_str}. "
+            f"Doğrudan resmi başvuru ekranı linkini ve özel şartları mesaj olarak almak için "
+            f"hemen bu videonun altına KILAVUZ yazın, anında DM kutunuza gönderelim! "
+            f"Linkin iletilmesi için sayfamızı takip etmeyi unutmayın."
         ).replace(",", ".")
         return script
 

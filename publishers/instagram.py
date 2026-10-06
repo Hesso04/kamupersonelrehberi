@@ -92,15 +92,16 @@ class InstagramPublisher(BasePublisher):
         inst_tag = inst_clean.replace(" ", "").replace(".", "").replace("-", "")
 
         caption = (
+            f"👇 RESMİ BAŞVURU EKRANI & KILAVUZ İÇİN:\n"
+            f"Bu gönderinin altına \"KILAVUZ\" yazın; resmi başvuru ekranı linki ve "
+            f"kadro şartnamesi saniyeler içinde DM kutunuza GELSİN! 📩\n"
+            f"(⚠️ Botun linki iletebilmesi için sayfamızı TAKİP ETMEYİ unutmayın)\n\n"
             f"🏛 {inst_clean.upper()} PERSONEL ALIMI\n"
             f"📢 {job.position or job.title}\n\n"
             f"👥 Kontenjan: {job.total_positions or 1} Kişi\n"
             f"🗓 Son Başvuru: {d_str}\n"
             f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
             f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"
-            f"💬 RESMİ BAŞVURU EKRANI & KILAVUZU İÇİN:\n"
-            f"Bu gönderinin altına \"KILAVUZ\" veya \"LİNK\" yazın; resmi başvuru ekranı "
-            f"bağlantısını ve kadro şartnamesini anında DM kutunuza gönderelim! 📩\n\n"
             f"📌 İlanı kaydetmeyi ve iş arayan arkadaşınıza göndermeyi unutmayın!\n"
             f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Sıfır bilgi kirliliği.\n\n"
             f"#KamuPersoneli #MemurAlımı #KPSS #PersonelAlımı #İşİlanları #Kamuİlanları #KariyerKapısı #{inst_tag}"

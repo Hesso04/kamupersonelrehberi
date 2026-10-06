@@ -1089,11 +1089,20 @@ class JobCardGenerator:
         draw.text((90, info_y + 68), f"🎓 Mezuniyet: {edu_str}", fill=pal["text_secondary"], font=self._get_font(22, bold=True))
         draw.text((90, info_y + 112), f"🗓 Son Başvuru: {d_str}", fill=pal["hero_tag"], font=self._get_font(22, bold=True))
 
-        # Instagram Link Sticker Alanı (Özel Tasarım Alanı)
-        link_box_y = info_y + 200
-        draw.rounded_rectangle([(100, link_box_y), (w - 100, link_box_y + 160)], radius=30, fill=(30, 41, 59), outline=pal["hero_stripe"], width=2)
-        draw.text((140, link_box_y + 35), "🔗 RESMİ BAŞVURU KILAVUZU LİNKİ", fill=pal["hero_tag"], font=self._get_font(26, bold=True))
-        draw.text((140, link_box_y + 85), "Başvuru yapmak için yukarı kaydırın veya linke tıklayın 👆", fill=(255, 255, 255), font=self._get_font(20))
+        # VİRAL REELS & STORY ETKİLEŞİM VE DM KUTUSU (VİDEODAKİ GÖZ ALICI ÇAĞRI)
+        link_box_y = info_y + 190
+        box_h = 240
+        draw.rounded_rectangle([(60, link_box_y), (w - 60, link_box_y + box_h)], radius=26, fill=(16, 44, 34), outline=(52, 211, 153), width=4)
+        draw.rounded_rectangle([(60, link_box_y), (76, link_box_y + box_h)], radius=12, fill=(251, 191, 36))
+
+        draw.text((96, link_box_y + 24), "💬 YORUMA \"KILAVUZ\" YAZIN! 👇", fill=(251, 191, 36), font=self._get_font(34, bold=True))
+        draw.text((96, link_box_y + 78), "Resmi Başvuru Ekranı & Kadro Dağılımı", fill=(255, 255, 255), font=self._get_font(25, bold=True))
+        draw.text((96, link_box_y + 118), "ANINDA DM KUTUNUZA GELSİN! 📩", fill=(52, 211, 153), font=self._get_font(25, bold=True))
+
+        # Kilit & Takip Rozeti
+        draw.rounded_rectangle([(96, link_box_y + 170), (w - 96, link_box_y + 218)], radius=12, fill=(24, 68, 52), outline=(52, 211, 153), width=1)
+        draw.text((114, link_box_y + 180), "🔒 Bizi Takip Eden Adaylara Kılavuz Kilidi Otomatik Açılır!", fill=(167, 243, 208), font=self._get_font(19, bold=True))
+
 
         # Alt Footer
         draw.text((64, h - 140), "Instagram: @kamupersonelrehberi", fill=pal["text_primary"], font=self._get_font(24, bold=True))
