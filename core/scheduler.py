@@ -196,6 +196,7 @@ class BackgroundScheduler:
     def _worker(self):
         logger.info(f"Arka plan zamanlayıcı ve otopilot motoru başlatıldı. Tarama aralığı: {self.interval_minutes} dk.")
         last_scan_time = datetime.min
+        last_ig_comment_check = datetime.min
 
         while not self._stop_event.is_set():
             try:
@@ -240,6 +241,16 @@ class BackgroundScheduler:
                         if pub_count > 0:
                             self.last_autopilot_publish_time = now
                             logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) devrede.")
+
+                # 3. Instagram Canlı Yorum ve DM Yanıtlayıcı (Her 60 saniyede bir yeni yorumları tara)
+                if (now - last_ig_comment_check).total_seconds() >= 60:
+                    last_ig_comment_check = now
+                    try:
+                        from modules.instagram_growth import InstagramGrowthManager
+                        ig_mgr = InstagramGrowthManager()
+                        ig_mgr.process_live_comments(limit_media=10)
+                    except Exception as ige:
+                        logger.debug(f"Otomatik Instagram yorum işleme hatası: {ige}")
 
             except Exception as e:
                 logger.error(f"Zamanlayıcı / Otopilot döngü hatası: {e}")

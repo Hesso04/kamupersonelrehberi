@@ -107,6 +107,182 @@ class InstagramGrowthManager:
         except Exception as e:
             return {"connected": False, "message": f"Bağlantı Hatası: {str(e)}"}
 
+    def _get_processed_cache_file(self) -> Path:
+        cache_dir = Path("data")
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        return cache_dir / "processed_ig_comments.json"
+
+    def get_processed_comment_ids(self) -> set:
+        f = self._get_processed_cache_file()
+        if f.exists():
+            try:
+                import json
+                with open(f, "r", encoding="utf-8") as fp:
+                    return set(json.load(fp))
+            except Exception:
+                return set()
+        return set()
+
+    def mark_comment_processed(self, comment_id: str):
+        ids = self.get_processed_comment_ids()
+        ids.add(str(comment_id))
+        f = self._get_processed_cache_file()
+        try:
+            import json
+            with open(f, "w", encoding="utf-8") as fp:
+                json.dump(list(ids), fp)
+        except Exception:
+            pass
+
+    def get_comment_logs(self) -> List[Dict[str, Any]]:
+        log_f = Path("data/ig_comment_actions.json")
+        if log_f.exists():
+            try:
+                import json
+                with open(log_f, "r", encoding="utf-8") as fp:
+                    return json.load(fp)
+            except Exception:
+                return []
+        return []
+
+    def add_comment_log(self, entry: Dict[str, Any]):
+        logs = self.get_comment_logs()
+        logs.insert(0, entry)
+        logs = logs[:50]
+        log_f = Path("data/ig_comment_actions.json")
+        try:
+            import json
+            with open(log_f, "w", encoding="utf-8") as fp:
+                json.dump(logs, fp, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    def process_live_comments(self, limit_media: int = 10) -> Dict[str, Any]:
+        """
+        Meta Graph API üzerinden Instagram hesabının son gönderilerindeki
+        tüm canlı yorumları çeker. 'KILAVUZ', 'LİNK' vb. yazan kullanıcılara
+        kamuoyu önünde yanıt verir ve resmi başvuru linkini DM kutularına iletir.
+        """
+        token = get_system_setting("INSTAGRAM_ACCESS_TOKEN")
+        acc_id = get_system_setting("INSTAGRAM_ACCOUNT_ID")
+        fb_page_id = get_system_setting("FACEBOOK_PAGE_ID")
+
+        if not token or not acc_id:
+            return {"success": False, "message": "Instagram token veya Account ID eksik.", "processed_count": 0}
+
+        processed_ids = self.get_processed_comment_ids()
+        url = f"https://graph.facebook.com/v19.0/{acc_id}/media"
+        params = {
+            "fields": "id,caption,shortcode,comments{id,text,username,timestamp}",
+            "limit": limit_media,
+            "access_token": token
+        }
+
+        try:
+            r = requests.get(url, params=params, timeout=20)
+            if r.status_code != 200:
+                return {"success": False, "message": f"Media getirme hatası: {r.text}", "processed_count": 0}
+            media_list = r.json().get("data", [])
+        except Exception as e:
+            return {"success": False, "message": f"API istek hatası: {e}", "processed_count": 0}
+
+        new_actions = []
+        triggers = ["kilavuz", "klavuz", "link", "sartname", "sartlar", "basvuru", "takip ettim"]
+
+        for media in media_list:
+            caption = media.get("caption", "")
+            comments_data = media.get("comments", {}).get("data", [])
+
+            # Gönderideki ilanı veritabanında bulmaya çalış
+            matched_job = None
+            with get_db() as db:
+                all_recent = db.query(JobAnnouncement).order_by(JobAnnouncement.id.desc()).limit(30).all()
+                for jb in all_recent:
+                    if jb.institution and jb.institution.lower() in caption.lower():
+                        matched_job = jb
+                        break
+                if not matched_job and all_recent:
+                    matched_job = all_recent[0]
+
+            job_link = (matched_job.source_url if matched_job else None) or "https://isealimkariyerkapisi.cbiko.gov.tr/"
+            job_title = (f"{matched_job.institution} {matched_job.position}" if matched_job else "Kamu Personeli Alımı")
+            d_str = to_turkish_date_str(matched_job.application_end_date) if matched_job else "Kılavuzda Belirtilen Tarih"
+
+            for c in comments_data:
+                c_id = str(c.get("id"))
+                username = c.get("username", "")
+                text = (c.get("text") or "").strip()
+                t_lower = text.lower().replace("i̇", "i").replace("ı", "i")
+
+                if c_id in processed_ids:
+                    continue
+
+                if username == "kamupersonelrehberi":
+                    continue
+
+                is_trigger = any(trig in t_lower for trig in triggers)
+                if not is_trigger:
+                    continue
+
+                # 1. Herkese Açık Yorum Yanıtı (Public Reply)
+                pub_msg = f"@{username} Harika! Resmi başvuru ekranı bağlantısı ve şartlar DM kutunuza iletildi 📩 (Mesaj isteklerinizi kontrol edin)"
+                pub_url = f"https://graph.facebook.com/v19.0/{c_id}/replies"
+                pub_ok = False
+                try:
+                    r_pub = requests.post(pub_url, data={"message": pub_msg, "access_token": token}, timeout=15)
+                    pub_ok = (r_pub.status_code in [200, 201])
+                except Exception:
+                    pass
+
+                # 2. Özel DM Yanıtı (Private Reply via Facebook Page Messages)
+                dm_ok = False
+                dm_err = ""
+                if fb_page_id:
+                    dm_text = (
+                        f"👋 Merhaba @{username}!\n\n"
+                        f"📌 {job_title} için talep ettiğiniz resmi başvuru bağlantısı aşağıdadır:\n\n"
+                        f"🔗 Resmi Başvuru Ekranı:\n{job_link}\n\n"
+                        f"🗓 Son Başvuru Tarihi: {d_str}\n\n"
+                        f"🇹🇷 T.C. Cumhurbaşkanlığı Kariyer Kapısı ve Resmi Gazete teyitli kamu ilanıdır. Başarılar dileriz!\n\n"
+                        f"📢 Güncel kamu ilanlarını kaçırmamak için @kamupersonelrehberi sayfamızı takip etmeyi unutmayın!"
+                    )
+                    dm_url = f"https://graph.facebook.com/v19.0/{fb_page_id}/messages"
+                    dm_payload = {
+                        "recipient": {"comment_id": c_id},
+                        "message": {"text": dm_text}
+                    }
+                    try:
+                        r_dm = requests.post(dm_url, json=dm_payload, params={"access_token": token}, timeout=15)
+                        if r_dm.status_code in [200, 201]:
+                            dm_ok = True
+                        else:
+                            dm_err = r_dm.text[:100]
+                    except Exception as de:
+                        dm_err = str(de)[:100]
+
+                # İşlendi olarak kaydet
+                self.mark_comment_processed(c_id)
+
+                action_entry = {
+                    "timestamp": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+                    "username": username,
+                    "comment_text": text,
+                    "comment_id": c_id,
+                    "media_id": media.get("id"),
+                    "shortcode": media.get("shortcode"),
+                    "public_reply_status": "Başarılı" if pub_ok else "Hata",
+                    "dm_status": "Gönderildi (DM İletildi)" if dm_ok else f"Hata ({dm_err})",
+                    "job_title": job_title
+                }
+                self.add_comment_log(action_entry)
+                new_actions.append(action_entry)
+
+        return {
+            "success": True,
+            "processed_count": len(new_actions),
+            "new_actions": new_actions
+        }
+
     def simulate_comment_to_dm(
         self,
         username: str,
@@ -428,8 +604,49 @@ def render_instagram_growth_tab():
         * Aday sayfayı takip edip 'TAKİP ETTİM' yazdığı an link kilidi açılır! Bu kurgu her gönderide **yüzlerce organik takipçi** kazandırır.
         """)
 
-        with get_db() as db:
-            test_jobs = db.query(JobAnnouncement).order_by(JobAnnouncement.id.desc()).limit(15).all()
+        # 1. GERÇEK ZAMANLI CANLI YORUM-DM ASİSTANI
+        st.markdown("---")
+        st.markdown("#### ⚡ Canlı Instagram Yorum-DM Otomasyonu (7/24 Aktif)")
+        c_live_stat1, c_live_stat2 = st.columns([2, 1])
+        with c_live_stat1:
+            st.info("🟢 **Sistem Canlı:** Arka planda her 60 saniyede bir Instagram hesabınızdaki tüm son gönderiler taranır, 'KILAVUZ' veya 'LİNK' yazan kullanıcılara otomatik yanıt ve resmi başvuru linki DM ile iletilir.")
+        with c_live_stat2:
+            st.write("")
+            scan_comments_btn = st.button("🚀 Canlı Yorumları Şimdi Tara & DM Gönder", type="primary", use_container_width=True)
+
+        if scan_comments_btn:
+            with st.spinner("Instagram Graph API üzerinden son gönderiler taranıyor ve yorumlar işleniyor..."):
+                res_proc = mgr.process_live_comments(limit_media=10)
+                if res_proc.get("success"):
+                    cnt = res_proc.get("processed_count", 0)
+                    if cnt > 0:
+                        st.success(f"🎉 Harika! {cnt} adet yeni yoruma anında yanıt verildi ve DM'leri iletildi!")
+                    else:
+                        st.info("ℹ️ Taranan son gönderilerde henüz yanıtlanmamış yeni bir 'KILAVUZ' veya 'LİNK' yorumu bulunamadı (Tüm mevcut yorumlar daha önce başarıyla işlenmiş).")
+                else:
+                    st.error(f"❌ Canlı yorum tarama hatası: {res_proc.get('message')}")
+
+        # Canlı Yorum & DM İşlem Logları Tablosu
+        logs = mgr.get_comment_logs()
+        if logs:
+            st.markdown("##### 📋 Son Yanıtlanan Canlı Yorumlar & İletilen DM'ler")
+            import pandas as pd
+            df_logs = pd.DataFrame(logs)
+            display_cols = ["timestamp", "username", "comment_text", "job_title", "public_reply_status", "dm_status"]
+            existing_cols = [c for c in display_cols if c in df_logs.columns]
+            rename_map = {
+                "timestamp": "Tarih/Saat",
+                "username": "Kullanıcı Adı",
+                "comment_text": "Yazdığı Yorum",
+                "job_title": "İlgili İlan",
+                "public_reply_status": "Yorum Yanıtı",
+                "dm_status": "DM Teslim Durumu"
+            }
+            st.dataframe(df_logs[existing_cols].rename(columns=rename_map), use_container_width=True)
+        else:
+            st.caption("Henüz işlenmiş canlı yorum kaydı bulunmuyor.")
+
+        st.markdown("---")
 
         if test_jobs:
             st.markdown("#### 🎬 İlan İçin Özel Video Üretimi (DM & Yorum Eki)")
