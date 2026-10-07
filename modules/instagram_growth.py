@@ -25,6 +25,7 @@ Gelişmiş Yetenekler:
 import os
 import json
 import time
+import random
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
@@ -40,6 +41,58 @@ from graphics.generator import JobCardGenerator, to_turkish_date_str
 from graphics.reels_engine import ReelsVideoEngine
 from publishers.instagram import InstagramPublisher
 from publishers.meta_helper import MetaHelper
+
+
+# =============================================================================
+# META GRAPH API UYUMLU DİNAMİK YANIT HAVUZLARI (ANTİ-SPAM & ROTASYON)
+# =============================================================================
+PUBLIC_REPLY_VARIANTS = [
+    "@{username} Harika! {institution} için resmi başvuru ekranı bağlantısı ve şartlar DM kutunuza iletildi 📩 Başarılar!",
+    "@{username} Bilgiler hazır! Resmi başvuru kılavuzu ve kadro şartnamesi DM gelen kutunuza gönderildi 🚀",
+    "@{username} Selam! {institution} personel alımı başvuru bağlantısı DM'den teslim edildi 🎯 Kontrol edebilirsiniz.",
+    "@{username} Talebiniz alındı! Resmi başvuru ekranı linki DM kutunuzda 📬 Bol şans dileriz!",
+    "@{username} {institution} ilanının tüm detayları ve başvuru linki DM mesajı olarak iletildi 🌟",
+    "@{username} Başvuru kılavuzu ve resmi e-Devlet/Kariyer Kapısı linki DM kutunuza teslim edildi ⚡"
+]
+
+PUBLIC_TAG_FRIEND_VARIANTS = [
+    "@{username} Harika bir dayanışma! Arkadaşınızı etiketlediğiniz için teşekkürler 👏 {institution} resmi başvuru linki DM kutunuza iletildi 📩",
+    "@{username} Arkadaşınızla paylaştığınız için teşekkürler! Kadro kılavuzu ve resmi başvuru ekranı DM'den iletildi 🚀",
+    "@{username} Süper! Hem sizin hem etiketlediğiniz arkadaşınızın faydalanması için resmi başvuru kılavuzu DM'ye gönderildi 🎯"
+]
+
+DM_TEXT_VARIANTS = [
+    (
+        "👋 Merhaba @{username}!\n\n"
+        "📌 Yorum yaptığınız ilan detayları:\n"
+        "🏛 <b>Kurum:</b> {institution}\n"
+        "📢 <b>Kadro:</b> {position}\n"
+        "👥 <b>Kontenjan:</b> {quota} Kişi\n"
+        "🗓 <b>Son Başvuru:</b> {deadline}\n\n"
+        "🔗 <b>Resmi Başvuru Ekranı & Şartname:</b>\n{link}\n\n"
+        "🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Başarılar dileriz!\n\n"
+        "📢 Yeni kamu alımlarını kaçırmamak için @kamupersonelrehberi sayfamızı takip etmeyi unutmayın!"
+    ),
+    (
+        "👋 Selam @{username}! İlan başvurunuz için gerekli bağlantı hazır:\n\n"
+        "🏛 <b>Kurum:</b> {institution}\n"
+        "📢 <b>Pozisyon:</b> {position}\n"
+        "👥 <b>Alım Sayısı:</b> {quota} Kişi\n"
+        "🗓 <b>Son Başvuru Tarihi:</b> {deadline}\n\n"
+        "⚡ <b>Doğrudan Başvuru Bağlantısı:</b>\n{link}\n\n"
+        "💡 Tavsiye: Başvurunuzu son güne bırakmamanızı öneririz. Bol şans!\n\n"
+        "📌 Yeni ilanlar ve sonuç duyuruları için sayfamızı takipte kalın: @kamupersonelrehberi"
+    ),
+    (
+        "👋 Merhaba @{username}! Kamu Personel Rehberi asistanınız burada 🤖\n\n"
+        "🏛 <b>İlan Veren Kurum:</b> {institution}\n"
+        "📢 <b>Alım Yapılan Kadro:</b> {position}\n"
+        "👥 <b>Toplam Kontenjan:</b> {quota} Kişi\n"
+        "🗓 <b>Son Gün:</b> {deadline}\n\n"
+        "🔗 <b>Resmi Kılavuz & Başvuru Sayfası:</b>\n{link}\n\n"
+        "🎯 Atanma sürecinizde başarılar dileriz! Bizi takip etmeyi unutmayın: @kamupersonelrehberi"
+    )
+]
 
 
 # =============================================================================
@@ -263,7 +316,11 @@ class InstagramGrowthManager:
             return {"success": False, "message": f"API istek hatası: {e}", "processed_count": 0}
 
         new_actions = []
-        triggers = ["kilavuz", "klavuz", "link", "sartname", "sartlar", "basvuru", "takip ettim"]
+        triggers = [
+            "kilavuz", "klavuz", "link", "linki", "sartname", "sartlar", "basvuru",
+            "detay", "detaylar", "pdf", "nereden", "nasil", "istiyorum", "bana da",
+            "gonder", "gonderir", "takip ettim", "ettim", "takipteyim", "takipciyim"
+        ]
 
         for media in media_list:
             caption = media.get("caption", "")
@@ -294,20 +351,25 @@ class InstagramGrowthManager:
                 if not is_trigger:
                     continue
 
-                # 1. Özel DM Yanıtı (Private Reply via Facebook Page Messages - Meta kuralı gereği ÖNCE gönderilir)
+                # Arkadaş etiketleme kontrolü (@arkadasini etiketleyen kullanıcılara özel viral yanıt)
+                has_friend_tag = False
+                for w in text.split():
+                    if w.startswith("@") and "kamupersonelrehberi" not in w.lower() and len(w) > 2:
+                        has_friend_tag = True
+                        break
+
+                # 1. Özel DM Yanıtı (Private Reply - Dinamik Rotasyon)
                 dm_ok = False
                 dm_err = ""
                 if fb_page_id:
-                    dm_text = (
-                        f"👋 Merhaba @{username}!\n\n"
-                        f"📌 Yorum yaptığınız ilan detayları:\n"
-                        f"🏛 <b>Kurum:</b> {details['institution']}\n"
-                        f"📢 <b>Kadro:</b> {details['position']}\n"
-                        f"👥 <b>Kontenjan:</b> {quota_str} Kişi\n"
-                        f"🗓 <b>Son Başvuru:</b> {d_str}\n\n"
-                        f"🔗 <b>Resmi Başvuru Ekranı & Şartname:</b>\n{job_link}\n\n"
-                        f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Başarılar dileriz!\n\n"
-                        f"📢 Yeni kamu alımlarını kaçırmamak için @kamupersonelrehberi sayfamızı takip etmeyi unutmayın!"
+                    dm_tpl = random.choice(DM_TEXT_VARIANTS)
+                    dm_text = dm_tpl.format(
+                        username=username,
+                        institution=details["institution"],
+                        position=details["position"],
+                        quota=quota_str,
+                        deadline=d_str,
+                        link=job_link
                     )
                     dm_url = f"https://graph.facebook.com/v19.0/{fb_page_id}/messages"
                     dm_payload = {
@@ -323,8 +385,16 @@ class InstagramGrowthManager:
                     except Exception as de:
                         dm_err = str(de)[:120]
 
-                # 2. Herkese Açık Yorum Yanıtı (Public Reply)
-                pub_msg = f"@{username} Harika! {details['institution']} için resmi başvuru ekranı bağlantısı ve şartlar DM kutunuza iletildi 📩"
+                # Meta Anti-Bot Davranışsal Gecikme (Jitter Delay)
+                time.sleep(random.uniform(0.6, 1.4))
+
+                # 2. Herkese Açık Yorum Yanıtı (Public Reply - Dinamik Havuz)
+                if has_friend_tag:
+                    pub_tpl = random.choice(PUBLIC_TAG_FRIEND_VARIANTS)
+                else:
+                    pub_tpl = random.choice(PUBLIC_REPLY_VARIANTS)
+                pub_msg = pub_tpl.format(username=username, institution=details["institution"])
+
                 pub_url = f"https://graph.facebook.com/v19.0/{c_id}/replies"
                 pub_ok = False
                 try:
@@ -343,6 +413,7 @@ class InstagramGrowthManager:
                     "comment_id": c_id,
                     "media_id": media.get("id"),
                     "shortcode": media.get("shortcode"),
+                    "friend_tagged": has_friend_tag,
                     "public_reply_status": "Başarılı" if pub_ok else "Hata",
                     "dm_status": "Gönderildi (DM İletildi)" if dm_ok else f"Hata ({dm_err})",
                     "job_title": job_title
@@ -446,6 +517,80 @@ class InstagramGrowthManager:
                     "job_title": job.title
                 }
 
+    def generate_top_comments(self, announcement_text: str, institution: str = "") -> Dict[str, Any]:
+        """
+        ÖSYM, Bakanlık veya popüler kamu sayfalarının paylaşımlarına
+        ilk 2-5 dakika içinde atılmak üzere 'En Üst Yorum (Top-Comment)' taslakları üretir.
+        Spam reklam içermez; %100 değer, hap bilgi ve aday rehberliği odaklıdır.
+        """
+        inst_label = institution.strip() or "Kamu Kurumu"
+        
+        # 1. Aktif LLM Sağlayıcısı ile üretim dene
+        try:
+            from ai.llm_client import LLMClient
+            llm = LLMClient()
+            has_llm = any([
+                get_system_setting("NVIDIA_API_KEY"),
+                get_system_setting("GROQ_API_KEY"),
+                get_system_setting("CUSTOM_LLM_API_KEY")
+            ])
+            if has_llm and announcement_text.strip():
+                prompt = (
+                    f"Aşağıdaki kamu personel alımı / sınav duyurusunu incele. "
+                    f"Bu gönderinin altına Instagram'da 'En Çok Beğenilen Üst Yorum (Top Comment)' "
+                    f"olması için 3 farklı Türkçe yorum taslağı hazırla:\n\n"
+                    f"Duyuru Metni: {announcement_text[:800]}\n"
+                    f"Kurum: {inst_label}\n\n"
+                    f"Kurallar:\n"
+                    f"- Kesinlikle 'sayfamızı takip edin' gibi ucuz reklam yapma.\n"
+                    f"- Bilgi verici, profesyonel, adayların işini kolaylaştıran bir uzman gibi yaz.\n"
+                    f"- Yanıtı SADECE geçerli bir JSON olarak ver: "
+                    f'{{"style_summary": "...", "style_warning": "...", "style_community": "..."}}'
+                )
+                res = llm._dispatch_completion(llm.active_provider, prompt)
+                if res and isinstance(res, dict) and "style_summary" in res:
+                    return {
+                        "success": True,
+                        "provider": llm.active_provider,
+                        "style_summary": res.get("style_summary", ""),
+                        "style_warning": res.get("style_warning", ""),
+                        "style_community": res.get("style_community", "")
+                    }
+        except Exception as e:
+            logger.debug(f"LLM top-comment üretimi istisnası: {e}")
+
+        # 2. Akıllı Kural Tabanlı (Heuristic) Şablonlar
+        style1 = (
+            f"📌 ÖZET BİLGİ & KRİTİK ŞARTLAR (Adaylar için):\n\n"
+            f"1️⃣ Kurum: {inst_label}\n"
+            f"2️⃣ Başvuru Kanalı: Resmi e-Devlet Kariyer Kapısı üzerinden yapılmaktadır.\n"
+            f"3️⃣ Başvuru Takvimi: Süre sınırlıdır, son günü beklemeden tamamlamanızı tavsiye ederiz.\n\n"
+            f"💡 Kontenjan ve özel branş şartlarının tam listesi için profilimizdeki güncel ilan rehberine göz atabilirsiniz."
+        )
+
+        style2 = (
+            f"⚠️ BAŞVURACAK ADAYLARIN DİKKATİNE ({inst_label}):\n\n"
+            f"• Mezuniyet ve KPSS puan türü şartının birebir uyuştuğundan emin olun.\n"
+            f"• İstenen sertifika veya belgelerin son başvuru tarihinden önce alınmış olması şarttır.\n"
+            f"• Aracı ve ücret talep eden sitelere itibar etmeyiniz, tek resmi kanal Kariyer Kapısı'dır.\n\n"
+            f"Başvuran tüm adaylara başarılar dileriz! 🇹🇷"
+        )
+
+        style3 = (
+            f"🎯 {inst_label} alımını bekleyen adaylar toplandı mı?\n\n"
+            f"Bu kadroda taban puanların kaça kadar düşeceğini tahmin ediyorsunuz? "
+            f"Bölüm ve KPSS puanınızı yazarsanız geçmiş atama taban verilerine göre değerlendirelim 👇\n"
+            f"(Kılavuzdaki özel şartları merak edenlere detayları aktarabiliriz)."
+        )
+
+        return {
+            "success": True,
+            "provider": "Kural Tabanlı Motor (Heuristic)",
+            "style_summary": style1,
+            "style_warning": style2,
+            "style_community": style3
+        }
+
 
 # =============================================================================
 # STREAMLIT YÖNETİM ARAYÜZÜ (INSTAGRAM BÜYÜME VE OTOMASYON MERKEZİ)
@@ -492,10 +637,11 @@ def render_instagram_growth_tab():
 
     st.markdown("---")
 
-    sub_tab1, sub_tab2, sub_tab3, sub_tab4 = st.tabs([
+    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
         "📱 Çoklu Carousel (Kaydırmalı) Stüdyosu",
         "🎬 Reels Video (Sesli MP4) Motoru",
         "💬 Takip Şartlı Yorum-DM & Video Asistanı",
+        "🌟 AI Öncü Yorum Radarı (Top-Comment Funnel)",
         "⚙️ Otopilot Dağıtım & Pik Saat Ayarları"
     ])
 
@@ -590,13 +736,23 @@ def render_instagram_growth_tab():
             sel_r_label = st.selectbox("Reels Videosu Yapılacak İlan:", list(job_dict_r.keys()), key="reels_job_sel")
             r_job_id = job_dict_r[sel_r_label]
 
-            col_r1, col_r2 = st.columns([1, 1])
+            col_r1, col_r2, col_r3 = st.columns([1, 1, 1])
             with col_r1:
                 r_voice = st.selectbox("Türkçe Yapay Zeka Seslendirmeni:", ["tr-TR-AhmetNeural (Erkek - Kurumsal)", "tr-TR-EmelNeural (Kadın - Akıcı)"])
             with col_r2:
                 r_duration = st.slider("Video Süresi (Saniye):", min_value=7, max_value=14, value=10)
+            with col_r3:
+                r_hook = st.selectbox(
+                    "Algoritma & Viral Kurgu:",
+                    [
+                        "🎯 KILAVUZ Odaklı (DM İletişimi)",
+                        "📲 Arkadaşına Gönder (Sends per Reach)",
+                        "📌 Kaydet Unutma (Kaydetme Oranı)"
+                    ]
+                )
 
             voice_id = "tr-TR-AhmetNeural" if "Ahmet" in r_voice else "tr-TR-EmelNeural"
+            hook_key = "VIRAL_SEND" if "Arkadaşına" in r_hook else ("VIRAL_SAVE" if "Kaydet" in r_hook else "VIRAL_DM")
 
             c_btn_r1, c_btn_r2 = st.columns([1, 1])
             with c_btn_r1:
@@ -619,7 +775,8 @@ def render_instagram_growth_tab():
                             deadline=to_turkish_date_str(t_job.application_end_date),
                             source_url=t_job.source_url,
                             voice=voice_id,
-                            duration_seconds=r_duration
+                            duration_seconds=r_duration,
+                            hook_style=hook_key
                         )
                         if ok_r and v_path:
                             st.session_state[video_key] = str(v_path)
@@ -638,6 +795,7 @@ def render_instagram_growth_tab():
                     st.write(f"- **Dosya Boyutu:** {Path(v_file).stat().st_size // 1024} KB")
                     st.write(f"- **Süre:** {r_duration} Saniye (Loop / Sonsuz Döngü Uyumlu)")
                     st.write(f"- **Seslendirme:** {r_voice.split(' ')[0]} (Doğal Türkçe)")
+                    st.write(f"- **Viral Kurgu:** `{r_hook}`")
                     with get_db() as db:
                         tj = db.query(JobAnnouncement).filter(JobAnnouncement.id == r_job_id).first()
                         if tj:
@@ -646,7 +804,8 @@ def render_instagram_growth_tab():
                                 position=tj.position or tj.title,
                                 total_positions=tj.total_positions,
                                 kpss_requirement=tj.kpss_requirement,
-                                deadline=to_turkish_date_str(tj.application_end_date)
+                                deadline=to_turkish_date_str(tj.application_end_date),
+                                hook_style=hook_key
                             )
                             st.info(f"🎙 **Seslendirilen Metin:**\n\n\"{script_preview}\"")
 
@@ -677,6 +836,23 @@ def render_instagram_growth_tab():
         * Aday sayfayı takip edip 'TAKİP ETTİM' yazdığı an link kilidi açılır! Bu kurgu her gönderide **yüzlerce organik takipçi** kazandırır.
         """)
 
+        # Anti-Spam ve Güvenlik Rozetleri
+        c_badge1, c_badge2 = st.columns(2)
+        with c_badge1:
+            st.markdown("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px 14px; border-radius: 8px;">
+                <span style="color: #34d399; font-weight: 700; font-size: 14px;">🛡️ Anti-Spam Rotasyon Havuzu Aktif</span>
+                <p style="color: #cbd5e1; font-size: 13px; margin: 4px 0 0 0;">Yorum ve DM yanıtları 6 farklı dinamik varyasyonla ve değişken gecikmeyle (jitter) gönderilerek Meta bot koruması aşılır.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with c_badge2:
+            st.markdown("""
+            <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; padding: 10px 14px; border-radius: 8px;">
+                <span style="color: #38bdf8; font-weight: 700; font-size: 14px;">👥 Arkadaş Etiketleme Radarı Aktif</span>
+                <p style="color: #cbd5e1; font-size: 13px; margin: 4px 0 0 0;">Yorumunda arkadaşını etiketleyen (@kullanici) adaylara özel teşekkür yanıtı dönülerek viral paylaşım ödüllendirilir.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
         # 1. GERÇEK ZAMANLI CANLI YORUM-DM ASİSTANI
         st.markdown("---")
         st.markdown("#### ⚡ Canlı Instagram Yorum-DM Otomasyonu (7/24 Aktif)")
@@ -705,12 +881,13 @@ def render_instagram_growth_tab():
             st.markdown("##### 📋 Son Yanıtlanan Canlı Yorumlar & İletilen DM'ler")
             import pandas as pd
             df_logs = pd.DataFrame(logs)
-            display_cols = ["timestamp", "username", "comment_text", "job_title", "public_reply_status", "dm_status"]
+            display_cols = ["timestamp", "username", "comment_text", "friend_tagged", "job_title", "public_reply_status", "dm_status"]
             existing_cols = [c for c in display_cols if c in df_logs.columns]
             rename_map = {
                 "timestamp": "Tarih/Saat",
                 "username": "Kullanıcı Adı",
                 "comment_text": "Yazdığı Yorum",
+                "friend_tagged": "Arkadaş Etiketlendi mi?",
                 "job_title": "İlgili İlan",
                 "public_reply_status": "Yorum Yanıtı",
                 "dm_status": "DM Teslim Durumu"
@@ -815,9 +992,65 @@ def render_instagram_growth_tab():
             st.caption("Kullanıcı takip ettikten sonra bu kelimeleri yazdığında resmi link anında DM'den açılır.")
 
     # =========================================================================
-    # TAB 4: OTOPİLOT DAĞITIM & PİK SAAT AYARLARI
+    # TAB 4: AI ÖNCÜ & DEĞER ODAKLI YORUM RADARI (TOP-COMMENT FUNNEL)
     # =========================================================================
     with sub_tab4:
+        st.markdown("### 🌟 AI Öncü & Değer Odaklı Yorum Radarı (Top-Comment Funnel)")
+        st.caption("ÖSYM, MEB, Sağlık Bakanlığı veya popüler KPSS sayfalarının paylaşımlarına ilk 2-5 dakikada atılacak 'En Üst Yorum (Top-Comment)' taslakları üretir. Spam içermez, sıfır ban riski taşır!")
+
+        st.markdown("""
+        <div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #38bdf8; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #e2e8f0; font-size: 14px;">
+                💡 <b>Neden İşe Yarar?</b> Resmi bir duyurunun altına yüzlerce aday "Şartlar ne?", "Puan kaça düşer?" diye sorarken; 
+                ilk dakikada 3 maddelik hap özet veya kritik şart uyarısı bıraktığınızda adaylar yorumunuzu beğeni yağmuruna tutar ve en başa sabitlenir (Top Comment). 
+                Bu sayede profilinizi on binlerce aday ziyaret eder ve organik takipçi patlaması yaşanır!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_in1, col_in2 = st.columns([1, 2])
+        with col_in1:
+            tc_institution = st.text_input("Kurum / Sınav Adı:", value="Sağlık Bakanlığı / ÖSYM", key="tc_inst")
+            st.caption("Örn: Sağlık Bakanlığı, MEB, ÖSYM KPSS, Adalet Bakanlığı")
+        with col_in2:
+            tc_announcement = st.text_area(
+                "Resmi Duyuru Metni veya İlan Başlığı:",
+                value="2026 yılı 15.000 sözleşmeli personel alımı başvuru kılavuzu ÖSYM ve Resmi Gazete'de yayımlandı. Başvurular Kariyer Kapısı üzerinden alınacaktır.",
+                height=90,
+                key="tc_ann"
+            )
+
+        if st.button("✨ 3 Farklı Tarzda 'En Üst Yorum (Top-Comment)' Üret", type="primary", use_container_width=True):
+            with st.spinner("Yapay zeka ile en üst yorum kurguları oluşturuluyor..."):
+                top_res = mgr.generate_top_comments(tc_announcement, tc_institution)
+                st.session_state["top_comment_res"] = top_res
+
+        t_res = st.session_state.get("top_comment_res")
+        if t_res and t_res.get("success"):
+            st.success(f"✅ Yorum taslakları hazırlandı! (Sağlayıcı: {t_res.get('provider')})")
+            
+            c_tc1, c_tc2, c_tc3 = st.columns(3)
+            with c_tc1:
+                st.markdown("#### 🥇 1. Hap Özet & 3 Kritik Madde")
+                st.caption("En hızlı beğeni alan ve en başa tutturulan stildir.")
+                st.code(t_res["style_summary"], language="markdown")
+            
+            with c_tc2:
+                st.markdown("#### 🛡️ 2. Kritik Uyarı & Kurtarıcı Bilgi")
+                st.caption("Adayları hata yapmaktan kurtaran uzman görüşü.")
+                st.code(t_res["style_warning"], language="markdown")
+                
+            with c_tc3:
+                st.markdown("#### 💬 3. Topluluk & Tartışma Başlatıcı")
+                st.caption("Adayların altına yorum yazmasını sağlayan soru kurgusu.")
+                st.code(t_res["style_community"], language="markdown")
+
+            st.info("📌 **Tavsiye:** Hedef sayfada gönderi paylaşıldıktan sonraki **ilk 3 dakika içinde** yukarıdaki yorumlardan birini yapıştırın. İlk beğenen olmak algoritmanın sizi en üste çıkarmasını sağlar.")
+
+    # =========================================================================
+    # TAB 5: OTOPİLOT DAĞITIM & PİK SAAT AYARLARI
+    # =========================================================================
+    with sub_tab5:
         st.markdown("### ⚙️ Instagram Otopilot Dağıtım & Pik Saat Yönetimi")
         st.markdown("""
         Instagram spam algoritmaları gereği günde **maksimum 4-5 kaliteli gönderi** paylaşılmalıdır.

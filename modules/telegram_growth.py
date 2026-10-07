@@ -174,6 +174,21 @@ def _clean_telegram_target(target_str: str) -> str:
     return t.strip()
 
 
+def normalize_phone_number(raw_phone: str) -> str:
+    """Telefon numarasını Telegram uyumlu E.164 uluslararası formatına (+90...) dönüştürür."""
+    import re
+    cleaned = re.sub(r"[^\d+]", "", (raw_phone or "").strip())
+    if cleaned.startswith("00"):
+        cleaned = "+" + cleaned[2:]
+    elif cleaned.startswith("0") and len(cleaned) == 11 and cleaned[1] == "5":
+        cleaned = "+90" + cleaned[1:]
+    elif cleaned.startswith("5") and len(cleaned) == 10:
+        cleaned = "+90" + cleaned
+    elif not cleaned.startswith("+") and cleaned.isdigit():
+        cleaned = "+" + cleaned
+    return cleaned
+
+
 def _auto_restore_session():
     """
     Her Streamlit rerun'ında çağrılır.
@@ -181,6 +196,10 @@ def _auto_restore_session():
     ve API bilgileri mevcutsa, otomatik olarak oturumu yeniden bağlar.
     Bu sayede sayfa yenilendiğinde kullanıcı oturumunu kaybetmez.
     """
+    # Kod doğrulama veya 2FA parolası beklenirken oturum kurtarmayı ÇALIŞTIRMA (Handshake aktif!)
+    if st.session_state.get("tg_awaiting_code", False) or st.session_state.get("tg_awaiting_2fa", False):
+        return
+
     # Zaten giriş yapılmışsa bir şey yapma
     if st.session_state.get("tg_is_auth", False) and st.session_state.get("tg_user_info"):
         # Client'ın hâlâ geçerli olup olmadığını kontrol et
@@ -288,11 +307,13 @@ def telegram_buyutme_modulu():
     # Otomatik oturum yenileme — sayfa yenilendiğinde oturumu koru
     _auto_restore_session()
 
-    # 3 Aşamalı Sekme Arayüzü
-    tab_auth, tab_scrape, tab_add = st.tabs([
+    # 5 Aşamalı Genişletilmiş Büyüme & Otomasyon Arayüzü
+    tab_auth, tab_scrape, tab_add, tab_quiz, tab_seo = st.tabs([
         "🔑 1. Hesap Bağlantısı",
         "🕵️ 2. Üye Kazıma (Scrape)",
-        "➕ 3. Üye Ekleme (Add)"
+        "➕ 3. Üye Ekleme (Add)",
+        "🎯 4. Günlük KPSS Quiz / Soru Motoru",
+        "🚀 5. Kanal SEO & İletilme (Forward) Stüdyosu"
     ])
 
     # =========================================================================
@@ -405,7 +426,7 @@ def telegram_buyutme_modulu():
                 "Telefon Numarası (Ülke kodu ile)",
                 value=st.session_state.tg_temp_phone,
                 placeholder="+905xxxxxxxxx",
-                help="Telegram hesabınıza bağlı telefon numarası."
+                help="Telegram hesabınıza bağlı telefon numarası (Örn: +905321234567 veya 05321234567)."
             )
 
             if not st.session_state.tg_awaiting_code and not st.session_state.tg_awaiting_2fa:
@@ -413,33 +434,50 @@ def telegram_buyutme_modulu():
                     if not api_id_input or not api_hash_input or not phone_input:
                         st.error("Lütfen API ID, API Hash ve Telefon Numarası alanlarını eksiksiz doldurun.")
                     else:
-                        try:
-                            with st.spinner("Telegram ile bağlantı kuruluyor ve SMS/Kod isteniyor..."):
-                                client = run_async(_get_or_create_client(int(api_id_input), api_hash_input))
-                                code_req = run_async(client.send_code_request(phone_input.strip()))
+                        norm_phone = normalize_phone_number(phone_input)
+                        if len(norm_phone) < 10 or not norm_phone.startswith("+"):
+                            st.error(f"Geçersiz telefon formatı: '{phone_input}'. Lütfen ülke koduyla girin (Örn: +905321234567)")
+                        else:
+                            try:
+                                with st.spinner("Telegram ile bağlantı kuruluyor ve Kod isteniyor..."):
+                                    # API bilgilerini DB'ye kaydet
+                                    set_system_setting("TELEGRAM_API_ID", str(api_id_input).strip())
+                                    set_system_setting("TELEGRAM_API_HASH", str(api_hash_input).strip())
 
-                                st.session_state.tg_client = client
-                                st.session_state.tg_saved_api_id = api_id_input
-                                st.session_state.tg_saved_api_hash = api_hash_input
-                                st.session_state.tg_temp_phone = phone_input.strip()
-                                st.session_state.tg_phone_code_hash = code_req.phone_code_hash
-                                st.session_state.tg_awaiting_code = True
-                                st.success("Doğrulama kodu Telegram uygulamanıza veya SMS ile gönderildi!")
-                                st.rerun()
-                        except PhoneNumberInvalidError:
-                            st.error("Girdiğiniz telefon numarası geçersiz!")
-                        except Exception as ex:
-                            st.error(f"Kod gönderme hatası: {str(ex)}")
+                                    client = run_async(_get_or_create_client(int(api_id_input), api_hash_input))
+                                    code_req = run_async(client.send_code_request(norm_phone))
+
+                                    del_type = type(code_req.type).__name__ if hasattr(code_req, 'type') else "Bilinmiyor"
+
+                                    st.session_state.tg_client = client
+                                    st.session_state.tg_saved_api_id = str(api_id_input).strip()
+                                    st.session_state.tg_saved_api_hash = str(api_hash_input).strip()
+                                    st.session_state.tg_temp_phone = norm_phone
+                                    st.session_state.tg_phone_code_hash = code_req.phone_code_hash
+                                    st.session_state.tg_delivery_type = del_type
+                                    st.session_state.tg_awaiting_code = True
+                                    st.success("Doğrulama kodu oluşturuldu!")
+                                    st.rerun()
+                            except PhoneNumberInvalidError:
+                                st.error("Girdiğiniz telefon numarası Telegram tarafından tanınmadı!")
+                            except Exception as ex:
+                                st.error(f"Kod gönderme hatası: {str(ex)}")
 
             # Kod Giriş Aşaması
             if st.session_state.tg_awaiting_code and not st.session_state.tg_awaiting_2fa:
-                st.info(f"📱 **{st.session_state.tg_temp_phone}** numarasına gelen Telegram kodunu girin:")
+                del_type = st.session_state.get("tg_delivery_type", "")
+                if "App" in del_type:
+                    st.info(f"💬 **DİKKAT:** Telegram doğrulama kodunu **TELEGRAM UYGULAMANIZA** gönderdi! Lütfen telefonunuzdaki Telegram uygulamasında 'Telegram' servis mesajını kontrol edin. (SMS gelmeyebilir)")
+                else:
+                    st.info(f"📱 **{st.session_state.tg_temp_phone}** numarasına SMS / Telegram ile gelen kodu girin:")
+
                 sms_code_input = st.text_input("Telegram Doğrulama Kodu", placeholder="12345")
 
                 col_btn1, col_btn2 = st.columns([1, 4])
                 with col_btn1:
                     if st.button("✅ Girişi Tamamla", type="primary"):
-                        if not sms_code_input:
+                        clean_code = re.sub(r"[^\d]", "", (sms_code_input or "").strip())
+                        if not clean_code:
                             st.warning("Lütfen kodu girin.")
                         else:
                             try:
@@ -458,7 +496,7 @@ def telegram_buyutme_modulu():
                                     try:
                                         run_async(client.sign_in(
                                             phone=st.session_state.tg_temp_phone,
-                                            code=sms_code_input.strip(),
+                                            code=clean_code,
                                             phone_code_hash=st.session_state.tg_phone_code_hash
                                         ))
                                         # Başarılı giriş
@@ -1118,6 +1156,223 @@ def telegram_buyutme_modulu():
                         err_type = type(ex).__name__
                         err_str = str(ex).strip() or repr(ex)
                         st.error(f"Genel işlem hatası ({err_type}): {err_str}")
+
+    # =========================================================================
+    # 4. AŞAMA: GÜNLÜK KPSS QUIZ & SORU MOTORU (QUIZ POLLS)
+    # =========================================================================
+    with tab_quiz:
+        st.subheader("🎯 Günlük KPSS Quiz & Soru Anketi Motoru")
+        st.caption("Adayların bildirimleri sürekli açık tutmasını ve kanala her gün girmesini sağlayan Telegram resmi Quiz Anketleri.")
+
+        st.markdown("""
+        <div style="background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
+            <b style="color: #38bdf8; font-size: 15px;">💡 Neden İşe Yarar ve Kanalı Nasıl Büyütür?</b>
+            <p style="color: #cbd5e1; margin: 6px 0 0 0; font-size: 0.92rem;">
+                Sadece ilan paylaşılan kanallar, ilan olmayan günlerde sessiz kalır ve üyeler bildirimleri kapatır (mute). 
+                Günde 1 veya 2 kez (sabah 10:00 ve akşam 20:30) yayınlanan açıklamalı KPSS Quiz soruları:
+                <br>• Üyelerin bildirimleri <b>açık tutmasını</b> sağlar.
+                <br>• Adaylar soruyu diğer KPSS çalışma gruplarına ileterek kanala <b>yeni organik üyeler</b> çeker.
+                <br>• Doğru cevap tıklandığında beliren detaylı <b>açıklama & çözüm metni</b> kanalınızı güvenilir bir etüt merkezine dönüştürür.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Hazır KPSS Soru Havuzu
+        KPSS_QUESTIONS_BANK = [
+            {
+                "category": "🇹🇷 KPSS Tarih",
+                "question": "Osmanlı Devleti'nde ilk resmî gazete olan 'Takvim-i Vekayi' hangi padişah döneminde yayımlanmaya başlamıştır?",
+                "options": ["II. Mahmut", "Abdülmecid", "III. Selim", "II. Abdülhamit", "V. Murat"],
+                "correct_id": 0,
+                "explanation": "Doğru Cevap: II. Mahmut. 1831 yılında Osmanlı'nın ilk resmî Türkçe gazetesi olarak Takvim-i Vekayi yayımlanmıştır."
+            },
+            {
+                "category": "🇹🇷 KPSS Tarih",
+                "question": "Kurtuluş Savaşı'nda 'Hattı müdafaa yoktur, sathı müdafaa vardır. O satıh bütün vatandır.' emri hangi muharebede verilmiştir?",
+                "options": ["I. İnönü Muharebesi", "Sakarya Meydan Muharebesi", "Başkomutanlık Meydan Muharebesi", "II. İnönü Muharebesi", "Kütahya-Eskişehir"],
+                "correct_id": 1,
+                "explanation": "Doğru Cevap: Sakarya Meydan Muharebesi. Mustafa Kemal Paşa bu tarihi emri 1921 Sakarya Zaferi öncesinde vermiştir."
+            },
+            {
+                "category": "🗺️ KPSS Coğrafya",
+                "question": "Türkiye'de rüzgâr erozyonunun en şiddetli görüldüğü ve rüzgâr biriktirme şekillerine en çok rastlanan yöre hangisidir?",
+                "options": ["Karadeniz Kıyı Kuşağı", "Hakkari Bölümü", "Konya-Karapınar Çevresi", "Yıldız Dağları Yöresi", "Menteşe Yöresi"],
+                "correct_id": 2,
+                "explanation": "Doğru Cevap: Konya-Karapınar Çevresi. Bitki örtüsünün zayıf, iklimin kurak ve arazinin düz olduğu İç Anadolu'da rüzgâr erozyonu zirvededir."
+            },
+            {
+                "category": "⚖️ KPSS Vatandaşlık & Anayasa",
+                "question": "1982 Anayasası'na göre Türkiye Büyük Millet Meclisi (TBMM) üye tam sayısı kaçtır?",
+                "options": ["450 Milletvekili", "500 Milletvekili", "550 Milletvekili", "600 Milletvekili", "650 Milletvekili"],
+                "correct_id": 3,
+                "explanation": "Doğru Cevap: 600 Milletvekili. 2017 Anayasa değişikliği ile milletvekili sayısı 550'den 600'e çıkarılmıştır."
+            },
+            {
+                "category": "⚖️ KPSS Vatandaşlık",
+                "question": "1982 Anayasası'na göre Anayasa Mahkemesi üyeleri kaç yıl süreyle görev yapmak üzere seçilirler?",
+                "options": ["4 Yıl", "6 Yıl", "9 Yıl", "12 Yıl", "Ömür Boyu"],
+                "correct_id": 3,
+                "explanation": "Doğru Cevap: 12 Yıl. Anayasa Mahkemesi üyeleri 12 yıl için seçilirler ve bir kimse iki defa üye seçilemez."
+            },
+            {
+                "category": "🌍 KPSS Güncel Bilgiler",
+                "question": "Türkiye'nin ilk yerli ve millî haberleşme uydusu olup başarıyla uzaya fırlatılan uydu hangisidir?",
+                "options": ["Türksat 4A", "Türksat 5B", "Türksat 6A", "Göktürk-1", "Rasat"],
+                "correct_id": 2,
+                "explanation": "Doğru Cevap: Türksat 6A. Yerli mühendislik imkânlarıyla üretilen Türkiye'nin ilk millî haberleşme uydusudur."
+            },
+            {
+                "category": "📖 KPSS Türkçe",
+                "question": "Aşağıdaki cümlelerin hangisinde 'ki' bağlacının yazımı ile ilgili bir YAZIM YANLIŞI yapılmıştır?",
+                "options": [
+                    "Duydum ki unutmuşsun gözlerimin rengini.",
+                    "Mademki gelecektin, haber verseydin.",
+                    "Anladımki bu sınavı çalışmadan kazanmak zor.",
+                    "Oysaki seninle tüm konuları tekrar etmiştik.",
+                    "Evdeki hesap çarşıya uymadı."
+                ],
+                "correct_id": 2,
+                "explanation": "Doğru Cevap: C şıkkı. Fiilden sonra gelen 'ki' her zaman ayrı yazılır: 'Anladım ki' şeklinde olmalıdır."
+            }
+        ]
+
+        q_titles = [f"[{q['category']}] {q['question'][:75]}..." for q in KPSS_QUESTIONS_BANK]
+        q_titles.append("✍️ Kendi Özel Sorunu Yaz")
+
+        col_qsel, col_ch = st.columns([3, 2])
+        with col_qsel:
+            selected_q_idx = st.selectbox("Yayınlanacak Soruyu Seçin:", list(range(len(q_titles))), format_func=lambda i: q_titles[i])
+        with col_ch:
+            target_tg_ch = st.text_input("Hedef Telegram Kanalı (@kanaladi):", value=settings.active_telegram_channel_id or "@kamupersonelrehberi")
+
+        is_custom = (selected_q_idx == len(KPSS_QUESTIONS_BANK))
+        if not is_custom:
+            cur_q = KPSS_QUESTIONS_BANK[selected_q_idx]
+            q_text = cur_q["question"]
+            q_opts = cur_q["options"]
+            q_corr = cur_q["correct_id"]
+            q_expl = cur_q["explanation"]
+        else:
+            q_text = st.text_input("Soru Metni:", value="Türkiye'nin başkenti neresidir?")
+            c_op1, c_op2 = st.columns(2)
+            with c_op1:
+                o1 = st.text_input("1. Seçenek (A):", value="İstanbul")
+                o2 = st.text_input("2. Seçenek (B):", value="Ankara")
+                o3 = st.text_input("3. Seçenek (C):", value="İzmir")
+            with c_op2:
+                o4 = st.text_input("4. Seçenek (D):", value="Bursa")
+                o5 = st.text_input("5. Seçenek (E):", value="Antalya")
+            q_opts = [o1, o2, o3, o4, o5]
+            q_corr = st.selectbox("Doğru Cevap Şıkkı:", [0, 1, 2, 3, 4], format_func=lambda i: ["A", "B", "C", "D", "E"][i])
+            q_expl = st.text_input("Doğru Cevap Açıklaması:", value="Doğru Cevap: B) Ankara. 13 Ekim 1923'te başkent olmuştur.")
+
+        st.markdown("#### 📱 Canlı Telegram Quiz Önizlemesi")
+        with st.container():
+            st.markdown(f"""
+            <div style="background: rgba(15, 23, 42, 0.85); border: 2px solid #38bdf8; border-radius: 12px; padding: 18px; margin-bottom: 16px;">
+                <span style="background: #38bdf8; color: #0f172a; font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 12px;">📊 QUIZ POLL</span>
+                <h4 style="color: #ffffff; margin: 10px 0 14px 0;">{q_text}</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+            """, unsafe_allow_html=True)
+            for i, opt in enumerate(q_opts):
+                is_correct = (i == q_corr)
+                badge = " (✅ Doğru Cevap)" if is_correct else ""
+                bg = "rgba(16, 185, 129, 0.15); border: 1px solid #10b981;" if is_correct else "rgba(30, 41, 59, 0.6); border: 1px solid #334155;"
+                st.markdown(f"""
+                <div style="background: {bg} border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px;">
+                    ⚪ {opt} <b style="color: #34d399;">{badge}</b>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown(f"""
+                </div>
+                <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #334155; color: #94a3b8; font-size: 13px;">
+                    💡 <b>Çözüm Açıklaması:</b> {q_expl}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        if st.button("🚀 Bu Soruyu Telegram Kanalında Canlı Quiz Olarak Yayınla", type="primary", use_container_width=True):
+            bot_token = settings.active_telegram_bot_token
+            if not bot_token:
+                st.error("Telegram Bot Token tanımlı değil. Lütfen 'Sistem & API Ayarları' menüsünden bot tokeninizi girin.")
+            elif not target_tg_ch:
+                st.error("Hedef kanal girilmedi.")
+            else:
+                with st.spinner("Quiz resmi Telegram Bot API üzerinden kanala aktarılıyor..."):
+                    import requests
+                    poll_url = f"https://api.telegram.org/bot{bot_token}/sendPoll"
+                    poll_payload = {
+                        "chat_id": target_tg_ch,
+                        "question": q_text[:300],
+                        "options": json.dumps([str(o)[:100] for o in q_opts]),
+                        "is_anonymous": True,
+                        "type": "quiz",
+                        "correct_option_id": int(q_corr),
+                        "explanation": q_expl[:200],
+                        "explanation_parse_mode": "HTML"
+                    }
+                    try:
+                        r_poll = requests.post(poll_url, data=poll_payload, timeout=15)
+                        if r_poll.status_code == 200:
+                            st.success(f"🎉 Harika! Quiz sorusu **{target_tg_ch}** kanalında başarıyla yayınlandı!")
+                        else:
+                            st.error(f"❌ Telegram API Hatası ({r_poll.status_code}): {r_poll.text}")
+                    except Exception as pe:
+                        st.error(f"Bağlantı hatası: {pe}")
+
+    # =========================================================================
+    # 5. AŞAMA: KANAL SEO & İLETİLME (FORWARD) STÜDYOSU
+    # =========================================================================
+    with tab_seo:
+        st.subheader("🚀 Telegram Kanal SEO & İletilme (Forward) Stüdyosu")
+        st.caption("Telegram Global Search (Arama Motoru) sıralamasını zirveye taşıyan başlık, açıklama ve viral iletim kuralları.")
+
+        c_seo1, c_seo2 = st.columns(2)
+        with c_seo1:
+            st.markdown("""
+            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; padding: 18px; border-radius: 12px; margin-bottom: 16px;">
+                <h4 style="color: #38bdf8; margin: 0 0 10px 0;">🔍 1. Arama Motoru Kanal Başlığı (Title SEO)</h4>
+                <p style="color: #94a3b8; font-size: 13px;">Telegram arama motoru kanal adının ilk 2 kelimesine en yüksek ağırlığı verir.</p>
+                <div style="background: #0f172a; padding: 10px; border-radius: 8px; border-left: 3px solid #10b981;">
+                    <b style="color: #34d399;">Önerilen Başlık:</b><br>
+                    <code style="color: #ffffff; font-size: 14px;">Kamu Personel Rehberi | KPSS & Memur Alımları 2026</code>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("""
+            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; padding: 18px; border-radius: 12px;">
+                <h4 style="color: #f59e0b; margin: 0 0 10px 0;">💎 2. Telegram Premium Üye Ağırlığı</h4>
+                <p style="color: #cbd5e1; font-size: 13px;">
+                    Telegram algoritmasında kanalınızdaki <b>Premium abonelerin</b> arama sıralamasındaki ağırlığı standart üyelerden <b>3-4 kat daha fazladır</b>. 
+                    Kaliteli ve aktif kitle aramalarda kanalı en tepeye fırlatır. Sahte bot üye basmak ise tersine aramalardan silinmeye neden olur.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with c_seo2:
+            st.markdown("""
+            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; padding: 18px; border-radius: 12px; margin-bottom: 16px;">
+                <h4 style="color: #38bdf8; margin: 0 0 10px 0;">📝 3. Açıklama (İlk 160 Karakter SEO)</h4>
+                <p style="color: #94a3b8; font-size: 13px;">Arama motoru ve yeni gelen üyeler için hazır, optimize edilmiş kanal açıklaması:</p>
+                <div style="background: #0f172a; padding: 12px; border-radius: 8px; border-left: 3px solid #38bdf8; font-size: 13px; color: #e2e8f0;">
+                    🇹🇷 T.C. Resmi Gazete ve SBB onaylı kamu personel alımları, KPSS tercih kılavuzları, anlık memur, işçi, sağlık ve MEB atama duyuruları resmi kanalıdır. Sıfır bilgi kirliliği.<br><br>
+                    🌐 Web: kamupersonelrehberi.com<br>
+                    📸 Instagram: @kamupersonelrehberi
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("""
+            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; padding: 18px; border-radius: 12px;">
+                <h4 style="color: #ec4899; margin: 0 0 10px 0;">📲 4. Viral İletilme (Forwarding) Butonu</h4>
+                <p style="color: #cbd5e1; font-size: 13px;">
+                    Sistemimizin Telegram yayıncısına entegre edilen <b>'📲 Arkadaşına İlet'</b> butonu sayesinde, 
+                    adaylar tek tıkla ilanı WhatsApp veya Telegram gruplarına atar. İletilen her mesajın başlığındaki 
+                    <code>@kamupersonelrehberi</code> bağlantısı kanala her gün onlarca bedava abone kazandırır.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # Modül tek başına test edilmek istendiğinde:

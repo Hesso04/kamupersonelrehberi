@@ -83,8 +83,6 @@ class TelegramPublisher(BasePublisher):
         # Eski hatalı link kalıntılarını temizle
         caption_text = re.sub(r"https?://kamuilan\.sbb\.gov\.tr/ilanDetay\.aspx\S*", "", caption_text).strip()
 
-        reply_markup = None
-
         if has_pdf:
             # Kural: Alım PDF'i varsa link paylaşılmaz, doğrudan PDF eklenir
             if "Resmi" in caption_text or "Kılavuz" in caption_text or "Detay" in caption_text:
@@ -95,20 +93,37 @@ class TelegramPublisher(BasePublisher):
                 )
             else:
                 caption_text += "\n\n📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi (PDF) ekte sunulmuştur."
-        else:
-            # Kural: PDF yoksa sadece haber / duyuru linki paylaşılır
-            clean_news_url = job.source_url or "https://kamuilan.sbb.gov.tr/"
-            reply_markup = {
-                "inline_keyboard": [
-                    [
-                        {"text": "🌐 Resmi Duyuru / Haber Sayfası", "url": clean_news_url}
-                    ]
-                ]
-            }
+
+        # Viral Kanal İmzası ve İletilme Çağrısı
+        channel_handle = (self.channel_id or "kamupersonelrehberi").replace("@", "").strip()
+        channel_link = f"https://t.me/{channel_handle}"
+        clean_news_url = job.source_url or "https://kamuilan.sbb.gov.tr/"
+
+        caption_text += (
+            "\n\n📲 <i>İş arayan bir arkadaşına ilet, haberi olsun!</i>\n"
+            f"📌 <b>Resmi Gazete & SBB Onaylı İlanlar:</b> @{channel_handle}"
+        )
 
         # Güvenlik: Metin içindeki literal "None" kalıntılarını temizle
         caption_text = caption_text.replace("<b>Pozisyon:</b> None", f"<b>Pozisyon:</b> {job.position or 'Resmi Kılavuzda'}")
         caption_text = caption_text.replace("None Kişi", "1 Kişi").replace(": None", ": Belirtilmedi")
+
+        # 2026 Viral İletme ve Hızlı Başvuru Butonları
+        import urllib.parse
+        share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {channel_link}"
+        share_btn_url = f"https://t.me/share/url?url={urllib.parse.quote(channel_link)}&text={urllib.parse.quote(share_summary)}"
+
+        reply_markup = {
+            "inline_keyboard": [
+                [
+                    {"text": "🌐 Resmi Başvuru Ekranı", "url": clean_news_url},
+                    {"text": "📲 Arkadaşına İlet", "url": share_btn_url}
+                ],
+                [
+                    {"text": "📢 Kanalımıza Katıl & Takip Et", "url": channel_link}
+                ]
+            ]
+        }
 
         try:
             image_file = Path(job.image_path) if job.image_path else None

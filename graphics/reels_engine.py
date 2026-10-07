@@ -75,25 +75,46 @@ class ReelsVideoEngine:
         position: str,
         total_positions: Optional[int],
         kpss_requirement: Optional[str],
-        deadline: Optional[str]
+        deadline: Optional[str],
+        hook_style: str = "VIRAL_DM"
     ) -> str:
         """
         Algoritmayı ve izleyiciyi yakalayan 8-12 saniyelik vurucu Reels seslendirme metni.
-        İzleyiciye ne yazması gerektiğini (KILAVUZ) ve karşılığında ne alacağını
-        (Resmi başvuru ekranı linki + kadro dağılımı) tane tane aktarır.
+        Farklı viral hedeflere göre optimize edilmiştir:
+        - VIRAL_DM: Yorum-DM etkileşimi patlatır.
+        - VIRAL_SEND: DM ile paylaşım oranını (Sends per reach) katlar.
+        - VIRAL_SAVE: Kaydetme oranını maksimize eder.
         """
         tot = total_positions or 1
         pos_clean = position.split("-")[0].strip() if position else "Personel Alımı"
         d_str = to_turkish_date_str(deadline)
         
-        script = (
-            f"Flaş kamu ilanı! {institution}, {tot:,} kişilik {pos_clean} kadrosu açtı. "
-            f"Son başvuru tarihi {d_str}. "
-            f"Doğrudan resmi başvuru ekranı linkini ve özel şartları mesaj olarak almak için "
-            f"hemen bu videonun altına KILAVUZ yazın, anında DM kutunuza gönderelim! "
-            f"Linkin iletilmesi için sayfamızı takip etmeyi unutmayın."
-        ).replace(",", ".")
-        return script
+        if hook_style == "VIRAL_SEND":
+            script = (
+                f"Flaş kamu ilanı! {institution}, {tot:,} kişilik {pos_clean} kadrosu açtı! "
+                f"Bu videoyu atanmak isteyen bir arkadaşına hemen gönder, haberi olsun. "
+                f"Son başvuru {d_str}. "
+                f"Resmi başvuru linki ve kadro kılavuzunu almak için hemen yoruma KILAVUZ yaz! "
+                f"Sayfamızı takip etmeyi unutma."
+            )
+        elif hook_style == "VIRAL_SAVE":
+            script = (
+                f"Son dakika personel alımı! {institution}, {tot:,} kişilik kadro açtı. "
+                f"Son başvuru tarihi {d_str}. "
+                f"Şartları ve başvuru takvimini unutmamak için videoyu hemen kaydet! "
+                f"Resmi başvuru ekranı bağlantısını DM ile almak için yoruma KILAVUZ yazın. "
+                f"Sayfamızı takip edenlere link anında iletilir."
+            )
+        else: # VIRAL_DM (Varsayılan)
+            script = (
+                f"Flaş kamu ilanı! {institution}, {tot:,} kişilik {pos_clean} kadrosu açtı. "
+                f"Son başvuru tarihi {d_str}. "
+                f"Doğrudan resmi başvuru ekranı linkini ve özel şartları mesaj olarak almak için "
+                f"hemen bu videonun altına KILAVUZ yazın, anında DM kutunuza gönderelim! "
+                f"Linkin iletilmesi için sayfamızı takip etmeyi unutmayın."
+            )
+
+        return script.replace(",", ".")
 
     def create_reels_video(
         self,
@@ -108,7 +129,8 @@ class ReelsVideoEngine:
         theme: Optional[str] = None,
         title: str = "",
         voice: str = "tr-TR-AhmetNeural",
-        duration_seconds: int = 10
+        duration_seconds: int = 10,
+        hook_style: str = "VIRAL_DM"
     ) -> Tuple[bool, Optional[Path], str]:
         """
         Tam teşekküllü 1080x1920 MP4 Reels videosu üretir.
@@ -146,7 +168,8 @@ class ReelsVideoEngine:
             position=position,
             total_positions=total_positions,
             kpss_requirement=kpss_requirement,
-            deadline=deadline
+            deadline=deadline,
+            hook_style=hook_style
         )
 
         has_voice = False
