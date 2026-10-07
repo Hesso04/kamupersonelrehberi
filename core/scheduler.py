@@ -263,13 +263,11 @@ class BackgroundScheduler:
                             try:
                                 from modules.kpss_quiz_engine import KPSSQuizEngine
                                 q_eng = KPSSQuizEngine()
-                                fresh_q = q_eng.generate_ai_questions(count=1)
-                                if fresh_q:
-                                    succ, q_msg = q_eng.send_quiz_to_telegram(fresh_q[0])
-                                    if succ:
-                                        logger.info(f"[OTOPİLOT QUIZ] Otomatik KPSS sorusu Telegram kanalına aktarıldı: {fresh_q[0].get('subject')}")
-                                    else:
-                                        logger.warning(f"[OTOPİLOT QUIZ] Soru gönderilemedi: {q_msg}")
+                                succ, q_msg, q_item, card_path = q_eng.publish_automated_quiz()
+                                if succ:
+                                    logger.info(f"[OTOPİLOT QUIZ] Otomatik KPSS sorusu Telegram kanalına aktarıldı: {q_item.get('subject') if q_item else ''}")
+                                else:
+                                    logger.warning(f"[OTOPİLOT QUIZ] Soru gönderilemedi: {q_msg}")
                             except Exception as q_err:
                                 logger.error(f"[OTOPİLOT QUIZ] Otopilot soru hatası: {q_err}")
 

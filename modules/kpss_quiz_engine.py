@@ -465,3 +465,87 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
         logger.info(f"Minimalist filigranlı Instagram quiz kartı oluşturuldu: {file_card.name}")
 
         return str(file_card)
+
+    def publish_automated_quiz(
+        self,
+        channel_id: Optional[str] = None,
+        generate_card: bool = True
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]], Optional[str]]:
+        """
+        Otopilot için 1 adet taze KPSS sorusu üretir, Telegram'da quiz anket olarak yayınlar
+        ve Instagram için minimalist filigranlı kart görseli üretir.
+        Dönüş: (Başarılı mı, Mesaj, Soru Sözlüğü, Kart Dosya Yolu)
+        """
+        fresh_questions = self.generate_ai_questions(count=1)
+        if not fresh_questions:
+            return False, "Soru üretilemedi.", None, None
+
+        q_item = fresh_questions[0]
+        succ, msg = self.send_quiz_to_telegram(q_item, channel_id=channel_id)
+
+        card_path = None
+        if generate_card:
+            try:
+                card_path = self.generate_instagram_quiz_card(q_item)
+            except Exception as ce:
+                logger.warning(f"Otopilot Instagram kartı oluşturulamadı: {ce}")
+
+        # Başarılı paylaşımı log kaydına ekle
+        if succ:
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            log_entry = {
+                "date": today_str,
+                "time": datetime.now().strftime("%H:%M:%S"),
+                "subject": q_item.get("subject", "KPSS"),
+                "question": q_item.get("question", "")[:80],
+                "card_path": card_path
+            }
+            try:
+                hist_log = Path("data/kpss_daily_autopilot_log.json")
+                cur_logs = []
+                if hist_log.exists():
+                    with open(hist_log, "r", encoding="utf-8") as f:
+                        cur_logs = json.load(f)
+                cur_logs.append(log_entry)
+                with open(hist_log, "w", encoding="utf-8") as f:
+                    json.dump(cur_logs[-200:], f, ensure_ascii=False, indent=2)
+            except Exception as log_err:
+                logger.debug(f"Otopilot log kaydı uyarısı: {log_err}")
+
+        return succ, msg, q_item, card_path
+
+    def get_autopilot_stats(self) -> Dict[str, Any]:
+        """
+        Günün otopilot istatistiklerini (bugün kaç soru atıldı, hedef nedir, durum nedir) döndürür.
+        """
+        enabled = get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "true") == "true"
+        target_daily = int(get_system_setting("AUTO_KPSS_QUIZ_DAILY_TARGET", "10"))
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        sent_today = 0
+        last_sent_time = "Henüz gönderilmedi"
+        last_question = ""
+        last_card = None
+
+        hist_log = Path("data/kpss_daily_autopilot_log.json")
+        if hist_log.exists():
+            try:
+                with open(hist_log, "r", encoding="utf-8") as f:
+                    cur_logs = json.load(f)
+                for entry in cur_logs:
+                    if entry.get("date") == today_str:
+                        sent_today += 1
+                        last_sent_time = entry.get("time", "")
+                        last_question = entry.get("question", "")
+                        last_card = entry.get("card_path")
+            except Exception:
+                pass
+
+        return {
+            "enabled": enabled,
+            "target_daily": target_daily,
+            "sent_today": sent_today,
+            "last_sent_time": last_sent_time,
+            "last_question": last_question,
+            "last_card": last_card
+        }

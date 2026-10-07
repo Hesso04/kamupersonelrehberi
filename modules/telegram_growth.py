@@ -1182,23 +1182,87 @@ def telegram_buyutme_modulu():
 
         # KPSS Quiz & Soru Motoru Entegrasyonu
         quiz_engine = KPSSQuizEngine()
+        stats = quiz_engine.get_autopilot_stats()
+
+        # =====================================================================
+        # 1. BÖLÜM: TAM OTOMATİK KPSS QUIZ OTOPİLOTU (TAM OTOMATİK)
+        # =====================================================================
+        st.markdown("### 🤖 Tam Otomatik KPSS Soru Otopilotu")
+        is_auto_on = stats["enabled"]
+
+        if is_auto_on:
+            st.success("🟢 **OTOPİLOT DEVREDE (TAM OTOMATİK):** Yapay zeka her gün belirlenen saat aralıklarında (08:30 - 23:30) ÖSYM standartlarında sorular üretir, Telegram'a anket olarak gönderir ve Instagram kartlarını hazırlar. **Sizin hiçbir butona basmanıza gerek yoktur.**")
+        else:
+            st.warning("🔴 **OTOPİLOT DURDURULDU (MANUEL MOD):** Otomasyon duraklatılmıştır. Bir hata gördüğünüzde sistemi manuele alıp inceleyebilir, düzelttikten sonra tekrar başlatabilirsiniz.")
+
+        col_st1, col_st2, col_st3, col_st4 = st.columns(4)
+        with col_st1:
+            st.metric("🎯 Günlük Hedef", f"{stats['target_daily']} Soru")
+        with col_st2:
+            st.metric("📊 Bugün Otomatik Gönderilen", f"{stats['sent_today']} / {stats['target_daily']}")
+        with col_st3:
+            st.metric("⏱️ Gönderim Aralığı", "Her ~80 Dakikada 1")
+        with col_st4:
+            st.metric("🕒 Son Otomatik Gönderim", stats['last_sent_time'])
+
+        col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([2, 2, 3])
+        with col_ctrl1:
+            if is_auto_on:
+                if st.button("🔴 Otopilotu Durdur / Manuele Al", type="secondary", use_container_width=True, help="Bir hata görürseniz otomasyonu durdurup manuele alabilirsiniz."):
+                    set_system_setting("AUTO_KPSS_QUIZ_ENABLED", "false")
+                    st.warning("Otopilot durduruldu. Sistem manuel moda alındı.")
+                    st.rerun()
+            else:
+                if st.button("🟢 Otopilotu Başlat (Tam Otomatik)", type="primary", use_container_width=True):
+                    set_system_setting("AUTO_KPSS_QUIZ_ENABLED", "true")
+                    st.success("Otopilot başlatıldı! Sistem arka planda tam otomatik çalışıyor.")
+                    st.rerun()
+
+        with col_ctrl2:
+            if st.button("⚡ Şimdi 1 Otomatik Soru Paylaş (Canlı Test)", use_container_width=True, help="Zamanlayıcıyı beklemeden sıradaki soruyu anında kanala atar."):
+                with st.spinner("Otopilot canlı soruyu hazırlayıp Telegram'a aktarıyor..."):
+                    succ, msg, q_sent, c_path = quiz_engine.publish_automated_quiz(channel_id=settings.active_telegram_channel_id)
+                    if succ:
+                        st.success(f"🎉 Harika! Soru anında Telegram kanalına aktarıldı: {q_sent.get('subject') if q_sent else ''}")
+                        if c_path:
+                            st.session_state["last_ig_quiz_card"] = c_path
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Gönderim başarısız: {msg}")
+
+        with col_ctrl3:
+            daily_target_val = st.selectbox(
+                "Günlük Otomatik Soru Sayısı:",
+                [10, 15, 20],
+                index=0 if stats["target_daily"] == 10 else (1 if stats["target_daily"] == 15 else 2),
+                key="sel_quiz_daily_target"
+            )
+            if daily_target_val != stats["target_daily"]:
+                set_system_setting("AUTO_KPSS_QUIZ_DAILY_TARGET", str(daily_target_val))
+                new_interval = round(14.0 / daily_target_val, 2)
+                set_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", str(new_interval))
+                st.rerun()
+
+        st.markdown("---")
+        st.markdown("#### 🛠️ Manuel İnceleme ve Acil Müdahale Havuzu")
+        st.caption("Otopilot zaten otomatik çalışmaktadır. Burası sadece soruları tek tek incelemek veya test etmek istediğinizde kullanılır.")
 
         if "kpss_active_questions" not in st.session_state or not st.session_state["kpss_active_questions"]:
             st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=10)
 
         c_gen1, c_gen2, c_gen3 = st.columns([2, 2, 3])
         with c_gen1:
-            if st.button("🤖 AI ile Günlük 10 Soru Üret", type="primary", use_container_width=True):
+            if st.button("🤖 AI ile Havuzu Yenile (10 Soru)", type="primary", use_container_width=True):
                 with st.spinner("ÖSYM standartlarında 10 özgün KPSS sorusu üretiliyor..."):
                     st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=10)
-                    st.success("✅ 10 yeni KPSS sorusu başarıyla üretildi!")
+                    st.success("✅ 10 yeni KPSS sorusu üretildi!")
                     st.rerun()
 
         with c_gen2:
-            if st.button("⚡ AI ile Günlük 20 Soru Üret", use_container_width=True):
+            if st.button("⚡ AI ile Havuzu Yenile (20 Soru)", use_container_width=True):
                 with st.spinner("ÖSYM standartlarında 20 özgün KPSS sorusu üretiliyor..."):
                     st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=20)
-                    st.success("✅ 20 yeni KPSS sorusu başarıyla üretildi!")
+                    st.success("✅ 20 yeni KPSS sorusu üretildi!")
                     st.rerun()
 
         with c_gen3:
