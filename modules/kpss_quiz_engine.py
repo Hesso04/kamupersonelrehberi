@@ -11,6 +11,7 @@ renk cümbüşünden uzak, hırsızlığa karşı şeffaf filigranlı minimalist
 import json
 import os
 import random
+import re
 import time
 import textwrap
 from datetime import datetime
@@ -180,6 +181,48 @@ class KPSSQuizEngine:
         except Exception as e:
             logger.warning(f"Soru geçmişi kaydedilemedi: {e}")
 
+    @staticmethod
+    def shuffle_question(q_entry: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sorunun şıklarını rastgele karıştırır ve doğru şıkkı (A, B, C, D, E)
+        her seferinde farklı bir konuma atar. Açıklama metnindeki şık harfini de günceller.
+        Böylece doğru cevabın hep 'A' çıkması engellenir.
+        """
+        options = [str(o).strip() for o in q_entry.get("options", [])[:5]]
+        if len(options) < 2:
+            return q_entry
+
+        letters = ["A", "B", "C", "D", "E"]
+        clean_options = []
+        for opt in options:
+            t = opt
+            for l in letters:
+                for p in [f"{l})", f"{l}]", f"{l} -", f"{l}:"]:
+                    if t.startswith(p):
+                        t = t[len(p):].strip()
+            clean_options.append(t)
+
+        old_corr_idx = int(q_entry.get("correct_option_id", 0))
+        if old_corr_idx >= len(clean_options):
+            old_corr_idx = 0
+        correct_text = clean_options[old_corr_idx]
+
+        # Şıkları rastgele karıştır
+        random.shuffle(clean_options)
+        new_corr_idx = clean_options.index(correct_text)
+        new_letter = letters[new_corr_idx]
+
+        # Açıklama metnindeki harf referansını güncelle
+        expl = q_entry.get("explanation", "")
+        expl = re.sub(r"Doğru Cevap:\s*[A-E][\)\s]*(?:şıkkı)?", f"Doğru Cevap: {new_letter}) ", expl, flags=re.IGNORECASE)
+
+        return {
+            **q_entry,
+            "options": clean_options,
+            "correct_option_id": new_corr_idx,
+            "explanation": expl
+        }
+
     def generate_ai_questions(self, count: int = 10, target_subjects: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
         Aktif LLM (NVIDIA, Groq veya Özel) üzerinden ÖSYM standartlarında soru üretir.
@@ -240,8 +283,10 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
                             "correct_option_id": correct_id,
                             "explanation": it.get("explanation", f"Doğru cevap: {clean_options[correct_id]}")[:190]
                         }
-                        generated_questions.append(q_entry)
-                        self.history.append(q_entry["question"])
+                        # Şıkları rastgele konumlara karıştır (hep A olmasın)
+                        shuffled_entry = self.shuffle_question(q_entry)
+                        generated_questions.append(shuffled_entry)
+                        self.history.append(shuffled_entry["question"])
 
             if generated_questions:
                 logger.info(f"Yapay zeka başarıyla {len(generated_questions)} adet KPSS sorusu üretti.")
@@ -257,8 +302,10 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
             random.shuffle(pool)
 
             for q in pool[:needed]:
-                generated_questions.append(q)
-                self.history.append(q["question"])
+                # Havuzdaki soruları da rastgele karıştırarak ekle (doğru cevap A, B, C, D, E dağılsın)
+                shuffled_pool_q = self.shuffle_question(q)
+                generated_questions.append(shuffled_pool_q)
+                self.history.append(shuffled_pool_q["question"])
 
         self._save_history()
         return generated_questions[:count]
