@@ -253,9 +253,11 @@ class BackgroundScheduler:
                     except Exception as ige:
                         logger.debug(f"Otomatik Instagram yorum işleme hatası: {ige}")
 
-                # 4. Otomatik KPSS Quiz Otopilotu (Günde 10-20 soru, kanala periyodik anket olarak)
+                # 4. Otomatik KPSS Quiz Otopilotu (Günde 10 soru, Telegram Anket + Instagram Post Eşzamanlı)
                 if get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "true") == "true":
-                    interval_hours = float(get_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", "1.5"))
+                    target_daily = int(get_system_setting("AUTO_KPSS_QUIZ_DAILY_TARGET", "10"))
+                    default_interval = round(15.0 / max(1, target_daily), 2)
+                    interval_hours = float(get_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", str(default_interval)))
                     if self.last_kpss_quiz_time is None or (now - self.last_kpss_quiz_time).total_seconds() >= interval_hours * 3600:
                         # Türkiye saatiyle 08:30 - 23:30 saatleri arasında gönder
                         if 8 <= now.hour <= 23:
@@ -263,9 +265,9 @@ class BackgroundScheduler:
                             try:
                                 from modules.kpss_quiz_engine import KPSSQuizEngine
                                 q_eng = KPSSQuizEngine()
-                                succ, q_msg, q_item, card_path = q_eng.publish_automated_quiz()
+                                succ, q_msg, q_item, card_path = q_eng.publish_automated_quiz(post_to_instagram=True)
                                 if succ:
-                                    logger.info(f"[OTOPİLOT QUIZ] Otomatik KPSS sorusu Telegram kanalına aktarıldı: {q_item.get('subject') if q_item else ''}")
+                                    logger.info(f"[OTOPİLOT QUIZ] Otomatik KPSS sorusu eşzamanlı yayınlandı: {q_msg}")
                                 else:
                                     logger.warning(f"[OTOPİLOT QUIZ] Soru gönderilemedi: {q_msg}")
                             except Exception as q_err:

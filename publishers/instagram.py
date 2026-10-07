@@ -304,6 +304,60 @@ class InstagramPublisher(BasePublisher):
         except Exception as e:
             return False, f"Story İstisnası: {str(e)}"
 
+    def publish_quiz_card(
+        self,
+        card_path: Any,
+        caption: str
+    ) -> Tuple[bool, str]:
+        """
+        KPSS Quiz Soru Kartını Instagram akışında (Feed) tekil görsel olarak yayınlar.
+        Adayları doğru cevap ve detaylı çözüm için Telegram kanalına yönlendirir.
+        """
+        if not self.access_token or not self.account_id:
+            return False, "Instagram API ayarları (Token / Account ID) eksik."
+
+        diag = MetaHelper.diagnose_token(self.access_token)
+        if not diag["is_valid"]:
+            return False, diag["message"]
+
+        p = Path(card_path) if isinstance(card_path, (str, Path)) else None
+        if not p or not p.exists():
+            return False, f"Soru kartı dosyası bulunamadı: {card_path}"
+
+        image_url, provider_info = MetaHelper.upload_media_multi_host(p)
+        if not image_url:
+            return False, f"Soru kartı CDN'e yüklenemedi: {provider_info}"
+
+        try:
+            container_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media"
+            container_payload = {
+                "image_url": image_url,
+                "caption": caption,
+                "access_token": self.access_token
+            }
+            r_c = requests.post(container_url, data=container_payload, timeout=30)
+            if r_c.status_code not in [200, 201]:
+                return False, f"Instagram Medya Konteyner Hatası ({r_c.status_code}): {r_c.text}"
+
+            creation_id = r_c.json().get("id")
+            if not creation_id:
+                return False, f"Instagram creation_id alınamadı: {r_c.text}"
+
+            self._wait_for_media_processing(creation_id, max_attempts=15)
+
+            publish_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media_publish"
+            r_p = requests.post(publish_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
+            if r_p.status_code in [200, 201]:
+                post_id = r_p.json().get("id")
+                logger.info(f"KPSS Quiz postu Instagram'da başarıyla yayınlandı! (Post ID: {post_id})")
+                return True, f"Instagram'da başarıyla yayınlandı! (Post ID: {post_id})"
+            else:
+                return False, f"Instagram Yayınlama Hatası: {r_p.text}"
+
+        except Exception as e:
+            logger.error(f"Instagram Quiz Gönderim Hatası: {str(e)}")
+            return False, f"Instagram Quiz Gönderim Hatası: {str(e)}"
+
     def publish(self, job: JobAnnouncement) -> Tuple[bool, str]:
         """
         Instagram ana yayınlama metodu.

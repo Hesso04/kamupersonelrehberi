@@ -1192,7 +1192,7 @@ def telegram_buyutme_modulu():
         is_auto_on = stats["enabled"]
 
         if is_auto_on:
-            st.success("🟢 **OTOPİLOT DEVREDE (TAM OTOMATİK):** Yapay zeka her gün belirlenen saat aralıklarında (08:30 - 23:30) ÖSYM standartlarında sorular üretir, Telegram'a anket olarak gönderir ve Instagram kartlarını hazırlar. **Sizin hiçbir butona basmanıza gerek yoktur.**")
+            st.success("🟢 **OTOPİLOT DEVREDE (TAM OTOMATİK):** Yapay zeka her gün belirlenen saat aralıklarında (08:30 - 23:30) günde 10 adet özgün KPSS sorusu üretir; **eşzamanlı olarak hem Telegram'a canlı anket/quiz olarak atar, hem de Instagram'da doğru cevabı gizli tutup çözümü Telegram'a yönlendiren post olarak paylaşır.** Sizin hiçbir butona basmanıza gerek yoktur.")
         else:
             st.warning("🔴 **OTOPİLOT DURDURULDU (MANUEL MOD):** Otomasyon duraklatılmıştır. Bir hata gördüğünüzde sistemi manuele alıp inceleyebilir, düzelttikten sonra tekrar başlatabilirsiniz.")
 
@@ -1200,9 +1200,9 @@ def telegram_buyutme_modulu():
         with col_st1:
             st.metric("🎯 Günlük Hedef", f"{stats['target_daily']} Soru")
         with col_st2:
-            st.metric("📊 Bugün Otomatik Gönderilen", f"{stats['sent_today']} / {stats['target_daily']}")
+            st.metric("✈️ Telegram / 📸 Instagram", f"TG: {stats.get('sent_tg_today', stats['sent_today'])} | IG: {stats.get('sent_ig_today', 0)}")
         with col_st3:
-            st.metric("⏱️ Gönderim Aralığı", "Her ~80 Dakikada 1")
+            st.metric("⏱️ Gönderim Aralığı", "Her ~90 Dakikada 1")
         with col_st4:
             st.metric("🕒 Son Otomatik Gönderim", stats['last_sent_time'])
 
@@ -1220,11 +1220,14 @@ def telegram_buyutme_modulu():
                     st.rerun()
 
         with col_ctrl2:
-            if st.button("⚡ Şimdi 1 Otomatik Soru Paylaş (Canlı Test)", use_container_width=True, help="Zamanlayıcıyı beklemeden sıradaki soruyu anında kanala atar."):
-                with st.spinner("Otopilot canlı soruyu hazırlayıp Telegram'a aktarıyor..."):
-                    succ, msg, q_sent, c_path = quiz_engine.publish_automated_quiz(channel_id=settings.active_telegram_channel_id)
+            if st.button("⚡ Şimdi 1 Otomatik Soru Paylaş (Telegram + Insta Test)", use_container_width=True, help="Zamanlayıcıyı beklemeden sıradaki soruyu anında hem Telegram'a hem de Instagram'a atar."):
+                with st.spinner("Otopilot canlı soruyu hazırlayıp Telegram ve Instagram'a eşzamanlı aktarıyor..."):
+                    succ, msg, q_sent, c_path = quiz_engine.publish_automated_quiz(
+                        channel_id=settings.active_telegram_channel_id,
+                        post_to_instagram=True
+                    )
                     if succ:
-                        st.success(f"🎉 Harika! Soru anında Telegram kanalına aktarıldı: {q_sent.get('subject') if q_sent else ''}")
+                        st.success(f"🎉 Harika! Soru eşzamanlı olarak yayınlandı!\n{msg}")
                         if c_path:
                             st.session_state["last_ig_quiz_card"] = c_path
                         st.rerun()
@@ -1240,7 +1243,7 @@ def telegram_buyutme_modulu():
             )
             if daily_target_val != stats["target_daily"]:
                 set_system_setting("AUTO_KPSS_QUIZ_DAILY_TARGET", str(daily_target_val))
-                new_interval = round(14.0 / daily_target_val, 2)
+                new_interval = round(15.0 / daily_target_val, 2)
                 set_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", str(new_interval))
                 st.rerun()
 
@@ -1367,14 +1370,27 @@ def telegram_buyutme_modulu():
                     - **Yorumlar Algoritmayı Uçurur:** Her yorum Instagram Keşfet (Explore) algoritmasında postu öne çıkarır.
                     - **Hırsızlığa Karşı Korumalıdır:** Arka planda şeffaf `@kamupersonelrehberi` damgası bulunur.
                     """)
-                    with open(c_card, "rb") as f_img:
-                        st.download_button(
-                            label="📥 Görseli İndir (Instagram İçin)",
-                            data=f_img.read(),
-                            file_name=c_card.name,
-                            mime="image/png",
-                            use_container_width=True
-                        )
+                    col_dl1, col_dl2 = st.columns(2)
+                    with col_dl1:
+                        with open(c_card, "rb") as f_img:
+                            st.download_button(
+                                label="📥 Görseli İndir (Manuel)",
+                                data=f_img.read(),
+                                file_name=c_card.name,
+                                mime="image/png",
+                                use_container_width=True
+                            )
+                    with col_dl2:
+                        if st.button("🚀 Instagram'da Yayınla", type="primary", use_container_width=True, help="Bu soru kartını Telegram yönlendirmeli açıklamayla Instagram akışında paylaşır."):
+                            with st.spinner("Instagram akışına aktarılıyor..."):
+                                ig_ok, ig_res = quiz_engine.publish_quiz_to_instagram(str(c_card), cur_q)
+                                if ig_ok:
+                                    st.success(f"🎉 {ig_res}")
+                                else:
+                                    st.error(f"❌ {ig_res}")
+
+                    with st.expander("📝 Instagram Gönderi Açıklaması (Telegram Yönlendirmesi)", expanded=False):
+                        st.text_area("Post Metni:", value=quiz_engine.build_instagram_quiz_caption(cur_q), height=180)
 
     # =========================================================================
     # 5. AŞAMA: KANAL SEO & İLETİLME (FORWARD) STÜDYOSU

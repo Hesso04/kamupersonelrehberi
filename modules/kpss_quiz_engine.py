@@ -504,7 +504,7 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
         font_handle = get_font(22, bold=False)
 
         draw.text((width // 2, cta_y), "Cevabınızı yorumlara yazın >> A, B, C, D, E", font=font_cta, fill=(226, 232, 240), anchor="mm")
-        draw.text((width // 2, cta_y + 42), "@kamupersonelrehberi • Çözüm ve açıklama Telegram kanalımızda", font=font_handle, fill=(100, 116, 139), anchor="mm")
+        draw.text((width // 2, cta_y + 42), "💡 Doğru Cevap & Canlı Anket Telegram'da: @kamupersonelrehberi", font=font_handle, fill=(56, 189, 248), anchor="mm")
 
         # RGB formatına dönüştürüp kaydet
         final_rgb = img.convert("RGB")
@@ -513,14 +513,78 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
 
         return str(file_card)
 
+    def build_instagram_quiz_caption(self, q_item: Dict[str, Any]) -> str:
+        """
+        Instagram gönderisi için doğru cevabı vermeyen, adayı doğru şıkkı ve
+        detaylı çözümü görmek üzere Telegram kanalındaki canlı ankete yönlendiren
+        viral ve yüksek etkileşimli açıklama metni üretir.
+        """
+        subject = q_item.get("subject", "KPSS Genel Kültür").strip()
+        question = q_item.get("question", "").strip()
+        options = q_item.get("options", [])
+        letters = ["A", "B", "C", "D", "E"]
+
+        opts_formatted = []
+        for i, opt in enumerate(options[:5]):
+            t = str(opt).strip()
+            for l in letters:
+                for p in [f"{l})", f"{l}]", f"{l} -", f"{l}:"]:
+                    if t.startswith(p):
+                        t = t[len(p):].strip()
+            letter_char = letters[i] if i < len(letters) else f"{i+1}"
+            opts_formatted.append(f"{letter_char}) {t}")
+
+        opts_block = "\n".join(opts_formatted)
+
+        caption = (
+            f"🎯 GÜNÜN KPSS SORUSU | {subject.upper()}\n\n"
+            f"❓ {question}\n\n"
+            f"{opts_block}\n\n"
+            f"💬 Sen olsan hangi şıkkı işaretlerdin? Tahminini yoruma bırak! 👇\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔴 DOĞRU CEVAP & AYRINTILI ÖSYM ÇÖZÜMÜ NEREDE?\n"
+            f"Bu sorunun doğru cevabı ve detaylı sınav komisyonu çözümü, "
+            f"şu anda TELEGRAM KANALIMIZDAKİ CANLI ANKETTE aktif!\n\n"
+            f"👉 Doğru şıkkı anında görmek ve soruya oy vermek için:\n"
+            f"🔗 Biyografimizdeki (Profil) Telegram bağlantısına tıklayın!\n"
+            f"📲 Veya Telegram'da arama yerine @kamupersonelrehberi yazarak kanalımıza katılın.\n"
+            f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📌 Bu soruyu kaydet, sınava hazırlanan arkadaşına gönder!\n\n"
+            f"#kpss #kpss2026 #kpsstarih #kpsscoğrafya #kpssvatandaşlık #kamupersoneli "
+            f"#kpsshazırlık #memuralımı #genelkültür #öabt #soruçözümü #kamuilanları"
+        )
+        return caption
+
+    def publish_quiz_to_instagram(self, card_path: str, q_item: Dict[str, Any]) -> Tuple[bool, str]:
+        """
+        Hazırlanan minimalist KPSS soru kartını Instagram akışında (Feed) paylaşır.
+        Metin kısmında doğru cevabı vermeyerek adayı Telegram kanalındaki canlı teste yönlendirir.
+        """
+        if not card_path or not Path(card_path).exists():
+            return False, "Soru kartı görseli mevcut değil."
+
+        try:
+            from publishers.instagram import InstagramPublisher
+            ig_pub = InstagramPublisher()
+            if not ig_pub.is_configured:
+                return False, "Instagram API ayarları (Token / Hesap ID) eksik veya tanımlı değil."
+            caption = self.build_instagram_quiz_caption(q_item)
+            return ig_pub.publish_quiz_card(card_path, caption)
+        except Exception as e:
+            logger.error(f"Instagram quiz yayını hatası: {e}")
+            return False, f"Instagram quiz yayını hatası: {str(e)}"
+
     def publish_automated_quiz(
         self,
         channel_id: Optional[str] = None,
-        generate_card: bool = True
+        generate_card: bool = True,
+        post_to_instagram: bool = True
     ) -> Tuple[bool, str, Optional[Dict[str, Any]], Optional[str]]:
         """
-        Otopilot için 1 adet taze KPSS sorusu üretir, Telegram'da quiz anket olarak yayınlar
-        ve Instagram için minimalist filigranlı kart görseli üretir.
+        Otopilot için 1 adet taze KPSS sorusu üretir, aynı anda:
+        1) Telegram'a canlı interaktif quiz/poll olarak gönderir (tıklanınca doğru cevap & açıklama açılır).
+        2) Minimalist filigranlı soru kartı üretir.
+        3) Instagram akışında paylaşır (doğru cevap gizli, Telegram kanalına yönlendirici açıklama ile).
         Dönüş: (Başarılı mı, Mesaj, Soru Sözlüğü, Kart Dosya Yolu)
         """
         fresh_questions = self.generate_ai_questions(count=1)
@@ -528,8 +592,11 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
             return False, "Soru üretilemedi.", None, None
 
         q_item = fresh_questions[0]
-        succ, msg = self.send_quiz_to_telegram(q_item, channel_id=channel_id)
 
+        # 1. Telegram Paylaşımı
+        tg_succ, tg_msg = self.send_quiz_to_telegram(q_item, channel_id=channel_id)
+
+        # 2. Instagram Kart Görseli Üretimi
         card_path = None
         if generate_card:
             try:
@@ -537,15 +604,32 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
             except Exception as ce:
                 logger.warning(f"Otopilot Instagram kartı oluşturulamadı: {ce}")
 
-        # Başarılı paylaşımı log kaydına ekle
-        if succ:
+        # 3. Instagram Paylaşımı (Eşzamanlı)
+        ig_succ = False
+        ig_msg = "Instagram gönderimi devre dışı"
+        if post_to_instagram and card_path:
+            try:
+                ig_succ, ig_msg = self.publish_quiz_to_instagram(card_path, q_item)
+            except Exception as ig_err:
+                ig_msg = f"Instagram gönderim hatası: {ig_err}"
+                logger.warning(f"[OTOPİLOT QUIZ] {ig_msg}")
+
+        overall_succ = tg_succ or ig_succ
+        combined_msg = f"Telegram: {tg_msg} | Instagram: {ig_msg}"
+
+        # 4. Başarılı paylaşımı log kaydına ekle
+        if overall_succ:
             today_str = datetime.now().strftime("%Y-%m-%d")
             log_entry = {
                 "date": today_str,
                 "time": datetime.now().strftime("%H:%M:%S"),
                 "subject": q_item.get("subject", "KPSS"),
                 "question": q_item.get("question", "")[:80],
-                "card_path": card_path
+                "card_path": card_path,
+                "telegram_success": tg_succ,
+                "telegram_msg": tg_msg,
+                "instagram_success": ig_succ,
+                "instagram_msg": ig_msg
             }
             try:
                 hist_log = Path("data/kpss_daily_autopilot_log.json")
@@ -559,7 +643,7 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
             except Exception as log_err:
                 logger.debug(f"Otopilot log kaydı uyarısı: {log_err}")
 
-        return succ, msg, q_item, card_path
+        return overall_succ, combined_msg, q_item, card_path
 
     def get_autopilot_stats(self) -> Dict[str, Any]:
         """
@@ -570,9 +654,13 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
         today_str = datetime.now().strftime("%Y-%m-%d")
 
         sent_today = 0
+        sent_tg_today = 0
+        sent_ig_today = 0
         last_sent_time = "Henüz gönderilmedi"
         last_question = ""
         last_card = None
+        last_tg_status = ""
+        last_ig_status = ""
 
         hist_log = Path("data/kpss_daily_autopilot_log.json")
         if hist_log.exists():
@@ -582,9 +670,15 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
                 for entry in cur_logs:
                     if entry.get("date") == today_str:
                         sent_today += 1
+                        if entry.get("telegram_success", True):
+                            sent_tg_today += 1
+                        if entry.get("instagram_success", False):
+                            sent_ig_today += 1
                         last_sent_time = entry.get("time", "")
                         last_question = entry.get("question", "")
                         last_card = entry.get("card_path")
+                        last_tg_status = entry.get("telegram_msg", "")
+                        last_ig_status = entry.get("instagram_msg", "")
             except Exception:
                 pass
 
@@ -592,7 +686,11 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
             "enabled": enabled,
             "target_daily": target_daily,
             "sent_today": sent_today,
+            "sent_tg_today": sent_tg_today,
+            "sent_ig_today": sent_ig_today,
             "last_sent_time": last_sent_time,
             "last_question": last_question,
-            "last_card": last_card
+            "last_card": last_card,
+            "last_tg_status": last_tg_status,
+            "last_ig_status": last_ig_status
         }
