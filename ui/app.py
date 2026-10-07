@@ -1097,8 +1097,10 @@ elif menu == "🌐 İlan Tarayıcı & Manuel Ekle":
 # =============================================================================
 elif menu == "🚀 Telegram Kanal Büyütme & Üye Çekme":
     try:
-        from modules.telegram_growth import telegram_buyutme_modulu
-        telegram_buyutme_modulu()
+        import importlib
+        import modules.telegram_growth as tg_mod
+        importlib.reload(tg_mod)
+        tg_mod.telegram_buyutme_modulu()
     except Exception as ex:
         st.error(f"Telegram Büyütme Modülü yüklenirken bir hata oluştu: {ex}")
         st.info("Kütüphanelerin güncellenmesi için sağ alttaki 'Manage app' -> 'Reboot app' butonuna tıklayabilirsiniz.")
