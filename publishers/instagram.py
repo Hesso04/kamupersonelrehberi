@@ -265,16 +265,21 @@ class InstagramPublisher(BasePublisher):
 
     def publish_story(
         self,
-        job: JobAnnouncement,
-        story_image_path: Path
+        story_image_path: Any,
+        job: Optional[JobAnnouncement] = None
     ) -> Tuple[bool, str]:
         """
         Meta Graph API ile 9:16 Dikey Hikaye (Story) yayınlar.
+        İster resmi kamu ilanı hikayesi, ister KPSS quiz soru hikayesi yayınlanabilir.
         """
         if not self.access_token or not self.account_id:
             return False, "Instagram ayarları (Token / Account ID) eksik."
 
-        image_url, prov = MetaHelper.upload_media_multi_host(story_image_path)
+        p = Path(story_image_path) if isinstance(story_image_path, (str, Path)) else None
+        if not p or not p.exists():
+            return False, f"Story görsel dosyası bulunamadı: {story_image_path}"
+
+        image_url, prov = MetaHelper.upload_media_multi_host(p)
         if not image_url:
             return False, f"Story görseli yüklenemedi: {prov}"
 
@@ -290,13 +295,17 @@ class InstagramPublisher(BasePublisher):
                 return False, f"Story konteyner hatası ({r.status_code}): {r.text}"
 
             creation_id = r.json().get("id")
+            if not creation_id:
+                return False, f"Story creation_id alınamadı: {r.text}"
+
             self._wait_for_media_processing(creation_id, max_attempts=10)
 
             pub_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media_publish"
             pub_res = requests.post(pub_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
             if pub_res.status_code in [200, 201]:
                 post_id = pub_res.json().get("id")
-                logger.info(f"Story başarıyla Instagram'da yayınlandı! (İlan #{job.id}, ID: {post_id})")
+                job_desc = f"İlan #{job.id}, " if job else ""
+                logger.info(f"Story başarıyla Instagram'da yayınlandı! ({job_desc}ID: {post_id})")
                 return True, f"Instagram Story başarıyla yayınlandı! (Post ID: {post_id})"
             else:
                 return False, f"Story yayınlama hatası: {pub_res.text}"
@@ -397,7 +406,8 @@ class InstagramPublisher(BasePublisher):
                 if ok_r and v_path:
                     succ_r, msg_r = self.publish_reels(job, v_path)
                     if succ_r:
-                        return succ_r, f"Büyük alım ({job.total_positions} kişi) otomatik Reels videosu olarak yayınlandı! ({msg_r})"
+                        story_note = self._cross_publish_story_if_enabled(job, deadline_str, card_gen)
+                        return succ_r, f"Büyük alım ({job.total_positions} kişi) otomatik Reels videosu olarak yayınlandı! ({msg_r}){story_note}"
                     logger.warning(f"Reels yayını başarısız oldu, Carousel deneniyor: {msg_r}")
             except Exception as re_err:
                 logger.warning(f"Reels üretme istisnası: {re_err}")
@@ -420,7 +430,8 @@ class InstagramPublisher(BasePublisher):
                 if slides and len(slides) >= 2:
                     succ, msg = self.publish_carousel(job, slides)
                     if succ:
-                        return succ, msg
+                        story_note = self._cross_publish_story_if_enabled(job, deadline_str, card_gen)
+                        return succ, f"{msg}{story_note}"
                     logger.warning(f"Carousel gönderimi başarısız oldu, tekil görsele dönülüyor: {msg}")
             except Exception as ce:
                 logger.warning(f"Carousel üretme adımı hatası: {ce}, tekil görsel deneniyor...")
@@ -454,10 +465,37 @@ class InstagramPublisher(BasePublisher):
             if r_p.status_code in [200, 201]:
                 post_id = r_p.json().get("id")
                 logger.info(f"İlan başarıyla Instagram'da paylaşıldı: ID {job.id} (Post ID: {post_id})")
-                return True, f"Instagram'da başarıyla yayınlandı! (Post ID: {post_id})"
+                story_note = self._cross_publish_story_if_enabled(job, deadline_str, card_gen)
+                return True, f"Instagram'da başarıyla yayınlandı! (Post ID: {post_id}){story_note}"
             else:
                 return False, f"Instagram Yayınlama Hatası: {r_p.text}"
 
         except Exception as e:
             return False, f"Instagram Gönderim Hatası: {str(e)}"
+
+    def _cross_publish_story_if_enabled(self, job: JobAnnouncement, deadline_str: str, card_gen: Any) -> str:
+        """İlan akışta paylaşıldıktan sonra etkinse 9:16 Dikey Hikaye (Story) olarak da çapraz yayınlar."""
+        if get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") != "true":
+            return ""
+        try:
+            story_path = card_gen.generate_story_card(
+                job_id=job.id,
+                institution=job.institution or "Kamu Kurumu",
+                position=job.position or job.title,
+                total_positions=job.total_positions,
+                kpss_requirement=job.kpss_requirement,
+                education_level=job.education_level,
+                deadline=deadline_str,
+                source_url=job.source_url,
+                title=job.title or ""
+            )
+            if story_path and Path(story_path).exists():
+                s_ok, s_m = self.publish_story(story_path, job=job)
+                if s_ok:
+                    return " 📸 (9:16 Hikaye/Story de eşzamanlı paylaşıldı!)"
+                else:
+                    logger.warning(f"Story çapraz yayınlama hatası: {s_m}")
+        except Exception as e:
+            logger.warning(f"Otomatik Story üretme/yayınlama istisnası: {e}")
+        return ""
 

@@ -637,8 +637,9 @@ def render_instagram_growth_tab():
 
     st.markdown("---")
 
-    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
-        "📱 Çoklu Carousel (Kaydırmalı) Stüdyosu",
+    sub_tab1, sub_tab_story, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
+        "📱 Çoklu Carousel Stüdyosu",
+        "📸 9:16 Hikaye (Story) Stüdyosu",
         "🎬 Reels Video (Sesli MP4) Motoru",
         "💬 Takip Şartlı Yorum-DM & Video Asistanı",
         "🌟 AI Öncü Yorum Radarı (Top-Comment Funnel)",
@@ -720,6 +721,149 @@ def render_instagram_growth_tab():
                             st.success(f"🎉 {msg}")
                         else:
                             st.error(f"❌ Paylaşım başarısız: {msg}")
+
+    # =========================================================================
+    # TAB: 9:16 HİKAYE (STORY) STÜDYOSU (1080x1920)
+    # =========================================================================
+    with sub_tab_story:
+        st.markdown("### 📸 9:16 Dikey Hikaye (Story) Stüdyosu (1080x1920)")
+        st.caption("Instagram'da 24 saat boyunca üst barda sabit kalan, Link Çıkartması (Link Sticker) ve DM etkileşimini zirveye taşıyan dikey hikaye formatı.")
+
+        st_type = st.radio("Hikaye Türü Seçin:", ["🏛 Resmi Kamu İlanı Hikayesi", "🎯 KPSS Soru / Quiz Hikayesi"], horizontal=True, key="rad_story_type")
+
+        if st_type == "🏛 Resmi Kamu İlanı Hikayesi":
+            with get_db() as db:
+                jobs_st = db.query(JobAnnouncement).order_by(JobAnnouncement.id.desc()).limit(20).all()
+
+            if not jobs_st:
+                st.info("Sistemde henüz ilan bulunmuyor.")
+            else:
+                job_dict_st = {f"#{j.id} - {j.institution or 'Kurum'} ({j.position or j.title})": j.id for j in jobs_st}
+                selected_label_st = st.selectbox("Story Üretilecek İlanı Seçin:", list(job_dict_st.keys()), key="story_job_sel")
+                target_job_id_st = job_dict_st[selected_label_st]
+
+                col_sbtn1, col_sbtn2 = st.columns([1, 1])
+                with col_sbtn1:
+                    gen_story_clicked = st.button("✨ 9:16 Dikey Story Üret & Önizle", type="primary", use_container_width=True, key="btn_gen_story")
+                with col_sbtn2:
+                    pub_story_clicked = st.button("🚀 Doğrudan Instagram Story'de Yayınla", use_container_width=True, key="btn_pub_story")
+
+                if gen_story_clicked or st.session_state.get(f"story_img_{target_job_id_st}"):
+                    with st.spinner("9:16 Dikey Lüks Story görseli üretiliyor..."):
+                        with get_db() as db:
+                            t_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == target_job_id_st).first()
+                            story_path = mgr.card_gen.generate_story_card(
+                                job_id=t_job.id,
+                                institution=t_job.institution or "Kamu Kurumu",
+                                position=t_job.position or t_job.title,
+                                total_positions=t_job.total_positions,
+                                kpss_requirement=t_job.kpss_requirement,
+                                education_level=t_job.education_level,
+                                deadline=to_turkish_date_str(t_job.application_end_date),
+                                source_url=t_job.source_url,
+                                title=t_job.title or ""
+                            )
+                            st.session_state[f"story_img_{target_job_id_st}"] = str(story_path)
+
+                cur_story_p = st.session_state.get(f"story_img_{target_job_id_st}")
+                if cur_story_p and Path(cur_story_p).exists():
+                    st.success("✅ 9:16 Story Görseli Hazır! (1080x1920)")
+                    cs_img, cs_info = st.columns([1, 1])
+                    with cs_img:
+                        st.image(cur_story_p, caption="Instagram 9:16 Story Görünümü", use_container_width=True)
+                    with cs_info:
+                        st.markdown("""
+                        **🎯 9:16 Story Tasarımının Avantajları:**
+                        - **Tam Ekran Dikkat:** Kullanıcının tüm telefon ekranını kaplar.
+                        - **Kılavuz Çağrısı:** Alt kısımda *"Yoruma KILAVUZ yazın / DM alın"* alanı bulunur.
+                        - **Link Çıkartması Uyumlu:** Orta panel Instagram Hikaye Link Çıkartması (Link Sticker) yapıştırılmasına uygun boşlukla tasarlanmıştır.
+                        """)
+                        with open(cur_story_p, "rb") as f_st:
+                            st.download_button(
+                                label="📥 Story Görselini İndir",
+                                data=f_st.read(),
+                                file_name=Path(cur_story_p).name,
+                                mime="image/png",
+                                use_container_width=True
+                            )
+
+                if pub_story_clicked:
+                    with st.spinner("Story Meta Graph API ile Instagram Hikayelerinde yayınlanıyor..."):
+                        with get_db() as db:
+                            t_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == target_job_id_st).first()
+                            s_p = st.session_state.get(f"story_img_{target_job_id_st}")
+                            if not s_p or not Path(s_p).exists():
+                                s_p = str(mgr.card_gen.generate_story_card(
+                                    job_id=t_job.id,
+                                    institution=t_job.institution or "Kamu Kurumu",
+                                    position=t_job.position or t_job.title,
+                                    total_positions=t_job.total_positions,
+                                    kpss_requirement=t_job.kpss_requirement,
+                                    education_level=t_job.education_level,
+                                    deadline=to_turkish_date_str(t_job.application_end_date),
+                                    source_url=t_job.source_url,
+                                    title=t_job.title or ""
+                                ))
+                            ok, msg = mgr.publisher.publish_story(Path(s_p), job=t_job)
+                            if ok:
+                                st.success(f"🎉 {msg}")
+                            else:
+                                st.error(f"❌ Story yayınlama hatası: {msg}")
+
+        else:
+            # KPSS Quiz Story
+            from modules.kpss_quiz_engine import KPSSQuizEngine
+            qe = KPSSQuizEngine()
+            st.markdown("#### 🎯 KPSS Soru Hikayesi (Telegram Yönlendirmeli & Doğru Cevapsız)")
+            st.caption("Adayların cevabı görmek için profilinizdeki Telegram bağlantısına akın etmesini sağlayan 24 saatlik dikey Story formatı.")
+
+            col_q1, col_q2 = st.columns([1, 1])
+            with col_q1:
+                gen_q_story = st.button("✨ Taze 9:16 KPSS Soru Story'si Üret & Önizle", type="primary", use_container_width=True, key="btn_gen_q_story")
+            with col_q2:
+                pub_q_story = st.button("🚀 KPSS Story'sini Instagram'da Yayınla", use_container_width=True, key="btn_pub_q_story")
+
+            if gen_q_story or "last_kpss_story_path" not in st.session_state:
+                with st.spinner("ÖSYM standartlarında soru üretilip 9:16 Story formatına dönüştürülüyor..."):
+                    fresh = qe.generate_ai_questions(count=1)
+                    if fresh:
+                        q_item = fresh[0]
+                        st_card = qe.generate_instagram_quiz_story_card(q_item)
+                        st.session_state["last_kpss_story_path"] = st_card
+                        st.session_state["last_kpss_story_q"] = q_item
+
+            cur_q_story = st.session_state.get("last_kpss_story_path")
+            if cur_q_story and Path(cur_q_story).exists():
+                st.success("✅ 9:16 KPSS Soru Story'si Hazır!")
+                cq_img, cq_info = st.columns([1, 1])
+                with cq_img:
+                    st.image(cur_q_story, caption="Instagram KPSS 9:16 Story Görünümü", use_container_width=True)
+                with cq_info:
+                    st.markdown("""
+                    **🎯 KPSS Story Neden Çok Takipçi Kazandırır?**
+                    - **Merak Uyandırır:** Doğru cevap gizlidir; aday çözümü görmek için profildeki Telegram linkine tıklar.
+                    - **Hikaye İstatistiklerini Uçurur:** Hikayeye bakanlar profili ziyaret eder ve takip oranını katlar.
+                    """)
+                    with open(cur_q_story, "rb") as f_qst:
+                        st.download_button(
+                            label="📥 Soru Story Görselini İndir",
+                            data=f_qst.read(),
+                            file_name=Path(cur_q_story).name,
+                            mime="image/png",
+                            use_container_width=True
+                        )
+
+            if pub_q_story:
+                with st.spinner("KPSS Story'si Instagram'a aktarılıyor..."):
+                    cur_p = st.session_state.get("last_kpss_story_path")
+                    if cur_p and Path(cur_p).exists():
+                        ok, msg = qe.publish_quiz_story(cur_p)
+                        if ok:
+                            st.success(f"🎉 {msg}")
+                        else:
+                            st.error(f"❌ {msg}")
+                    else:
+                        st.warning("Lütfen önce bir soru story'si üretin.")
 
     # =========================================================================
     # TAB 2: REELS VİDEO MOTORU (1080x1920 MP4)
@@ -1076,6 +1220,18 @@ def render_instagram_growth_tab():
         if sel_fmt != cur_fmt:
             set_system_setting("AUTOPILOT_IG_FORMAT", sel_fmt)
             st.success("✅ Otopilot Instagram format tercihi güncellendi!")
+
+        st.markdown("---")
+        st.markdown("#### 📸 Otopilot Hikaye (Story) Dağıtımı")
+        cur_story_on = get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") == "true"
+        new_story_on = st.toggle(
+            "İlan ve Quiz paylaşımlarında eşzamanlı 9:16 Dikey Hikaye (Story) de yayınla",
+            value=cur_story_on,
+            help="Etkinleştirildiğinde her yeni içerik hem akışa gönderilir hem de 24 saatlik Instagram Hikayelerinde otomatik yer alır."
+        )
+        if new_story_on != cur_story_on:
+            set_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true" if new_story_on else "false")
+            st.success("✅ Otomatik Story paylaşım tercihi güncellendi!")
 
         st.markdown("---")
         st.markdown("#### 🕒 Otopilot Paylaşım Temposu")

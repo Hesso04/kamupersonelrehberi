@@ -555,6 +555,190 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
         )
         return caption
 
+    def generate_instagram_quiz_story_card(self, q_entry: Dict[str, Any]) -> str:
+        """
+        Instagram Story formatında (1080x1920 - 9:16 Dikey) minimalist, filigranlı
+        ve Telegram anketine yönlendirici soru kartı üretir.
+        """
+        width, height = 1080, 1920
+        img = Image.new("RGBA", (width, height), (18, 22, 26, 255))
+        draw = ImageDraw.Draw(img)
+
+        # 1. Lüks koyu degrade arka plan
+        for y_coord in range(height):
+            ratio = y_coord / float(height)
+            r = int(18 + ratio * 10)
+            g = int(22 + ratio * 10)
+            b = int(26 + ratio * 16)
+            draw.line([(0, y_coord), (width, y_coord)], fill=(r, g, b, 255))
+
+        # 2. Dış çerçeve
+        draw.rounded_rectangle(
+            [(24, 24), (width - 24, height - 24)],
+            radius=36,
+            outline=(40, 52, 66),
+            width=2
+        )
+
+        def get_font(size: int, bold: bool = False):
+            font_candidates = [
+                "C:/Windows/Fonts/segoeui.ttf",
+                "C:/Windows/Fonts/arial.ttf",
+                "C:/Windows/Fonts/tahoma.ttf"
+            ]
+            if bold:
+                font_candidates = [
+                    "C:/Windows/Fonts/segoeuib.ttf",
+                    "C:/Windows/Fonts/arialbd.ttf"
+                ] + font_candidates
+            for f_path in font_candidates:
+                if Path(f_path).exists():
+                    try:
+                        return ImageFont.truetype(f_path, size)
+                    except Exception:
+                        pass
+            return ImageFont.load_default()
+
+        # 3. Filigran Damgası (6% Şeffaflık)
+        watermark_img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        wm_draw = ImageDraw.Draw(watermark_img)
+        font_wm = get_font(42, bold=True)
+        wm_step_y = 380
+        wm_step_x = 480
+        for wy in range(120, height, wm_step_y):
+            for wx in range(-100, width + 200, wm_step_x):
+                wm_draw.text((wx, wy), "@kamupersonelrehberi", font=font_wm, fill=(255, 255, 255, 15))
+        img = Image.alpha_composite(img, watermark_img)
+        draw = ImageDraw.Draw(img)
+
+        # 4. Üst Başlık & Ders Rozeti
+        subject = q_entry.get("subject", "KPSS Genel Kültür").strip()
+        badge_text = f"🎯 {subject.upper()}"
+        font_badge = get_font(26, bold=True)
+
+        draw.rounded_rectangle(
+            [(width // 2 - 240, 90), (width // 2 + 240, 150)],
+            radius=20,
+            fill=(30, 41, 59),
+            outline=(56, 189, 248),
+            width=2
+        )
+        draw.text((width // 2, 120), badge_text, font=font_badge, fill=(241, 245, 249), anchor="mm")
+
+        font_header = get_font(44, bold=True)
+        draw.text((width // 2, 195), "GÜNÜN ÖSYM SORUSU", font=font_header, fill=(255, 255, 255), anchor="mm")
+        font_sub = get_font(24, bold=False)
+        draw.text((width // 2, 245), "Doğru cevabı tahmin edebilir misin?", font=font_sub, fill=(148, 163, 184), anchor="mm")
+
+        # 5. Soru Kutusu (Geniş & Rahat Okunur)
+        font_q = get_font(36, bold=True)
+        raw_question = q_entry.get("question", "")
+
+        def wrap_lines(txt: str, fnt: ImageFont.ImageFont, max_w: int) -> List[str]:
+            words = txt.split()
+            lines = []
+            curr = []
+            for w in words:
+                curr.append(w)
+                bbox = fnt.getbbox(" ".join(curr))
+                if (bbox[2] - bbox[0]) > max_w:
+                    curr.pop()
+                    if curr:
+                        lines.append(" ".join(curr))
+                    curr = [w]
+            if curr:
+                lines.append(" ".join(curr))
+            return lines
+
+        q_lines = wrap_lines(raw_question, font_q, max_w=880)
+        box_top = 300
+        box_h = max(260, 50 + len(q_lines) * 52)
+        box_bottom = box_top + box_h
+
+        draw.rounded_rectangle(
+            [(70, box_top), (width - 70, box_bottom)],
+            radius=24,
+            fill=(24, 32, 42),
+            outline=(51, 65, 85),
+            width=2
+        )
+        q_y = box_top + 40
+        for line in q_lines:
+            draw.text((105, q_y), line, font=font_q, fill=(255, 255, 255))
+            q_y += 52
+
+        # 6. Şıklar (A, B, C, D, E)
+        options = q_entry.get("options", [])
+        opt_letters = ["A", "B", "C", "D", "E"]
+        opt_y = box_bottom + 35
+        opt_h = 88
+        opt_spacing = 16
+
+        font_letter = get_font(34, bold=True)
+        font_opt_text = get_font(30, bold=False)
+
+        for i, opt in enumerate(options[:5]):
+            letter = opt_letters[i]
+            clean_text = str(opt).strip()
+            for l in opt_letters:
+                for p in [f"{l})", f"{l}]", f"{l} -", f"{l}:"]:
+                    if clean_text.startswith(p):
+                        clean_text = clean_text[len(p):].strip()
+
+            draw.rounded_rectangle(
+                [(70, opt_y), (width - 70, opt_y + opt_h)],
+                radius=20,
+                fill=(22, 28, 36),
+                outline=(51, 65, 82),
+                width=2
+            )
+            draw.text((115, opt_y + opt_h // 2), f"{letter}]", font=font_letter, fill=(148, 163, 184), anchor="lm")
+            draw.text((180, opt_y + opt_h // 2), clean_text[:48], font=font_opt_text, fill=(241, 245, 249), anchor="lm")
+            opt_y += opt_h + opt_spacing
+
+        # 7. Story Etkileşim ve Telegram Yönlendirme Paneli (Göz Alıcı Link Alanı)
+        cta_top = opt_y + 30
+        cta_h = 240
+        draw.rounded_rectangle(
+            [(70, cta_top), (width - 70, cta_top + cta_h)],
+            radius=28,
+            fill=(16, 44, 34),
+            outline=(52, 211, 153),
+            width=3
+        )
+        draw.text((width // 2, cta_top + 45), "🔥 DOĞRU CEVAP & AYRINTILI ÇÖZÜM", font=get_font(32, bold=True), fill=(251, 191, 36), anchor="mm")
+        draw.text((width // 2, cta_top + 105), "Şu an Telegram Kanalımızdaki Canlı Ankette!", font=get_font(26, bold=False), fill=(255, 255, 255), anchor="mm")
+        draw.text((width // 2, cta_top + 165), "👉 Biyografideki Linke Tıklayın veya @kamupersonelrehberi", font=get_font(24, bold=True), fill=(56, 189, 248), anchor="mm")
+
+        # 8. Alt Footer
+        draw.text((width // 2, height - 70), "Instagram: @kamupersonelrehberi • kamupersonelrehberi.com", font=get_font(22), fill=(100, 116, 139), anchor="mm")
+
+        out_dir = Path("graphics/output")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = int(datetime.now().timestamp())
+        file_story = out_dir / f"ig_kpss_quiz_story_{timestamp}.png"
+
+        final_rgb = img.convert("RGB")
+        final_rgb.save(str(file_story), "PNG")
+        logger.info(f"9:16 Dikey Story soru kartı oluşturuldu: {file_story.name}")
+        return str(file_story)
+
+    def publish_quiz_story(self, card_path: str) -> Tuple[bool, str]:
+        """
+        9:16 Dikey KPSS soru kartını Instagram Hikayelerinde (Stories) doğrudan yayınlar.
+        """
+        if not card_path or not Path(card_path).exists():
+            return False, "Story kart görseli bulunamadı."
+        try:
+            from publishers.instagram import InstagramPublisher
+            ig_pub = InstagramPublisher()
+            if not ig_pub.is_configured:
+                return False, "Instagram API ayarları eksik veya tanımlı değil."
+            return ig_pub.publish_story(story_image_path=card_path)
+        except Exception as e:
+            logger.error(f"Instagram Quiz Story yayını hatası: {e}")
+            return False, f"Instagram Quiz Story yayını hatası: {str(e)}"
+
     def publish_quiz_to_instagram(self, card_path: str, q_item: Dict[str, Any]) -> Tuple[bool, str]:
         """
         Hazırlanan minimalist KPSS soru kartını Instagram akışında (Feed) paylaşır.
@@ -614,10 +798,22 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
                 ig_msg = f"Instagram gönderim hatası: {ig_err}"
                 logger.warning(f"[OTOPİLOT QUIZ] {ig_msg}")
 
+        # 4. Instagram Story (9:16 Dikey) Çapraz Paylaşımı
+        auto_story = get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") == "true"
+        if post_to_instagram and auto_story:
+            try:
+                story_card_p = self.generate_instagram_quiz_story_card(q_item)
+                if story_card_p:
+                    st_ok, st_msg = self.publish_quiz_story(story_card_p)
+                    if st_ok:
+                        ig_msg += " + 9:16 Story de yayınlandı!"
+            except Exception as st_err:
+                logger.debug(f"Quiz Story otomatik yayını atlandı: {st_err}")
+
         overall_succ = tg_succ or ig_succ
         combined_msg = f"Telegram: {tg_msg} | Instagram: {ig_msg}"
 
-        # 4. Başarılı paylaşımı log kaydına ekle
+        # 5. Başarılı paylaşımı log kaydına ekle
         if overall_succ:
             today_str = datetime.now().strftime("%Y-%m-%d")
             log_entry = {

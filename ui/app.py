@@ -878,6 +878,53 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                     use_container_width=True
                                 )
 
+                # =============================================================
+                # INSTAGRAM 9:16 DİKEY HİKAYE (STORY) HIZLI YAYIN & İNDİRME PANELİ
+                # =============================================================
+                with st.expander("📸 Instagram 9:16 Hikaye (Story) Önizleme & Paylaşım", expanded=False):
+                    st_col_prev, st_col_acts = st.columns([1, 2])
+                    from graphics.generator import JobCardGenerator, to_turkish_date_str
+                    card_gen = JobCardGenerator()
+                    story_p = card_gen.generate_story_card(
+                        job_id=job.id,
+                        institution=job.institution or "Kamu Kurumu",
+                        position=job.position or job.title,
+                        total_positions=job.total_positions,
+                        kpss_requirement=job.kpss_requirement,
+                        education_level=job.education_level,
+                        deadline=to_turkish_date_str(job.application_end_date),
+                        source_url=job.source_url,
+                        theme=selected_job_theme,
+                        title=job.title or ""
+                    )
+                    with st_col_prev:
+                        if story_p and Path(story_p).exists():
+                            st.image(str(story_p), caption="9:16 Story Görünümü", use_container_width=True)
+                    with st_col_acts:
+                        st.markdown("""
+                        **📱 9:16 Dikey Story Avantajı:**
+                        - 24 saat boyunca üst barda sabit kalır.
+                        - Takipçilerin DM kutusuna hızlı erişim ve link çıkartması için özel alan içerir.
+                        """)
+                        if st.button("🚀 Şimdi Instagram Story'de Yayınla", key=f"pub_story_{job.id}", type="primary", use_container_width=True):
+                            with st.spinner("Instagram Hikayelerinde yayınlanıyor..."):
+                                ip = InstagramPublisher()
+                                s_ok, s_msg = ip.publish_story(Path(story_p), job=job)
+                                if s_ok:
+                                    st.success(f"🎉 {s_msg}")
+                                else:
+                                    st.error(f"❌ {s_msg}")
+                        if story_p and Path(story_p).exists():
+                            with open(story_p, "rb") as f_st_dl:
+                                st.download_button(
+                                    label="📥 Story Görselini İndir (1080x1920 PNG)",
+                                    data=f_st_dl.read(),
+                                    file_name=f"story_{job.id}_{job.institution}.png",
+                                    mime="image/png",
+                                    key=f"dl_story_{job.id}",
+                                    use_container_width=True
+                                )
+
 
 
 # =============================================================================
