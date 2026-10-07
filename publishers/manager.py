@@ -72,19 +72,41 @@ class PublisherManager:
             if "ilanDetay.aspx" in clean_link:
                 clean_link = "https://kamuilan.sbb.gov.tr/"
 
-            pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi İlan Linki:</b> {clean_link}"
-            job.social_post_text = (
-                f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
-                f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
-                f"📋 <b>Kadro / Pozisyon:</b> {job.position}\n"
-                f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
-                f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
-                f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
-                f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
-                f"{pdf_info}\n\n"
-                f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
-                f"#KamuPersoneli #İlan #KamuAlımı"
+            # İptal veya Düzeltme İlanı Kontrolü
+            title_upper = (job.title or "").upper()
+            pos_upper = (job.position or "").upper()
+            is_cancellation = any(
+                w in title_upper or w in pos_upper
+                for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
+
+            if is_cancellation:
+                pdf_info = "📄 <b>Resmi İptal / Karar Belgesi (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi Duyuru:</b> {clean_link}"
+                job.social_post_text = (
+                    f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
+                    f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
+                    f"❌ <b>Durum:</b> <b><u>ALIM SÜRECİ RESMEN İPTAL EDİLMİŞTİR</u></b>\n"
+                    f"📋 <b>İptal Edilen Pozisyon:</b> {job.position}\n"
+                    f"🗓 <b>Duyuru Tarihi:</b> {deadline_str}\n\n"
+                    f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> Bu duyuru yeni bir alım ilanı <u>DEĞİLDİR</u>! Daha önce yayımlanan personel alım süreci ilgili resmi kurum tarafından <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
+                    f"{pdf_info}\n\n"
+                    f"📲 <i>Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!</i>\n"
+                    f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
+                )
+            else:
+                pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi İlan Linki:</b> {clean_link}"
+                job.social_post_text = (
+                    f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
+                    f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
+                    f"📋 <b>Kadro / Pozisyon:</b> {job.position}\n"
+                    f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
+                    f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
+                    f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
+                    f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
+                    f"{pdf_info}\n\n"
+                    f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
+                    f"#KamuPersoneli #İlan #KamuAlımı"
+                )
 
             # 1. Görseli seçili temayla TAZE üret
             try:

@@ -87,6 +87,7 @@ class BackgroundScheduler:
         self.interval_minutes = 30
         self.last_run_time: Optional[datetime] = None
         self.last_autopilot_publish_time: Optional[datetime] = None
+        self.last_kpss_quiz_time: Optional[datetime] = None
         self.last_result: Dict[str, Any] = {}
         self._thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -251,6 +252,26 @@ class BackgroundScheduler:
                         ig_mgr.process_live_comments(limit_media=10)
                     except Exception as ige:
                         logger.debug(f"Otomatik Instagram yorum işleme hatası: {ige}")
+
+                # 4. Otomatik KPSS Quiz Otopilotu (Günde 10-20 soru, kanala periyodik anket olarak)
+                if get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "true") == "true":
+                    interval_hours = float(get_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", "1.5"))
+                    if self.last_kpss_quiz_time is None or (now - self.last_kpss_quiz_time).total_seconds() >= interval_hours * 3600:
+                        # Türkiye saatiyle 08:30 - 23:30 saatleri arasında gönder
+                        if 8 <= now.hour <= 23:
+                            self.last_kpss_quiz_time = now
+                            try:
+                                from modules.kpss_quiz_engine import KPSSQuizEngine
+                                q_eng = KPSSQuizEngine()
+                                fresh_q = q_eng.generate_ai_questions(count=1)
+                                if fresh_q:
+                                    succ, q_msg = q_eng.send_quiz_to_telegram(fresh_q[0])
+                                    if succ:
+                                        logger.info(f"[OTOPİLOT QUIZ] Otomatik KPSS sorusu Telegram kanalına aktarıldı: {fresh_q[0].get('subject')}")
+                                    else:
+                                        logger.warning(f"[OTOPİLOT QUIZ] Soru gönderilemedi: {q_msg}")
+                            except Exception as q_err:
+                                logger.error(f"[OTOPİLOT QUIZ] Otopilot soru hatası: {q_err}")
 
             except Exception as e:
                 logger.error(f"Zamanlayıcı / Otopilot döngü hatası: {e}")

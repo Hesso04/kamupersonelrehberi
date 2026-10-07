@@ -20,10 +20,13 @@ from pathlib import Path
 import threading
 import queue
 import concurrent.futures
+import json
 from typing import List, Dict, Any, Optional
 
 import pandas as pd
 import streamlit as st
+from config.settings import settings
+from modules.kpss_quiz_engine import KPSSQuizEngine
 from telethon import TelegramClient
 from telethon.errors import (
     ChatAdminRequiredError,
@@ -1177,148 +1180,136 @@ def telegram_buyutme_modulu():
         </div>
         """, unsafe_allow_html=True)
 
-        # Hazır KPSS Soru Havuzu
-        KPSS_QUESTIONS_BANK = [
-            {
-                "category": "🇹🇷 KPSS Tarih",
-                "question": "Osmanlı Devleti'nde ilk resmî gazete olan 'Takvim-i Vekayi' hangi padişah döneminde yayımlanmaya başlamıştır?",
-                "options": ["II. Mahmut", "Abdülmecid", "III. Selim", "II. Abdülhamit", "V. Murat"],
-                "correct_id": 0,
-                "explanation": "Doğru Cevap: II. Mahmut. 1831 yılında Osmanlı'nın ilk resmî Türkçe gazetesi olarak Takvim-i Vekayi yayımlanmıştır."
-            },
-            {
-                "category": "🇹🇷 KPSS Tarih",
-                "question": "Kurtuluş Savaşı'nda 'Hattı müdafaa yoktur, sathı müdafaa vardır. O satıh bütün vatandır.' emri hangi muharebede verilmiştir?",
-                "options": ["I. İnönü Muharebesi", "Sakarya Meydan Muharebesi", "Başkomutanlık Meydan Muharebesi", "II. İnönü Muharebesi", "Kütahya-Eskişehir"],
-                "correct_id": 1,
-                "explanation": "Doğru Cevap: Sakarya Meydan Muharebesi. Mustafa Kemal Paşa bu tarihi emri 1921 Sakarya Zaferi öncesinde vermiştir."
-            },
-            {
-                "category": "🗺️ KPSS Coğrafya",
-                "question": "Türkiye'de rüzgâr erozyonunun en şiddetli görüldüğü ve rüzgâr biriktirme şekillerine en çok rastlanan yöre hangisidir?",
-                "options": ["Karadeniz Kıyı Kuşağı", "Hakkari Bölümü", "Konya-Karapınar Çevresi", "Yıldız Dağları Yöresi", "Menteşe Yöresi"],
-                "correct_id": 2,
-                "explanation": "Doğru Cevap: Konya-Karapınar Çevresi. Bitki örtüsünün zayıf, iklimin kurak ve arazinin düz olduğu İç Anadolu'da rüzgâr erozyonu zirvededir."
-            },
-            {
-                "category": "⚖️ KPSS Vatandaşlık & Anayasa",
-                "question": "1982 Anayasası'na göre Türkiye Büyük Millet Meclisi (TBMM) üye tam sayısı kaçtır?",
-                "options": ["450 Milletvekili", "500 Milletvekili", "550 Milletvekili", "600 Milletvekili", "650 Milletvekili"],
-                "correct_id": 3,
-                "explanation": "Doğru Cevap: 600 Milletvekili. 2017 Anayasa değişikliği ile milletvekili sayısı 550'den 600'e çıkarılmıştır."
-            },
-            {
-                "category": "⚖️ KPSS Vatandaşlık",
-                "question": "1982 Anayasası'na göre Anayasa Mahkemesi üyeleri kaç yıl süreyle görev yapmak üzere seçilirler?",
-                "options": ["4 Yıl", "6 Yıl", "9 Yıl", "12 Yıl", "Ömür Boyu"],
-                "correct_id": 3,
-                "explanation": "Doğru Cevap: 12 Yıl. Anayasa Mahkemesi üyeleri 12 yıl için seçilirler ve bir kimse iki defa üye seçilemez."
-            },
-            {
-                "category": "🌍 KPSS Güncel Bilgiler",
-                "question": "Türkiye'nin ilk yerli ve millî haberleşme uydusu olup başarıyla uzaya fırlatılan uydu hangisidir?",
-                "options": ["Türksat 4A", "Türksat 5B", "Türksat 6A", "Göktürk-1", "Rasat"],
-                "correct_id": 2,
-                "explanation": "Doğru Cevap: Türksat 6A. Yerli mühendislik imkânlarıyla üretilen Türkiye'nin ilk millî haberleşme uydusudur."
-            },
-            {
-                "category": "📖 KPSS Türkçe",
-                "question": "Aşağıdaki cümlelerin hangisinde 'ki' bağlacının yazımı ile ilgili bir YAZIM YANLIŞI yapılmıştır?",
-                "options": [
-                    "Duydum ki unutmuşsun gözlerimin rengini.",
-                    "Mademki gelecektin, haber verseydin.",
-                    "Anladımki bu sınavı çalışmadan kazanmak zor.",
-                    "Oysaki seninle tüm konuları tekrar etmiştik.",
-                    "Evdeki hesap çarşıya uymadı."
-                ],
-                "correct_id": 2,
-                "explanation": "Doğru Cevap: C şıkkı. Fiilden sonra gelen 'ki' her zaman ayrı yazılır: 'Anladım ki' şeklinde olmalıdır."
-            }
-        ]
+        # KPSS Quiz & Soru Motoru Entegrasyonu
+        quiz_engine = KPSSQuizEngine()
 
-        q_titles = [f"[{q['category']}] {q['question'][:75]}..." for q in KPSS_QUESTIONS_BANK]
-        q_titles.append("✍️ Kendi Özel Sorunu Yaz")
+        if "kpss_active_questions" not in st.session_state or not st.session_state["kpss_active_questions"]:
+            st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=10)
 
-        col_qsel, col_ch = st.columns([3, 2])
+        c_gen1, c_gen2, c_gen3 = st.columns([2, 2, 3])
+        with c_gen1:
+            if st.button("🤖 AI ile Günlük 10 Soru Üret", type="primary", use_container_width=True):
+                with st.spinner("ÖSYM standartlarında 10 özgün KPSS sorusu üretiliyor..."):
+                    st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=10)
+                    st.success("✅ 10 yeni KPSS sorusu başarıyla üretildi!")
+                    st.rerun()
+
+        with c_gen2:
+            if st.button("⚡ AI ile Günlük 20 Soru Üret", use_container_width=True):
+                with st.spinner("ÖSYM standartlarında 20 özgün KPSS sorusu üretiliyor..."):
+                    st.session_state["kpss_active_questions"] = quiz_engine.generate_ai_questions(count=20)
+                    st.success("✅ 20 yeni KPSS sorusu başarıyla üretildi!")
+                    st.rerun()
+
+        with c_gen3:
+            target_tg_ch = st.text_input(
+                "Hedef Telegram Kanalı:",
+                value=settings.active_telegram_channel_id or "@kamupersonelrehberi",
+                key="tg_quiz_target_ch"
+            )
+
+        q_list = st.session_state["kpss_active_questions"]
+        q_titles = [f"#{i+1} [{q.get('subject', 'KPSS')}] {q.get('question', '')[:65]}..." for i, q in enumerate(q_list)]
+
+        col_qsel, col_stat = st.columns([3, 1])
         with col_qsel:
-            selected_q_idx = st.selectbox("Yayınlanacak Soruyu Seçin:", list(range(len(q_titles))), format_func=lambda i: q_titles[i])
-        with col_ch:
-            target_tg_ch = st.text_input("Hedef Telegram Kanalı (@kanaladi):", value=settings.active_telegram_channel_id or "@kamupersonelrehberi")
+            selected_q_idx = st.selectbox("İncelemek ve Yayınlamak İçin Soru Seçin:", list(range(len(q_titles))), format_func=lambda i: q_titles[i])
+        with col_stat:
+            st.metric("Havuzdaki Soru Sayısı", len(q_list))
 
-        is_custom = (selected_q_idx == len(KPSS_QUESTIONS_BANK))
-        if not is_custom:
-            cur_q = KPSS_QUESTIONS_BANK[selected_q_idx]
-            q_text = cur_q["question"]
-            q_opts = cur_q["options"]
-            q_corr = cur_q["correct_id"]
-            q_expl = cur_q["explanation"]
-        else:
-            q_text = st.text_input("Soru Metni:", value="Türkiye'nin başkenti neresidir?")
-            c_op1, c_op2 = st.columns(2)
-            with c_op1:
-                o1 = st.text_input("1. Seçenek (A):", value="İstanbul")
-                o2 = st.text_input("2. Seçenek (B):", value="Ankara")
-                o3 = st.text_input("3. Seçenek (C):", value="İzmir")
-            with c_op2:
-                o4 = st.text_input("4. Seçenek (D):", value="Bursa")
-                o5 = st.text_input("5. Seçenek (E):", value="Antalya")
-            q_opts = [o1, o2, o3, o4, o5]
-            q_corr = st.selectbox("Doğru Cevap Şıkkı:", [0, 1, 2, 3, 4], format_func=lambda i: ["A", "B", "C", "D", "E"][i])
-            q_expl = st.text_input("Doğru Cevap Açıklaması:", value="Doğru Cevap: B) Ankara. 13 Ekim 1923'te başkent olmuştur.")
+        cur_q = q_list[selected_q_idx]
+        q_text = cur_q.get("question", "")
+        q_opts = cur_q.get("options", [])
+        q_corr = int(cur_q.get("correct_option_id", 0))
+        q_expl = cur_q.get("explanation", "")
+        q_subj = cur_q.get("subject", "KPSS")
 
-        st.markdown("#### 📱 Canlı Telegram Quiz Önizlemesi")
-        with st.container():
+        # Canlı Önizleme Kartı (Admin Paneli)
+        st.markdown(f"""
+        <div style="background: rgba(18, 22, 26, 0.95); border: 1px solid #334155; border-radius: 12px; padding: 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="background: #1e293b; color: #94a3b8; font-weight: 700; padding: 3px 10px; border-radius: 6px; font-size: 13px; border: 1px solid #475569;">
+                    📚 {q_subj}
+                </span>
+                <span style="color: #64748b; font-size: 12px;">Telegram Native Quiz & Instagram Uyumlu</span>
+            </div>
+            <h4 style="color: #ffffff; margin: 10px 0 16px 0; font-weight: 600; line-height: 1.4;">{q_text}</h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+        """, unsafe_allow_html=True)
+        for i, opt in enumerate(q_opts):
+            is_correct = (i == q_corr)
+            badge = " (✅ Doğru Cevap - Telegram'da tıklandığında açılır)" if is_correct else ""
+            bg = "rgba(16, 185, 129, 0.12); border: 1px solid #10b981;" if is_correct else "rgba(30, 41, 59, 0.5); border: 1px solid #334155;"
+            opt_letter = ["A", "B", "C", "D", "E"][i] if i < 5 else f"{i+1}"
             st.markdown(f"""
-            <div style="background: rgba(15, 23, 42, 0.85); border: 2px solid #38bdf8; border-radius: 12px; padding: 18px; margin-bottom: 16px;">
-                <span style="background: #38bdf8; color: #0f172a; font-weight: 800; padding: 2px 8px; border-radius: 6px; font-size: 12px;">📊 QUIZ POLL</span>
-                <h4 style="color: #ffffff; margin: 10px 0 14px 0;">{q_text}</h4>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-            """, unsafe_allow_html=True)
-            for i, opt in enumerate(q_opts):
-                is_correct = (i == q_corr)
-                badge = " (✅ Doğru Cevap)" if is_correct else ""
-                bg = "rgba(16, 185, 129, 0.15); border: 1px solid #10b981;" if is_correct else "rgba(30, 41, 59, 0.6); border: 1px solid #334155;"
-                st.markdown(f"""
-                <div style="background: {bg} border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px;">
-                    ⚪ {opt} <b style="color: #34d399;">{badge}</b>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown(f"""
-                </div>
-                <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #334155; color: #94a3b8; font-size: 13px;">
-                    💡 <b>Çözüm Açıklaması:</b> {q_expl}
-                </div>
+            <div style="background: {bg} border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px;">
+                <b>{opt_letter}]</b> {opt} <b style="color: #34d399;">{badge}</b>
             </div>
             """, unsafe_allow_html=True)
+        st.markdown(f"""
+            </div>
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #334155; color: #94a3b8; font-size: 13px;">
+                💡 <b>ÖSYM Çözüm Açıklaması:</b> {q_expl}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        if st.button("🚀 Bu Soruyu Telegram Kanalında Canlı Quiz Olarak Yayınla", type="primary", use_container_width=True):
-            bot_token = settings.active_telegram_bot_token
-            if not bot_token:
-                st.error("Telegram Bot Token tanımlı değil. Lütfen 'Sistem & API Ayarları' menüsünden bot tokeninizi girin.")
-            elif not target_tg_ch:
-                st.error("Hedef kanal girilmedi.")
-            else:
-                with st.spinner("Quiz resmi Telegram Bot API üzerinden kanala aktarılıyor..."):
-                    import requests
-                    poll_url = f"https://api.telegram.org/bot{bot_token}/sendPoll"
-                    poll_payload = {
-                        "chat_id": target_tg_ch,
-                        "question": q_text[:300],
-                        "options": json.dumps([str(o)[:100] for o in q_opts]),
-                        "is_anonymous": True,
-                        "type": "quiz",
-                        "correct_option_id": int(q_corr),
-                        "explanation": q_expl[:200],
-                        "explanation_parse_mode": "HTML"
-                    }
-                    try:
-                        r_poll = requests.post(poll_url, data=poll_payload, timeout=15)
-                        if r_poll.status_code == 200:
-                            st.success(f"🎉 Harika! Quiz sorusu **{target_tg_ch}** kanalında başarıyla yayınlandı!")
-                        else:
-                            st.error(f"❌ Telegram API Hatası ({r_poll.status_code}): {r_poll.text}")
-                    except Exception as pe:
-                        st.error(f"Bağlantı hatası: {pe}")
+        col_act1, col_act2, col_act3 = st.columns(3)
+        bot_token = settings.active_telegram_bot_token
+
+        with col_act1:
+            if st.button("🚀 Bu Soruyu Telegram'da Yayınla", type="primary", use_container_width=True):
+                with st.spinner("Quiz Telegram kanalına aktarılıyor..."):
+                    succ, msg = quiz_engine.send_quiz_to_telegram(cur_q, target_tg_ch, bot_token)
+                    if succ:
+                        st.success(f"🎉 Soru #{selected_q_idx+1} Telegram'da anket olarak yayınlandı!")
+                    else:
+                        st.error(f"❌ {msg}")
+
+        with col_act2:
+            if st.button(f"⚡ Tüm {len(q_list)} Soruyu Sırayla Kanala Gönder", use_container_width=True):
+                with st.spinner(f"{len(q_list)} adet soru sırayla Telegram kanalına aktarılıyor..."):
+                    success_count = 0
+                    prog = st.progress(0)
+                    for idx, q_item in enumerate(q_list):
+                        succ, _ = quiz_engine.send_quiz_to_telegram(q_item, target_tg_ch, bot_token)
+                        if succ:
+                            success_count += 1
+                        prog.progress((idx + 1) / len(q_list))
+                        time.sleep(2)  # Anti-flood koruması
+                    st.success(f"🎉 Toplam {success_count}/{len(q_list)} soru Telegram kanalına gönderildi!")
+
+        with col_act3:
+            if st.button("📸 Instagram İçin Minimalist Kart Üret", use_container_width=True):
+                with st.spinner("Minimalist, filigranlı soru kartı hazırlanıyor..."):
+                    card_path = quiz_engine.generate_instagram_quiz_card(cur_q)
+                    st.session_state["last_ig_quiz_card"] = card_path
+                    st.success("✅ Instagram soru kartı üretildi!")
+
+        if "last_ig_quiz_card" in st.session_state and st.session_state["last_ig_quiz_card"]:
+            c_card = Path(st.session_state["last_ig_quiz_card"])
+            if c_card.exists():
+                st.markdown("---")
+                st.subheader("🖼️ Instagram Soru Kartı (Doğru Cevapsız & Filigran Korumalı)")
+                st.caption("Renk cümbüşünden uzak, mat antrasit zeminli ve arka planda hırsızlığa karşı şeffaf filigran içeren resmi soru postu.")
+                col_img, col_info = st.columns([1, 1])
+                with col_img:
+                    st.image(str(c_card), caption=f"Instagram Kartı: {c_card.name}", use_container_width=True)
+                with col_info:
+                    st.markdown("""
+                    **🎯 Bu Tasarım Neden Daha Fazla Etkileşim Getirir?**
+                    - **Doğru Cevap Gizlidir:** Adaylar çözümü merak edip doğru şıkkı yorumlara yazarlar.
+                    - **Yorumlar Algoritmayı Uçurur:** Her yorum Instagram Keşfet (Explore) algoritmasında postu öne çıkarır.
+                    - **Hırsızlığa Karşı Korumalıdır:** Arka planda şeffaf `@kamupersonelrehberi` damgası bulunur.
+                    """)
+                    with open(c_card, "rb") as f_img:
+                        st.download_button(
+                            label="📥 Görseli İndir (Instagram İçin)",
+                            data=f_img.read(),
+                            file_name=c_card.name,
+                            mime="image/png",
+                            use_container_width=True
+                        )
 
     # =========================================================================
     # 5. AŞAMA: KANAL SEO & İLETİLME (FORWARD) STÜDYOSU

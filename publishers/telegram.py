@@ -99,10 +99,24 @@ class TelegramPublisher(BasePublisher):
         channel_link = f"https://t.me/{channel_handle}"
         clean_news_url = job.source_url or "https://kamuilan.sbb.gov.tr/"
 
-        caption_text += (
-            "\n\n📲 <i>İş arayan bir arkadaşına ilet, haberi olsun!</i>\n"
-            f"📌 <b>Resmi Gazete & SBB Onaylı İlanlar:</b> @{channel_handle}"
+        # İptal / Düzeltme Kontrolü
+        title_upper = (job.title or "").upper()
+        pos_upper = (job.position or "").upper()
+        is_cancellation = any(
+            w in title_upper or w in pos_upper
+            for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
         )
+
+        if is_cancellation:
+            caption_text += (
+                "\n\n📲 <i>Aday arkadaşlarına ilet, boşuna başvuru hazırlığı yapmasınlar!</i>\n"
+                f"📌 <b>Resmi Gazete & SBB Teyitli İlanlar:</b> @{channel_handle}"
+            )
+        else:
+            caption_text += (
+                "\n\n📲 <i>İş arayan bir arkadaşına ilet, haberi olsun!</i>\n"
+                f"📌 <b>Resmi Gazete & SBB Onaylı İlanlar:</b> @{channel_handle}"
+            )
 
         # Güvenlik: Metin içindeki literal "None" kalıntılarını temizle
         caption_text = caption_text.replace("<b>Pozisyon:</b> None", f"<b>Pozisyon:</b> {job.position or 'Resmi Kılavuzda'}")
@@ -110,14 +124,22 @@ class TelegramPublisher(BasePublisher):
 
         # 2026 Viral İletme ve Hızlı Başvuru Butonları
         import urllib.parse
-        share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {channel_link}"
+        if is_cancellation:
+            share_summary = f"🚨 DİKKAT: {job.institution or 'Kamu'} {job.position or 'Personel Alımı'} İptal Edildi!\nDetaylar: {channel_link}"
+            btn1_text = "📄 Resmi İptal Kararı"
+            btn2_text = "📲 Adayları Bilgilendir"
+        else:
+            share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {channel_link}"
+            btn1_text = "🌐 Resmi Başvuru Ekranı"
+            btn2_text = "📲 Arkadaşına İlet"
+
         share_btn_url = f"https://t.me/share/url?url={urllib.parse.quote(channel_link)}&text={urllib.parse.quote(share_summary)}"
 
         reply_markup = {
             "inline_keyboard": [
                 [
-                    {"text": "🌐 Resmi Başvuru Ekranı", "url": clean_news_url},
-                    {"text": "📲 Arkadaşına İlet", "url": share_btn_url}
+                    {"text": btn1_text, "url": clean_news_url},
+                    {"text": btn2_text, "url": share_btn_url}
                 ],
                 [
                     {"text": "📢 Kanalımıza Katıl & Takip Et", "url": channel_link}
