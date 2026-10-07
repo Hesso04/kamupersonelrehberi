@@ -14,6 +14,7 @@ Bu modül, Streamlit tabanlı yönetim panellerine entegre edilmek üzere tasarl
 import asyncio
 import os
 import random
+import re
 import time
 from datetime import datetime
 from pathlib import Path
