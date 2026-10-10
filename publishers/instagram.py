@@ -84,29 +84,51 @@ class InstagramPublisher(BasePublisher):
     def build_instagram_caption(self, job: JobAnnouncement) -> str:
         """
         Instagram algoritması, Keşfet (Explore) ve In-App SEO için optimize edilmiş,
-        viral 'Yoruma KILAVUZ yaz' çağrısı ve etiketler içeren zengin metin üretir.
+        viral 'Yoruma KILAVUZ yaz' çağrısı, iptal ilanı tespiti ve etiketler içeren zengin metin üretir.
         """
         from graphics.generator import to_turkish_date_str
         d_str = to_turkish_date_str(job.application_end_date)
         inst_clean = job.institution or "Kamu Kurumu"
-        inst_tag = inst_clean.replace(" ", "").replace(".", "").replace("-", "")
+        inst_tag = re.sub(r"[^\w]", "", inst_clean)
 
-        caption = (
-            f"👇 RESMİ BAŞVURU EKRANI & KILAVUZ İÇİN:\n"
-            f"Bu gönderinin altına \"KILAVUZ\" yazın; resmi başvuru ekranı linki ve "
-            f"kadro şartnamesi saniyeler içinde DM kutunuza GELSİN! 📩\n"
-            f"(⚠️ Botun linki iletebilmesi için sayfamızı TAKİP ETMEYİ unutmayın)\n\n"
-            f"🏛 {inst_clean.upper()} PERSONEL ALIMI\n"
-            f"📢 {job.position or job.title}\n\n"
-            f"👥 Kontenjan: {job.total_positions or 1} Kişi\n"
-            f"🗓 Son Başvuru: {d_str}\n"
-            f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
-            f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"
-            f"📌 İlan No: #{job.id}\n"
-            f"📌 İlanı kaydetmeyi ve iş arayan arkadaşınıza göndermeyi unutmayın!\n"
-            f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Sıfır bilgi kirliliği.\n\n"
-            f"#KamuPersoneli #MemurAlımı #KPSS #PersonelAlımı #İşİlanları #Kamuİlanları #KariyerKapısı #{inst_tag}"
+        title_upper = (job.title or "").upper()
+        pos_upper = (job.position or "").upper()
+        is_cancellation = any(
+            w in title_upper or w in pos_upper
+            for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
         )
+
+        if is_cancellation:
+            caption = (
+                f"🚨 🛑 [DİKKAT: İLAN İPTAL DUYURUSU] 🛑 🚨\n\n"
+                f"🏛 {inst_clean.upper()}\n"
+                f"❌ DURUM: ALIM SÜRECİ RESMEN İPTAL EDİLMİŞTİR\n"
+                f"📋 İptal Edilen Pozisyon: {job.position}\n"
+                f"🗓 Karar Tarihi: {d_str}\n\n"
+                f"⚠️ ÖNEMLİ BİLGİLENDİRME: Bu duyuru yeni bir alım ilanı DEĞİLDİR! İlgili kamu kurumu tarafından yayımlanan personel alım süreci RESMEN İPTAL EDİLMİŞTİR. Yeni başvuru kabul edilmemektedir.\n\n"
+                f"🌐 Güncel ve Aktif Kamu İlanları İçin:\n"
+                f"👉 www.kamupersonelrehberiniz.me\n\n"
+                f"📲 Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!\n"
+                f"#KamuPersoneli #İlanİptali #KamuHaber #Duyuru #{inst_tag}"
+            )
+        else:
+            caption = (
+                f"👇 RESMİ BAŞVURU EKRANI & KILAVUZ İÇİN:\n"
+                f"Bu gönderinin altına \"KILAVUZ\" yazın; resmi başvuru ekranı linki ve "
+                f"kadro şartnamesi saniyeler içinde DM kutunuza GELSİN! 📩\n"
+                f"(⚠️ Botun linki iletebilmesi için sayfamızı TAKİP ETMEYİ unutmayın)\n\n"
+                f"🏛 {inst_clean.upper()} PERSONEL ALIMI\n"
+                f"📢 {job.position or job.title}\n\n"
+                f"👥 Kontenjan: {job.total_positions or 1} Kişi\n"
+                f"🗓 Son Başvuru: {d_str}\n"
+                f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
+                f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"
+                f"🌐 Tüm Branşlar & Online Başvuru:\n"
+                f"👉 www.kamupersonelrehberiniz.me\n\n"
+                f"📌 İlanı kaydetmeyi ve iş arayan arkadaşınıza göndermeyi unutmayın!\n"
+                f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli resmi kamu ilanıdır. Sıfır bilgi kirliliği.\n\n"
+                f"#KamuPersoneli #MemurAlımı #KPSS #PersonelAlımı #İşİlanları #Kamuİlanları #KariyerKapısı #{inst_tag}"
+            )
         return caption
 
     def _wait_for_media_processing(self, creation_id: str, max_attempts: int = 15) -> Tuple[bool, str]:

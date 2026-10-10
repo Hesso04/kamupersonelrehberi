@@ -88,6 +88,7 @@ class BackgroundScheduler:
         self.last_run_time: Optional[datetime] = None
         self.last_autopilot_publish_time: Optional[datetime] = None
         self.last_kpss_quiz_time: Optional[datetime] = None
+        self.last_website_sync_time: Optional[datetime] = None
         self.last_result: Dict[str, Any] = {}
         self._thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -213,6 +214,12 @@ class BackgroundScheduler:
                     sm = ScraperManager()
                     scan_res = sm.run_all()
                     self.last_result = scan_res
+                    # Yeni tarama bittiğinde web sitesini anında güncelle
+                    try:
+                        from scripts.export_website_data import sync_and_push
+                        sync_and_push(auto_push=True)
+                    except Exception as ws_err:
+                        logger.warning(f"[WEB SİTESİ] Tarama sonrası web sitesi güncelleme uyarısı: {ws_err}")
 
                 # 2. Otopilot Motoru (Manuel Onay Kapalıysa Güvenilir İlanları Belirlenen Tempoda Otomatik Yayınla)
                 if not manual_mode:
@@ -272,6 +279,17 @@ class BackgroundScheduler:
                                     logger.warning(f"[OTOPİLOT QUIZ] Soru gönderilemedi: {q_msg}")
                             except Exception as q_err:
                                 logger.error(f"[OTOPİLOT QUIZ] Otopilot soru hatası: {q_err}")
+
+                # 5. Otomatik Web Sitesi Canlı İlan Senkronizasyonu (Her 2 saatte bir ve her taramadan sonra)
+                sync_hours = float(get_system_setting("WEBSITE_SYNC_INTERVAL_HOURS", "2"))
+                if self.last_website_sync_time is None or (now - self.last_website_sync_time).total_seconds() >= sync_hours * 3600:
+                    self.last_website_sync_time = now
+                    try:
+                        from scripts.export_website_data import sync_and_push
+                        sync_and_push(auto_push=True)
+                        logger.info("[WEB SİTESİ] Güncel veritabanı ilanları siteye ve GitHub'a otomatik aktarıldı.")
+                    except Exception as ws_err:
+                        logger.warning(f"[WEB SİTESİ] Senkronizasyon uyarısı: {ws_err}")
 
             except Exception as e:
                 logger.error(f"Zamanlayıcı / Otopilot döngü hatası: {e}")

@@ -239,10 +239,25 @@ RESMİ KAYNAK LİNKİ: {source_url}
         return None
 
     def _heuristic_fallback(self, title: str, raw_content: str, source_url: str) -> Dict[str, Any]:
-        """Kural tabanlı akıllı yedekleme."""
+        """Kural tabanlı akıllı yedekleme (LLM çağrısı başarısız olduğunda devreye girer)."""
+        combined = f"{title} {raw_content}".upper()
+        is_cancellation = any(w in combined for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME"])
+
         parts = title.split(" - ")
-        institution = parts[0].strip() if len(parts) > 1 else "Kamu Kurumu"
-        position = parts[1].strip() if len(parts) > 1 else title
+        raw_inst = parts[0].strip() if len(parts) > 1 else "Kamu Kurumu"
+        raw_pos = parts[1].strip() if len(parts) > 1 else title
+
+        # Kurum temizliği
+        inst_clean = re.sub(r"\s+\d+\s*(?:sözleşmeli|memur|öğretim|sürekli|personel|uzman|kamu|işçi|akademik).*$", "", raw_inst, flags=re.IGNORECASE)
+        inst_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", inst_clean, flags=re.IGNORECASE).strip(" -:,")
+        if not inst_clean or inst_clean.lower() in ["kamu kurumu", "resmi kurum"]:
+            inst_clean = raw_inst
+
+        # Pozisyon temizliği
+        pos_clean = re.sub(r"^\s*(\d+\s*)+", "", raw_pos)
+        pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE).strip(" -:,")
+        if not pos_clean or pos_clean.lower() in ["kamu personel", "kamu personeli"]:
+            pos_clean = "Personel Alımı"
 
         numbers = re.findall(r"\b(\d+)\b", title)
         total_positions = int(numbers[0]) if numbers else 1
@@ -250,32 +265,60 @@ RESMİ KAYNAK LİNKİ: {source_url}
         dates_match = re.search(r"(\d+\s+[A-Za-zÇŞĞÜÖİçşğüöı]+\s*-\s*\d+\s+[A-Za-zÇŞĞÜÖİçşğüöı]+)", raw_content or "")
         application_dates = dates_match.group(1) if dates_match else "İlan detayında belirtilmiştir"
 
-        telegram_post = (
-            f"📢 <b>{institution} Personel Alım İlanı</b>\n\n"
-            f"🏛 <b>Kurum:</b> {institution}\n"
-            f"📋 <b>Kadro / Pozisyon:</b> {position}\n"
-            f"👥 <b>Kontenjan:</b> {total_positions} Kişi\n"
-            f"🗓 <b>Başvuru Tarihleri:</b> {application_dates}\n\n"
-            f"📌 <b>Önemli Başvuru Şartları:</b>\n"
-            f"• Başvurular resmi kamu kurumu portalı üzerinden alınacaktır.\n"
-            f"• Adayların kılavuzdaki genel ve özel şartları taşıması gereklidir.\n\n"
-            f"🔗 <b>Resmi İlan Bağlantısı:</b>\n{source_url}\n\n"
-            f"⚠️ <i>Bilgi kirliliğine karşı %100 resmi kaynaklıdır.</i>\n"
-            f"#KamuPersoneli #İlan #{institution.replace(' ', '')[:20]}"
-        )
+        if is_cancellation:
+            bullets = [
+                "BU DUYURU BİLGİLENDİRME <span>AMAÇLIDIR</span>.",
+                "YENİ BAŞVURU <span>KABUL EDİLMEMEKTEDİR</span>.",
+                "ALIM SÜRECİ RESMİ OLARAK <span>İPTAL EDİLDİ</span>.",
+                "GÜNCEL İLANLARI SAYFAMIZDAN <span>TAKİP EDİN</span>."
+            ]
+            caption = (
+                f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
+                f"🏛 <b>Kurum:</b> {inst_clean}\n"
+                f"❌ <b>Durum:</b> <b><u>ALIM SÜRECİ RESMEN İPTAL EDİLMİŞTİR</u></b>\n"
+                f"📋 <b>İptal Edilen Pozisyon:</b> {pos_clean}\n\n"
+                f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> İlgili kamu kurumu tarafından daha önce yayımlanan alım süreci <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
+                f"🌐 <b>Detaylı Bilgi & Güncel İlanlar:</b>\n"
+                f"👉 https://www.kamupersonelrehberiniz.me\n\n"
+                f"#KamuPersoneli #İlanİptali #Duyuru #KamuHaber"
+            )
+        else:
+            bullets = [
+                f"KONTENJAN <span>{total_positions} KİŞİ</span> OLARAK AÇIKLANDI.",
+                "KPSS ŞARTI <span>RESMİ İLANDA BELİRTİLDİ</span>.",
+                "ÖĞRENİM: <span>İLGİLİ BÖLÜM MEZUNİYETİ</span>.",
+                f"BAŞVURU TARİHİ: <span>{application_dates}</span>."
+            ]
+            caption = (
+                f"📢 <b>{inst_clean} Personel Alım İlanı</b>\n\n"
+                f"🏛 <b>Kurum:</b> {inst_clean}\n"
+                f"📋 <b>Kadro / Pozisyon:</b> {pos_clean}\n"
+                f"👥 <b>Kontenjan:</b> {total_positions} Kişi\n"
+                f"🗓 <b>Başvuru Tarihleri:</b> {application_dates}\n\n"
+                f"📌 <b>Önemli Bilgilendirme:</b>\n"
+                f"• Başvurular resmi kurum portalı üzerinden alınacaktır.\n"
+                f"• Adayların kılavuzdaki genel ve özel şartları taşıması gereklidir.\n\n"
+                f"🌐 <b>Resmi Başvuru Ekranı & Kılavuz:</b>\n"
+                f"👉 https://www.kamupersonelrehberiniz.me\n\n"
+                f"⚠️ <i>Bilgi kirliliğine karşı %100 devlet teyitli resmi ilandır.</i>\n"
+                f"#KamuPersoneli #MemurAlımı #Kamuİlanı #{inst_clean.replace(' ', '')[:20]}"
+            )
 
         return {
-            "institution": institution,
+            "is_cancellation": is_cancellation,
+            "institution": inst_clean,
             "cleaned_title": title,
-            "position": position,
+            "position": pos_clean,
             "total_positions": total_positions,
             "kpss_requirement": "Resmi ilanda belirtilen şartlar",
             "education_level": "İlgili bölüm mezuniyeti",
             "city": "İlanda belirtilmiştir",
             "application_dates": application_dates,
+            "card_bullets": bullets,
             "bullet_summary": [
                 "Başvurular resmi kurum sistemi üzerinden yapılacaktır.",
                 "Son başvuru tarihine kadar evrakların eksiksiz teslimi gereklidir."
             ],
-            "telegram_post": telegram_post
+            "telegram_post": caption,
+            "social_caption": caption
         }

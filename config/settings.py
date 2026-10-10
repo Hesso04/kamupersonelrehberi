@@ -21,6 +21,10 @@ class Settings(BaseSettings):
         default="super-secret-key-change-me-in-production",
         description="Oturum güvenliği için anahtar"
     )
+    WEBSITE_URL: str = Field(
+        default="www.kamupersonelrehberiniz.me",
+        description="Kamu Personel Rehberi resmi web sitesi adresi"
+    )
 
     # Veritabanı Ayarları
     DATABASE_URL: str = Field(

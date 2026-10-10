@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamu Personel Rehberi - Resmi Alım İlanları Portalı</title>
+  
+  <!-- SEO & Meta Bilgileri -->
+  <meta name="description" content="Türkiye Cumhuriyeti kamu kurum ve kuruluşlarının güncel memur, sözleşmeli personel, akademik kadro ve işçi alım ilanlarını tek bir güvenilir ekrandan inceleyin.">
+  <meta name="keywords" content="kamu personeli alım ilanları, memur alımı, sözleşmeli personel, kpss ilanları, sbb kamu ilan, resmi gazete ilanları">
+  <meta name="author" content="Kamu Personel Rehberi">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Sosyal Medya -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kamupersonelrehberiniz.me/">
+  <meta property="og:title" content="Kamu Personel Rehberi - Resmi Alım İlanları Portalı">
+  <meta property="og:description" content="En güncel kamu personeli alım ilanları, başvuru kılavuzları ve resmi şartnameler.">
+  <meta property="og:image" content="https://kamupersonelrehberiniz.me/assets/images/og-cover.jpg">
+
+  <!-- Google Fonts (Plus Jakarta Sans & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Ana Tasarım Sistemi -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563EB'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+</head>
+<body>
+
+  <!-- =========================================================================
+       ÜST BİLGİ VE DUYURU ŞERİDİ (TOP BAR)
+       ========================================================================= -->
+  <aside class="top-notice-bar" aria-label="Sistem Durumu">
+    <div class="container">
+      <div class="top-notice-left">
+        <span class="live-badge">
+          <span class="pulse-dot"></span> CANLI İLAN AKIŞI
+        </span>
+        <span>Resmi Gazete ve Kamu İlan Portalı ile anlık eşzamanlıdır.</span>
+      </div>
+      <div class="top-notice-right">
+        <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="social-top-link telegram">
+          <span>📢</span> Telegram Kanalı
+        </a>
+        <a href="https://instagram.com/kamupersonelrehberiniz" target="_blank" rel="noopener noreferrer" class="social-top-link instagram">
+          <span>📸</span> Instagram Sayfası
+        </a>
+        <span style="color:#475569;">|</span>
+        <button onclick="openLegalModal('modal-legal-warning')" style="color:#94A3B8;font-size:0.8125rem;">Yasal Uyarı</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       ANA BAŞLIK & NAVİGASYON (HEADER)
+       ========================================================================= -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-inner">
+        <!-- Logo & Portal İsmi -->
+        <a href="/" class="brand-wrapper">
+          <div class="brand-crest">🏛</div>
+          <div class="brand-text-block">
+            <span class="brand-title">
+              KAMU PERSONEL REHBERİ
+              <span class="brand-badge">RESMİ BİLGİ</span>
+            </span>
+            <span class="brand-sub">T.C. Kamu Alım İlanları & Rehberlik Portalı</span>
+          </div>
+        </a>
+
+        <!-- Hızlı Arama Kutusu -->
+        <div class="header-quick-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="header-search-input" placeholder="Kurum, unvan veya şehir ara..." autocomplete="off">
+        </div>
+
+        <!-- Header Aksiyon Butonları -->
+        <nav class="header-actions" aria-label="Hızlı Erişim">
+          <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="nav-pill-btn primary">
+            <span>📢</span> Telegram'da Takip Et
+          </a>
+          <button class="nav-pill-btn" onclick="openLegalModal('modal-kvkk')">
+            <span>🛡</span> KVKK
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       HERO VITRİN BÖLÜMÜ (HORIZONTAL SHOWCASE SLIDER)
+       Geometrik zeminli, acil veya yüksek kontenjanlı kamu ilanları vitrini
+       ========================================================================= -->
+  <section class="hero-section" aria-label="Öne Çıkan Kamu Alımları">
+    <div class="container">
+      <div class="hero-header-row">
+        <div class="hero-tagline-wrap">
+          <span class="hero-mini-title">⚡ ÖNCELİKLİ VE YÜKSEK KONTENJANLI ALIMLAR</span>
+          <h1 class="hero-main-title">Öne Çıkan Resmi Kamu Personel Alımları</h1>
+        </div>
+        <div class="hero-controls">
+          <button class="hero-slider-btn" id="hero-prev-btn" aria-label="Önceki İlan">◀</button>
+          <button class="hero-slider-btn" id="hero-next-btn" aria-label="Sonraki İlan">▶</button>
+        </div>
+      </div>
+
+      <!-- Hero Slider Konteyneri -->
+      <div class="hero-slider-container">
+        <div class="hero-slider-track" id="hero-slider-track">
+          <!-- JavaScript ile dinamik olarak doldurulacaktır -->
+        </div>
+      </div>
+
+      <!-- Slider Gösterge Noktaları -->
+      <div class="hero-dots" id="hero-dots"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ANA İÇERİK ALANI (SPLIT GRID: 25% / 75%)
+       ========================================================================= -->
+  <main class="main-content-layout">
+    <div class="container">
+      <div class="split-grid">
+
+        <!-- =====================================================================
+             SOL SÜTUN (25% WIDTH SIDEBAR): KATEGORİ VE FİLTRE MENÜSÜ
+             ===================================================================== -->
+        <aside class="sidebar-column" aria-label="İlan Kategorileri">
+          
+          <!-- Kategori Kartı -->
+          <div class="sidebar-card">
+            <h2 class="sidebar-heading">
+              <span>İlan Kategorileri</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">MENÜ</span>
+            </h2>
+            <ul class="category-menu-list" id="category-menu-list">
+              <!-- JavaScript ile kategoriler doldurulacaktır -->
+            </ul>
+
+            <!-- Hızlı Durum Filtreleri -->
+            <div class="filter-subgroup">
+              <label class="filter-check-label">
+                <input type="checkbox" id="chk-only-open">
+                <span>Yalnızca Başvuruya Açık Olanlar</span>
+              </label>
+              <label class="filter-check-label">
+                <input type="checkbox" id="chk-only-canc">
+                <span>İptal / Düzeltme İlanları</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Resmi Sosyal Kanallar Kartı -->
+          <div class="sidebar-social-card">
+            <h3 class="sidebar-social-title">📢 Resmi Kanallarımız</h3>
+            <p class="sidebar-social-desc">
+              Resmi kamu alımlarını ve kılavuzları yayınlandığı anda bildirim olarak almak için kanallarımıza katılın.
+            </p>
+            <div class="sidebar-social-buttons">
+              <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="sidebar-social-btn telegram">
+                <span>✈ Telegram Kanalı</span>
+                <span>Katıl →</span>
+              </a>
+              <a href="https://instagram.com/kamupersonelrehberiniz" target="_blank" rel="noopener noreferrer" class="sidebar-social-btn instagram">
+                <span>📸 Instagram Sayfası</span>
+                <span>Takip Et →</span>
+              </a>
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- =====================================================================
+             SAĞ SÜTUN (75% WIDTH CONTENT): KRONOLOJİK İLAN LİSTESİ
+             ===================================================================== -->
+        <section class="content-column" aria-label="Güncel İlan Akışı">
+
+          <!-- Arama, İstatistik ve Sıralama Çubuğu -->
+          <div class="controls-bar">
+            <div class="search-field-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-input" placeholder="Kurum veya unvan adı ile filtreleyin (örn: Adalet Bakanlığı, Bilişim)...">
+            </div>
+
+            <div class="sort-and-stats">
+              <span class="list-stats-text">
+                Toplam <strong class="list-stats-count" id="active-list-count">0</strong> ilan
+              </span>
+              <select id="sort-select" class="sort-select" aria-label="Sıralama Seçimi">
+                <option value="date_desc">Tarihe Göre (En Yeni)</option>
+                <option value="quota_desc">Kontenjana Göre (Azalan)</option>
+                <option value="quota_asc">Kontenjana Göre (Artan)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Kronolojik Tarih Grubu Akışı (SBB Kamu İlan Stili) -->
+          <div class="date-groups-feed" id="jobs-feed">
+            <!-- JavaScript ile renderJobsFeed() tarafından doldurulacaktır -->
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       İLAN DETAY MODALI (DETAYLAR, ŞARTLAR & PDF İNDİRME)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="job-detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-job-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <span class="modal-inst-label" id="modal-inst-name">Kamu Kurumu</span>
+          <h2 class="modal-job-title" id="modal-job-title">Personel Alım İlanı</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeJobDetailModal()" aria-label="Kapat">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="modal-cancel-alert" style="display:none;"></div>
+
+        <!-- Şartlar ve Bilgiler Izgarası -->
+        <div class="specs-grid">
+          <div class="spec-box">
+            <span class="spec-box-label">Kadro / Pozisyon</span>
+            <span class="spec-box-value" id="modal-spec-position">-</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-box-label">Toplam Kontenjan</span>
+            <span class="spec-box-value" id="modal-spec-quota">-</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-box-label">Başvuru Tarihleri</span>
+            <span class="spec-box-value" id="modal-spec-dates">-</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-box-label">Öğrenim Şartı</span>
+            <span class="spec-box-value" id="modal-spec-education">-</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-box-label">KPSS Şartı</span>
+            <span class="spec-box-value" id="modal-spec-kpss">-</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-box-label">Görev Yeri</span>
+            <span class="spec-box-value" id="modal-spec-city">-</span>
+          </div>
+        </div>
+
+        <!-- Resmi Doğrulama Bildirimi -->
+        <div class="official-verification-card">
+          <span class="verification-icon">🛡</span>
+          <div>
+            <strong>%100 Teyitli Resmi İlan:</strong>
+            Bu ilan T.C. Resmi Gazete ve Cumhurbaşkanlığı Strateji ve Bütçe Başkanlığı (SBB Kamu İlan) portallarından doğrulanarak adayların erişimine sunulmuştur.
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             REKLAM / MONETIZATION ALANI (1 Hafta Sonra Aktif Edilecek Slot)
+             Şu anda sitede hiçbir reklam gösterilmez, temizdir.
+             =================================================================== -->
+        <div class="ad-monetization-slot" id="modal-ad-slot">
+          <span>📢 [Sponsorluk / Bilgilendirme Alanı - Reklam Gösterimi Devre Dışı]</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary-action" id="modal-share-btn">
+          <span>📲</span> İlanı Paylaş
+        </button>
+
+        <div class="modal-actions-right">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-secondary-action" id="modal-source-btn">
+            <span>🔗</span> Resmi Portal Sayfası
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-primary-action" id="modal-pdf-download-btn">
+            <span>📄</span> Resmi Kılavuzu İndir (PDF)
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       YASAL UYARI VE MEVZUAT MODALLARI (KVKK, ÇEREZLER, YASAL UYARI)
+       ========================================================================= -->
+  <!-- KVKK Aydınlatma Metni Modalı -->
+  <div class="modal-backdrop" id="modal-kvkk" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-job-title">KVKK Aydınlatma Metni</h3>
+        <button class="modal-close-btn" onclick="closeLegalModal('modal-kvkk')">✕</button>
+      </div>
+      <div class="modal-body legal-content-text">
+        <p><strong>6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Aydınlatma Metni:</strong></p>
+        <h4>1. Veri Sorumlusu</h4>
+        <p>Kamu Personel Rehberi (kamupersonelrehberiniz.me) olarak, sitemizi ziyaret eden kullanıcılarımızın gizliliğine ve kişisel verilerinin güvenliğine en üst seviyede önem vermekteyiz.</p>
+        <h4>2. İşlenen Veriler ve Amaç</h4>
+        <p>Sitemizde herhangi bir zorunlu üyelik veya kişisel kimlik verisi toplanmamaktadır. Yalnızca sitemizin performansını izlemek, teknik güvenliği sağlamak ve kullanıcı deneyimini optimize etmek amacıyla anonimleştirilmiş ziyaret verileri (IP, oturum çerezleri) işlenmektedir.</p>
+        <h4>3. Veri Aktarımı</h4>
+        <p>Toplanan anonim veriler üçüncü taraf ticari şirketlere satılmaz, kiralanmaz veya aktarılmaz.</p>
+        <h4>4. Haklarınız</h4>
+        <p>6698 sayılı Kanun’un 11. maddesi uyarınca veri sorumlusuna başvurarak verilerinizin işlenip işlenmediğini öğrenme ve yasal haklarınızı kullanma hakkına sahipsiniz.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary-action" onclick="closeLegalModal('modal-kvkk')">Anladım</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Çerez Politikası Modalı -->
+  <div class="modal-backdrop" id="modal-cookie-policy" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-job-title">Çerez (Cookie) Politikası</h3>
+        <button class="modal-close-btn" onclick="closeLegalModal('modal-cookie-policy')">✕</button>
+      </div>
+      <div class="modal-body legal-content-text">
+        <p>Bu web sitesi, sayfalarımızın hızlı çalışmasını sağlamak, tercihlerinizi hatırlamak ve kullanım deneyiminizi geliştirmek amacıyla çerezler (cookies) kullanmaktadır.</p>
+        <h4>Zorunlu Çerezler:</h4>
+        <p>Sitenin temel işlevlerini (filtreleme ayarları, modal pencereleri, güvenlik) yerine getirebilmesi için teknik olarak zorunlu çerezlerdir.</p>
+        <h4>Performans ve Analitik Çerezler:</h4>
+        <p>Ziyaretçi sayılarını anonim olarak ölçümlememize yarayan çerezlerdir. Kimliğinizi açığa çıkarmaz.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary-action" onclick="closeLegalModal('modal-cookie-policy')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yasal Uyarı / Sorumluluk Reddi Modalı -->
+  <div class="modal-backdrop" id="modal-legal-warning" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-job-title">Yasal Uyarı ve Sorumluluk Reddi</h3>
+        <button class="modal-close-btn" onclick="closeLegalModal('modal-legal-warning')">✕</button>
+      </div>
+      <div class="modal-body legal-content-text">
+        <p><strong>Önemli Yasal Bilgilendirme:</strong></p>
+        <p>Kamu Personel Rehberi (kamupersonelrehberiniz.me), Türkiye Cumhuriyeti resmi kamu kurum ve kuruluşları ile organik veya idari bir bağı bulunmayan, kamu yararı doğrultusunda resmi alım ilanlarını tek bir kaynakta derleyerek adaylara kolaylık sağlayan <strong>bağımsız bir rehberlik ve bilgilendirme platformudur</strong>.</p>
+        <p>Sitede yer alan tüm ilanlar, T.C. Resmi Gazete, Cumhurbaşkanlığı Strateji ve Bütçe Başkanlığı (kamuilan.sbb.gov.tr) ve ilgili kamu kurumlarının resmi internet sitelerinden derlenmektedir. Tüm başvurular adaylar tarafından doğrudan kurumların resmi başvuru kanalları üzerinden yapılmalıdır. Olası son dakika değişiklikleri veya kurum iptallerinde kurumun yayımladığı resmi metinler esastır.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary-action" onclick="closeLegalModal('modal-legal-warning')">Okudum, Kabul Ediyorum</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ÇEREZ ONAY BANNERI (6698 SAYILI KVKK UYUMLU)
+       ========================================================================= -->
+  <div class="cookie-banner" id="cookie-consent-banner" role="region" aria-label="Çerez Onayı">
+    <div class="cookie-text">
+      Sitemizde kullanıcı deneyimini iyileştirmek ve yasal mevzuata uygun hareket etmek amacıyla çerezler kullanılmaktadır. Detaylı bilgi için <a onclick="openLegalModal('modal-cookie-policy')">Çerez Politikamızı</a> ve <a onclick="openLegalModal('modal-kvkk')">KVKK Aydınlatma Metnimizi</a> inceleyebilirsiniz.
+    </div>
+    <div class="cookie-actions">
+      <button class="btn-cookie-decline" id="cookie-decline-btn">Yalnızca Zorunlular</button>
+      <button class="btn-cookie-accept" id="cookie-accept-btn">Tümünü Kabul Et</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       CANLI DESTEK VE DANIŞMANLIK ALTYAPISI (KPSS & KAMU DANIŞMANLIĞI)
+       Altyapı tamamen hazırlandı; talimat doğrultusunda şimdilik yayına alınmamıştır.
+       (CONFIG.ENABLE_LIVE_SUPPORT = true yapılarak anında devreye alınabilir)
+       ========================================================================= -->
+  <div class="live-support-widget" id="live-support-widget">
+    <div class="live-support-card" id="live-support-card">
+      <div class="live-support-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🏛</span>
+          <div>
+            <div style="font-weight:700;font-size:0.875rem;">KPSS Danışmanlığı</div>
+            <div style="font-size:0.7rem;color:#94A3B8;">Canlı Bilgi & Destek Masası</div>
+          </div>
+        </div>
+        <button id="live-support-close-btn" style="color:#FFF;font-size:1rem;">✕</button>
+      </div>
+      <div class="live-support-card-body">
+        <p style="color:#64748B;">Merhaba! Alım şartları, KPSS puan türleri veya başvuru süreciyle ilgili sorularınızı iletebilirsiniz:</p>
+        <input type="text" class="live-support-input" placeholder="Adınız ve Soyadınız">
+        <input type="text" class="live-support-input" placeholder="KPSS Puanınız ve Bölümünüz">
+        <textarea class="live-support-input" rows="3" placeholder="Sormak istediğiniz soru..."></textarea>
+        <button style="background:#2563EB;color:#FFF;padding:8px;border-radius:4px;font-weight:700;font-size:0.8125rem;">Danışmana İlet</button>
+      </div>
+    </div>
+    <button class="live-support-trigger" id="live-support-trigger">
+      <span>💬</span> KPSS Danışmanlığı & Canlı Destek
+    </button>
+  </div>
+
+  <!-- =========================================================================
+       ALT BİLGİ (FOOTER)
+       ========================================================================= -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Marka & Misyon -->
+        <div class="footer-brand-block">
+          <div class="brand-wrapper">
+            <div class="brand-crest">🏛</div>
+            <div class="brand-text-block">
+              <span class="brand-title">KAMU PERSONEL REHBERİ</span>
+              <span class="brand-sub">Türkiye Cumhuriyeti Resmi Alım Portalı Rehberi</span>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Kamu kurumlarının yayımladığı tüm personel alımlarını, başvuru kılavuzlarını ve kadro dağılımlarını tek bir güvenli, tarafsız ve kurumsal çatı altında toplayan Türkiye'nin öncü kamu istihdam rehberliği platformu.
+          </p>
+        </div>
+
+        <!-- Hızlı Bağlantılar -->
+        <div>
+          <h4 class="footer-heading">Hızlı Erişim</h4>
+          <ul class="footer-links-list">
+            <li><a onclick="filterByCategory('memur')">Memur Alımları</a></li>
+            <li><a onclick="filterByCategory('sozlesmeli')">Sözleşmeli Personel (4/B)</a></li>
+            <li><a onclick="filterByCategory('akademik')">Akademik Kadro İlanları</a></li>
+            <li><a onclick="filterByCategory('bilisim')">Bilişim & Teknik Kadrolar</a></li>
+            <li><a onclick="filterByCategory('isci')">Sürekli İşçi Alımları</a></li>
+          </ul>
+        </div>
+
+        <!-- Kurumsal & Yasal Mevzuat -->
+        <div>
+          <h4 class="footer-heading">Kurumsal & Yasal</h4>
+          <ul class="footer-links-list">
+            <li><a onclick="openLegalModal('modal-kvkk')">KVKK Aydınlatma Metni</a></li>
+            <li><a onclick="openLegalModal('modal-cookie-policy')">Çerez ve Gizlilik Politikası</a></li>
+            <li><a onclick="openLegalModal('modal-legal-warning')">Yasal Uyarı & Sorumluluk Reddi</a></li>
+            <li><a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer">Telegram Kanalımız</a></li>
+            <li><a href="https://instagram.com/kamupersonelrehberiniz" target="_blank" rel="noopener noreferrer">Instagram Sayfamız</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Alt Satır -->
+      <div class="footer-bottom">
+        <div>
+          © 2026 Kamu Personel Rehberi (kamupersonelrehberiniz.me) - Tüm Hakları Saklıdır.
+        </div>
+        <div>
+          Aktif Ziyaretçi: <strong id="stat-active-visitors" style="color:#FFF;">2.071</strong> | Toplam İlan: <strong id="stat-total-jobs" style="color:#FFF;">683</strong>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- İstemci Script Motoru -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

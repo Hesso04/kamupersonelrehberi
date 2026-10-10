@@ -31,6 +31,7 @@ from ai.groq_client import GroqClient
 from ai.llm_client import LLMClient
 from ai.search_assistant import AISearchAssistant
 from graphics.generator import JobCardGenerator, CARD_THEMES
+from graphics.modern_generator import ModernCardGenerator
 from publishers.manager import PublisherManager
 from publishers.telegram import TelegramPublisher
 from publishers.whatsapp import WhatsAppPublisher
@@ -259,6 +260,21 @@ if selected_pace != cur_pace:
     set_system_setting("AUTOPILOT_PACE_PRESET", selected_pace)
 
 st.sidebar.markdown("---")
+# Web Sitesi Canlı Senkronizasyon (kamupersonelrehberiniz.me)
+st.sidebar.subheader("🌐 Canlı Web Sitesi")
+st.sidebar.caption("kamupersonelrehberiniz.me")
+if st.sidebar.button("🚀 Web Sitesini Şimdi Güncelle & Push Et", use_container_width=True, help="Veritabanındaki güncel ilanları derleyip anında GitHub Pages'e yükler."):
+    with st.spinner("Web sitesi güncelleniyor ve GitHub'a yükleniyor..."):
+        try:
+            from scripts.export_website_data import sync_and_push
+            if sync_and_push(auto_push=True):
+                st.sidebar.success("✅ Web sitesi başarıyla güncellendi!")
+            else:
+                st.sidebar.warning("⚠️ Güncelleme yapıldı, git bağlantısını kontrol ediniz.")
+        except Exception as _ws_err:
+            st.sidebar.error(f"Hata: {_ws_err}")
+
+st.sidebar.markdown("---")
 # Entegrasyon Durum Özeti & Canlı Token Kontrolü
 groq_status = "🟢" if settings.active_groq_api_key else "🔴"
 telegram_status = "🟢" if (settings.active_telegram_bot_token and settings.active_telegram_channel_id) else "🔴"
@@ -434,31 +450,27 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
         with c_act2:
             if st.button("🎨 Görsel Üret", use_container_width=True, help="İlk 5 ilan için yeni kart üretir"):
                 with st.spinner("Görsel kartlar üretiliyor..."):
-                    generator = JobCardGenerator()
+                    generator = ModernCardGenerator()
                     with get_db() as db:
                         target_jobs = db.query(JobAnnouncement).filter(
                             JobAnnouncement.image_path == None,
                             JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED])
                         ).limit(5).all()
                         for tj in target_jobs:
-                            d_txt = to_turkish_date_str(tj.application_end_date)
-                            tj_pdf = getattr(tj, "pdf_path", None)
-                            has_pdf = bool(tj_pdf and Path(tj_pdf).exists())
-                            c_path = generator.generate_card(
+                            c_path = generator.generate_modern_card(
                                 job_id=tj.id,
                                 institution=tj.institution or "Kamu Kurumu",
                                 position=tj.position or tj.title,
                                 total_positions=tj.total_positions,
                                 kpss_requirement=tj.kpss_requirement,
                                 education_level=tj.education_level,
-                                deadline=d_txt,
-                                source_url=tj.source_url,
-                                has_pdf=has_pdf,
-                                title=tj.title or ""
+                                deadline=tj.application_end_date,
+                                title=tj.title or "",
+                                website_url=settings.WEBSITE_URL
                             )
                             tj.image_path = str(c_path)
                         db.commit()
-                    st.success("5 adet yüksek çözünürlüklü kurumsal kart üretildi!")
+                    st.success("5 adet yeni nesil modern afiş üretildi!")
                     st.rerun()
         with c_act3:
             if st.button("🔄 Eksikleri Eşitle", use_container_width=True, help="Daha önce sadece Telegram'a gitmiş son 5 ilanın eksik Instagram & Facebook paylaşımlarını tamamlar"):
@@ -722,21 +734,18 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
 
                     c_gen, c_ai = st.columns(2)
                     with c_gen:
-                        if st.button("🎨 Seçili Temayla Üret", key=f"btn_img_{job.id}", use_container_width=True):
-                            generator = JobCardGenerator()
-                            deadline_txt = to_turkish_date_str(job.application_end_date)
-                            new_path = generator.generate_card(
+                        if st.button("🎨 Yeni Nesil Modern Afiş Üret", key=f"btn_img_{job.id}", use_container_width=True):
+                            generator = ModernCardGenerator()
+                            new_path = generator.generate_modern_card(
                                 job_id=job.id,
                                 institution=auto_inst,
                                 position=auto_pos,
                                 total_positions=auto_count,
                                 kpss_requirement=job.kpss_requirement,
                                 education_level=job.education_level,
-                                deadline=deadline_txt,
-                                source_url=job.source_url,
-                                has_pdf=has_pdf_file,
-                                theme=selected_job_theme,
-                                title=job.title or ""
+                                deadline=job.application_end_date,
+                                title=job.title or "",
+                                website_url=settings.WEBSITE_URL
                             )
                             with get_db() as db:
                                 target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()

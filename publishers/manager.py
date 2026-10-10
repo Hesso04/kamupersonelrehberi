@@ -5,6 +5,7 @@ from loguru import logger
 from core.database import get_db, get_system_setting
 from core.models import JobAnnouncement, JobStatus
 from graphics.generator import JobCardGenerator
+from graphics.modern_generator import ModernCardGenerator
 from .base import BasePublisher
 from .telegram import TelegramPublisher
 from .whatsapp import WhatsAppPublisher
@@ -15,7 +16,7 @@ from .facebook import FacebookPublisher
 class PublisherManager:
     """
     Tüm sosyal medya kanallarına gönderimi koordine eden merkezi servis.
-    Eğer ilan görseli henüz üretilmemişse dinamik QR kod ile anında üretir,
+    Yeni nesil modern dikey afiş motoruyla görseli üretir,
     seçilen platformlara (Telegram, WhatsApp, Instagram, Facebook) dağıtır,
     başarısızlık teşhisini saklar ve veritabanı durumunu günceller.
     """
@@ -26,6 +27,7 @@ class PublisherManager:
         self.instagram = InstagramPublisher()
         self.facebook = FacebookPublisher()
         self.card_generator = JobCardGenerator()
+        self.modern_card_generator = ModernCardGenerator()
 
     def publish_job(
         self,
@@ -80,6 +82,8 @@ class PublisherManager:
                 for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
 
+            website_domain = get_system_setting("WEBSITE_URL", "www.kamupersonelrehberiniz.me")
+
             if is_cancellation:
                 pdf_info = "📄 <b>Resmi İptal / Karar Belgesi (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi Duyuru:</b> {clean_link}"
                 job.social_post_text = (
@@ -90,6 +94,7 @@ class PublisherManager:
                     f"🗓 <b>Duyuru Tarihi:</b> {deadline_str}\n\n"
                     f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> Bu duyuru yeni bir alım ilanı <u>DEĞİLDİR</u>! Daha önce yayımlanan personel alım süreci ilgili resmi kurum tarafından <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
                     f"{pdf_info}\n\n"
+                    f"🌐 <b>Tüm Güncel İlanlar:</b> https://{website_domain}\n\n"
                     f"📲 <i>Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!</i>\n"
                     f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
                 )
@@ -104,29 +109,45 @@ class PublisherManager:
                     f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
                     f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
                     f"{pdf_info}\n\n"
+                    f"🌐 <b>Detaylı Kılavuz & Başvuru Ekranı:</b> https://{website_domain}\n\n"
                     f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
                     f"#KamuPersoneli #İlan #KamuAlımı"
                 )
 
-            # 1. Görseli seçili temayla TAZE üret
+            # 1. Görseli Yeni Nesil Modern Afiş Motoru ile Üret
             try:
-                card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
-                image_path = self.card_generator.generate_card(
+                image_path = self.modern_card_generator.generate_modern_card(
                     job_id=job.id,
                     institution=job.institution or "Kamu Kurumu",
-                    position=job.position,
+                    position=job.position or "Personel Alımı",
+                    title=job.title or "",
                     total_positions=job.total_positions,
                     kpss_requirement=job.kpss_requirement,
                     education_level=job.education_level,
-                    deadline=deadline_str,
-                    source_url=job.source_url,
-                    has_pdf=has_pdf,
-                    theme=card_theme,
-                    title=job.title or ""
+                    deadline=job.application_end_date,
+                    website_url=website_domain
                 )
                 job.image_path = str(image_path)
-            except Exception as e:
-                logger.warning(f"Görsel üretilemedi: {e}")
+            except Exception as me:
+                logger.warning(f"Modern görsel üretilemedi, klasik Pillow motoruna geçiliyor: {me}")
+                try:
+                    card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
+                    image_path = self.card_generator.generate_card(
+                        job_id=job.id,
+                        institution=job.institution or "Kamu Kurumu",
+                        position=job.position,
+                        total_positions=job.total_positions,
+                        kpss_requirement=job.kpss_requirement,
+                        education_level=job.education_level,
+                        deadline=deadline_str,
+                        source_url=job.source_url,
+                        has_pdf=has_pdf,
+                        theme=card_theme,
+                        title=job.title or ""
+                    )
+                    job.image_path = str(image_path)
+                except Exception as ce:
+                    logger.error(f"Görsel üretimi tamamen başarısız: {ce}")
 
             db.commit()
 
