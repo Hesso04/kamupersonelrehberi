@@ -69,10 +69,9 @@ class PublisherManager:
             has_pdf = bool(job.pdf_path and Path(job.pdf_path).exists())
             deadline_str = to_turkish_date_str(job.application_end_date)
 
-            # Sosyal medya metnini her zaman kurumsal ve güncel olarak hazırla
-            clean_link = job.source_url or "https://kamuilan.sbb.gov.tr/"
-            if "ilanDetay.aspx" in clean_link:
-                clean_link = "https://kamuilan.sbb.gov.tr/"
+            # Sosyal medya metnini her zaman resmi sitemize yönlendirecek şekilde kurumsal ve güncel olarak hazırla
+            portal_base = "https://kamupersonelrehberiniz.me"
+            portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
 
             # İptal veya Düzeltme İlanı Kontrolü
             title_upper = (job.title or "").upper()
@@ -82,10 +81,10 @@ class PublisherManager:
                 for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
 
-            website_domain = get_system_setting("WEBSITE_URL", "www.kamupersonelrehberiniz.me")
+            website_domain = get_system_setting("WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
 
             if is_cancellation:
-                pdf_info = "📄 <b>Resmi İptal / Karar Belgesi (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi Duyuru:</b> {clean_link}"
+                pdf_info = "📄 <b>Resmi İptal Kararı (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🌐 <b>İptal Detayları & Açıklama:</b> {portal_job_url}"
                 job.social_post_text = (
                     f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
                     f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
@@ -99,7 +98,7 @@ class PublisherManager:
                     f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
                 )
             else:
-                pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🔗 <b>Resmi İlan Linki:</b> {clean_link}"
+                pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🌐 <b>Resmi Kılavuz & Şartlar:</b> {portal_job_url}"
                 job.social_post_text = (
                     f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
                     f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
@@ -109,7 +108,7 @@ class PublisherManager:
                     f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
                     f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
                     f"{pdf_info}\n\n"
-                    f"🌐 <b>Detaylı Kılavuz & Başvuru Ekranı:</b> https://{website_domain}\n\n"
+                    f"🌐 <b>Resmi Başvuru Ekranı & İlan Detayı:</b> {portal_job_url}\n\n"
                     f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
                     f"#KamuPersoneli #İlan #KamuAlımı"
                 )

@@ -55,6 +55,9 @@ async function initApp() {
 
     // Etkileşim Dinleyicileri
     bindSearchAndFilters();
+
+    // URL'deki ?ilan=123 parametresiyle ilanı doğrudan aç (Telegram paylaşımları için)
+    checkAndOpenDeepLinkedJob();
   } catch (err) {
     console.error('İlan verisi yüklenirken hata:', err);
     const feed = document.getElementById('jobs-feed');
@@ -552,6 +555,23 @@ function closeJobDetailModal() {
   if (modal) {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+  }
+}
+
+function checkAndOpenDeepLinkedJob() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetJobId = urlParams.get('ilan') || urlParams.get('job') || window.location.hash.replace('#ilan-', '').replace('#job-', '');
+    if (targetJobId) {
+      const numId = parseInt(targetJobId, 10);
+      if (!isNaN(numId)) {
+        setTimeout(() => {
+          openJobDetailModal(numId);
+        }, 350);
+      }
+    }
+  } catch (e) {
+    console.warn('Deep link yönlendirme hatası:', e);
   }
 }
 

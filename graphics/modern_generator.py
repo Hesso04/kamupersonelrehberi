@@ -6,7 +6,6 @@ from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from playwright.sync_api import sync_playwright
 
 from config.settings import settings
 from core.database import get_system_setting
@@ -200,9 +199,9 @@ class ModernCardGenerator:
         total_positions: Optional[int] = None
     ) -> Dict[str, Any]:
         """Bozuk kurum, eylem fiilleri ve jenerik unvan hatalarını ayıklar."""
-        inst = (institution or "").strip()
-        pos = (position or "").strip()
-        tit = (title or "").strip()
+        inst = str(institution or "").strip()
+        pos = str(position or "").strip()
+        tit = str(title or "").strip()
 
         # 1. Kurumun içindeki personel sayısını veya 'alacak' ibaresini ayıkla
         inst_clean = re.sub(r"\s+\d+\s*(?:sözleşmeli|memur|öğretim|sürekli|personel|uzman|kamu|işçi|akademik).*$", "", inst, flags=re.IGNORECASE)
@@ -908,30 +907,8 @@ class ModernCardGenerator:
         filename = f"modern_ilan_{job_id}_{sector.lower()}{cancellation_tag}_{timestamp}.png"
         filepath = self.output_dir / filename
 
-        # Geçici HTML dosyası
-        temp_html = self.output_dir / f"temp_{job_id}_{timestamp}.html"
-        with open(temp_html, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        # Streamlit Cloud ortamında (/mount/src veya /home/appuser) Chromium yüklü olmadığından
-        # doğrudan %100 kararlı ve 0.05s süren Pillow Modern 1080x1620 motoruna yönlendir.
-        is_cloud = Path("/mount/src").exists() or "/home/appuser" in os.path.expanduser("~") or os.environ.get("STREAMLIT_SHARING_MODE") is not None
-
-        if not is_cloud:
-            try:
-                with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=True)
-                    page = browser.new_page(viewport={"width": self.WIDTH, "height": self.HEIGHT}, device_scale_factor=1)
-                    page.goto(f"file:///{temp_html.as_posix()}", wait_until="networkidle")
-                    page.wait_for_timeout(1000) # Google Fonts render bekleme
-                    page.screenshot(path=str(filepath), type="png")
-                    browser.close()
-                logger.info(f"Yeni Nesil Modern Afiş Üretildi [Playwright/{sector}]: {filepath}")
-                return filepath
-            except Exception as pe:
-                logger.warning(f"Playwright render kullanılamıyor ({pe}). Yüksek çözünürlüklü Pillow modern afiş motoruna devrediliyor...")
-
-        # 1. Öncelik: Tam teşekküllü 1080x1620 Pillow Modern Afiş Render'ı (Sıfır bağımlılık, anında üretim)
+        # 1. Öncelik: Tam teşekküllü 1080x1620 Pillow Modern Afiş Render'ı
+        # Sıfır harici tarayıcı gereksinimi: Streamlit Cloud ve sunucu ortamlarında %100 kararlı ve 0.05 saniyede çalışır.
         try:
             city_val = city or "İlanda Belirtilen İller"
             return self._render_pillow_modern_card(
@@ -969,12 +946,6 @@ class ModernCardGenerator:
             except Exception as fe:
                 logger.error(f"Tüm afiş motorları başarısız oldu: {fe}")
                 raise RuntimeError(f"Görsel afiş üretilemedi: {fe}") from fe
-        finally:
-            if temp_html.exists():
-                try:
-                    temp_html.unlink()
-                except Exception:
-                    pass
 
     def _render_pillow_modern_card(
         self,

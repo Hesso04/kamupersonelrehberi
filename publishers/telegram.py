@@ -97,7 +97,11 @@ class TelegramPublisher(BasePublisher):
         # Viral Kanal İmzası ve İletilme Çağrısı
         channel_handle = (self.channel_id or "kamupersonelrehberi").replace("@", "").strip()
         channel_link = f"https://t.me/{channel_handle}"
-        clean_news_url = job.source_url or "https://kamuilan.sbb.gov.tr/"
+        
+        # Resmi Portal Bağlantısı (SBB linkleri yerine doğrudan kendi web sitemize yönlendir)
+        portal_base = "https://kamupersonelrehberiniz.me"
+        portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
+        clean_news_url = portal_job_url
 
         # İptal / Düzeltme Kontrolü
         title_upper = (job.title or "").upper()
@@ -110,27 +114,30 @@ class TelegramPublisher(BasePublisher):
         if is_cancellation:
             caption_text += (
                 "\n\n📲 <i>Aday arkadaşlarına ilet, boşuna başvuru hazırlığı yapmasınlar!</i>\n"
-                f"📌 <b>Resmi Gazete & SBB Teyitli İlanlar:</b> @{channel_handle}"
+                f"📌 <b>Resmi Gazete Teyitli İlanlar:</b> @{channel_handle}"
             )
         else:
             caption_text += (
                 "\n\n📲 <i>İş arayan bir arkadaşına ilet, haberi olsun!</i>\n"
-                f"📌 <b>Resmi Gazete & SBB Onaylı İlanlar:</b> @{channel_handle}"
+                f"📌 <b>Resmi Gazete Onaylı İlanlar:</b> @{channel_handle}"
             )
 
         # Güvenlik: Metin içindeki literal "None" kalıntılarını temizle
         caption_text = caption_text.replace("<b>Pozisyon:</b> None", f"<b>Pozisyon:</b> {job.position or 'Resmi Kılavuzda'}")
         caption_text = caption_text.replace("None Kişi", "1 Kişi").replace(": None", ": Belirtilmedi")
 
+        # Metin içindeki tüm eski SBB veya harici link kalıntılarını kendi resmi sitemize yönlendir
+        caption_text = re.sub(r"https?://(?:www\.)?kamuilan\.sbb\.gov\.tr\S*", portal_job_url, caption_text)
+
         # 2026 Viral İletme ve Hızlı Başvuru Butonları
         import urllib.parse
         if is_cancellation:
-            share_summary = f"🚨 DİKKAT: {job.institution or 'Kamu'} {job.position or 'Personel Alımı'} İptal Edildi!\nDetaylar: {channel_link}"
-            btn1_text = "📄 Resmi İptal Kararı"
+            share_summary = f"🚨 DİKKAT: {job.institution or 'Kamu'} {job.position or 'Personel Alımı'} İptal Edildi!\nDetaylar: {portal_job_url}"
+            btn1_text = "🚨 İptal Detayları (Web)"
             btn2_text = "📲 Adayları Bilgilendir"
         else:
-            share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {channel_link}"
-            btn1_text = "🌐 Resmi Başvuru Ekranı"
+            share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {portal_job_url}"
+            btn1_text = "🌐 Resmi Başvuru & İlan Detayı"
             btn2_text = "📲 Arkadaşına İlet"
 
         share_btn_url = f"https://t.me/share/url?url={urllib.parse.quote(channel_link)}&text={urllib.parse.quote(share_summary)}"
@@ -138,7 +145,7 @@ class TelegramPublisher(BasePublisher):
         reply_markup = {
             "inline_keyboard": [
                 [
-                    {"text": btn1_text, "url": clean_news_url},
+                    {"text": btn1_text, "url": portal_job_url},
                     {"text": btn2_text, "url": share_btn_url}
                 ],
                 [

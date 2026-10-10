@@ -6,7 +6,10 @@ import subprocess
 from pathlib import Path
 from typing import Tuple, Optional
 from loguru import logger
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
 
 from config.settings import settings
 from core.models import JobAnnouncement
