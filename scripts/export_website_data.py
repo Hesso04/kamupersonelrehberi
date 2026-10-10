@@ -175,9 +175,12 @@ def export_data(output_paths: List[Path]) -> None:
             elif j.application_end_date and j.application_end_date.date() < datetime.now().date():
                 status_text = "SÜRESİ DOLDU"
 
-            # Resmi Kılavuz URL
-            doc_url = j.official_doc_url or j.source_url or "https://kamuilan.sbb.gov.tr/"
-            clean_source = j.source_url or "https://kamuilan.sbb.gov.tr/"
+            # Resmi Kılavuz (PDF) Doğrudan Yerel Dosya Eşleştirmesi
+            # 404 hatasını önlemek için doğrudan documents/ klasöründeki yerel PDF bağlanır
+            pdf_filename = f"sbb_{j.id}.pdf"
+            local_pdf_exists = (ROOT_DIR / "docs" / "documents" / pdf_filename).exists() or (ROOT_DIR / "data" / "documents" / pdf_filename).exists()
+            direct_pdf_url = f"documents/{pdf_filename}" if local_pdf_exists else None
+            portal_url = "https://kamuilan.sbb.gov.tr/"
 
             # İlan Özeti
             edu_req = j.education_level or "Resmi Kılavuzda Belirtilmiştir"
@@ -202,8 +205,9 @@ def export_data(output_paths: List[Path]) -> None:
                 "education_level": edu_req,
                 "kpss_requirement": kpss_req,
                 "city": city_name,
-                "official_doc_url": doc_url,
-                "source_url": clean_source,
+                "has_pdf": local_pdf_exists,
+                "pdf_url": direct_pdf_url,
+                "source_url": portal_url,
                 "is_featured": quota >= 20 or any(b in inst.upper() for b in ["BAKANLIĞI", "GELİR İDARESİ", "SAVUNMA SANAYİİ", "BDDK", "SPK", "YARGITAY"]),
             }
             exported_jobs.append(item)

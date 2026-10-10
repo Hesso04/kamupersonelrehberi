@@ -71,6 +71,15 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.APP_ENV.lower() == "production"
 
+    @property
+    def active_website_url(self) -> str:
+        return self.get_dynamic("WEBSITE_URL", getattr(self, "WEBSITE_URL", "www.kamupersonelrehberiniz.me"))
+
+    def __getattr__(self, name: str) -> Any:
+        if name == "WEBSITE_URL":
+            return "www.kamupersonelrehberiniz.me"
+        raise AttributeError(f"'Settings' object has no attribute '{name}'")
+
     # =========================================================================
     # DİNAMİK VERİTABANI AYARLARI (Admin Panelinden Yönetilen Canlı Değerler)
     # =========================================================================

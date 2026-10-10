@@ -868,10 +868,33 @@ class ModernCardGenerator:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page(viewport={"width": self.WIDTH, "height": self.HEIGHT}, device_scale_factor=1)
                 page.goto(f"file:///{temp_html.as_posix()}", wait_until="networkidle")
-                page.wait_for_timeout(1200) # Google Fonts render bekleme
+                page.wait_for_timeout(1000) # Google Fonts render bekleme
                 page.screenshot(path=str(filepath), type="png")
                 browser.close()
             logger.info(f"Yeni Nesil Modern Afiş Üretildi [{sector}]: {filepath}")
+            return filepath
+        except Exception as pe:
+            logger.warning(f"Playwright render hatası ({pe}). Güvenilir Pillow afiş motoruna devrediliyor...")
+            try:
+                from graphics.generator import JobCardGenerator
+                pillow_gen = JobCardGenerator()
+                theme_name = "DARK_NOIR" if is_cancellation else "ROYAL_CRIMSON"
+                fallback_path = pillow_gen.generate_card(
+                    job_id=job_id,
+                    institution=clean_inst,
+                    position=clean_pos,
+                    total_positions=tot_num,
+                    deadline=deadline,
+                    theme=theme_name,
+                    bullet_points=bullets,
+                    kpss_requirement=kpss_str,
+                    education_level=edu_str
+                )
+                logger.info(f"Yedek Pillow afişi başarıyla üretildi: {fallback_path}")
+                return fallback_path
+            except Exception as fe:
+                logger.error(f"Pillow yedek afiş motoru da başarısız: {fe}")
+                raise
         finally:
             if temp_html.exists():
                 try:
@@ -879,4 +902,3 @@ class ModernCardGenerator:
                 except Exception:
                     pass
 
-        return filepath

@@ -466,7 +466,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 education_level=tj.education_level,
                                 deadline=tj.application_end_date,
                                 title=tj.title or "",
-                                website_url=settings.WEBSITE_URL
+                                website_url=getattr(settings, "WEBSITE_URL", "www.kamupersonelrehberiniz.me")
                             )
                             tj.image_path = str(c_path)
                         db.commit()
@@ -745,7 +745,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 education_level=job.education_level,
                                 deadline=job.application_end_date,
                                 title=job.title or "",
-                                website_url=settings.WEBSITE_URL
+                                website_url=getattr(settings, "WEBSITE_URL", "www.kamupersonelrehberiniz.me")
                             )
                             with get_db() as db:
                                 target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
