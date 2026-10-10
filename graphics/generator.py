@@ -308,7 +308,7 @@ class JobCardGenerator:
         self.output_dir = settings.IMAGE_OUTPUT_DIR
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        self.assets_dir = Path("graphics/assets")
+        self.assets_dir = settings.ASSETS_DIR
         self.assets_dir.mkdir(parents=True, exist_ok=True)
         self.logo_path = self.assets_dir / "logo.png"
 

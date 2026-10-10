@@ -83,13 +83,14 @@ class ModernCardGenerator:
     def __init__(self):
         self.output_dir = settings.IMAGE_OUTPUT_DIR
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.assets_dir = Path("graphics/assets")
+        self.assets_dir = settings.ASSETS_DIR
+        self.assets_dir.mkdir(parents=True, exist_ok=True)
         self.bg_dir = self.assets_dir / "backgrounds"
         self.bg_dir.mkdir(parents=True, exist_ok=True)
         self.logo_path = self.assets_dir / "logo.png"
 
-        bundled_bold = self.assets_dir / "fonts" / "font_bold.ttf"
-        bundled_reg = self.assets_dir / "fonts" / "font.ttf"
+        bundled_bold = settings.FONTS_DIR / "font_bold.ttf"
+        bundled_reg = settings.FONTS_DIR / "font.ttf"
         self.font_bold_path = bundled_bold if bundled_bold.exists() else None
         self.font_regular_path = bundled_reg if bundled_reg.exists() else None
 
@@ -101,8 +102,8 @@ class ModernCardGenerator:
             except Exception:
                 pass
         for alt in [
-            self.assets_dir / "fonts" / "font_bold.ttf",
-            self.assets_dir / "fonts" / "font.ttf",
+            settings.FONTS_DIR / "font_bold.ttf",
+            settings.FONTS_DIR / "font.ttf",
             Path("C:/Windows/Fonts/arialbd.ttf"),
             Path("C:/Windows/Fonts/arial.ttf"),
             Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
@@ -912,56 +913,62 @@ class ModernCardGenerator:
         with open(temp_html, "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page(viewport={"width": self.WIDTH, "height": self.HEIGHT}, device_scale_factor=1)
-                page.goto(f"file:///{temp_html.as_posix()}", wait_until="networkidle")
-                page.wait_for_timeout(1000) # Google Fonts render bekleme
-                page.screenshot(path=str(filepath), type="png")
-                browser.close()
-            logger.info(f"Yeni Nesil Modern Afiş Üretildi [Playwright/{sector}]: {filepath}")
-            return filepath
-        except Exception as pe:
-            logger.warning(f"Playwright render kullanılamıyor ({pe}). Yüksek çözünürlüklü Pillow modern afiş motoruna devrediliyor...")
+        # Streamlit Cloud ortamında (/mount/src veya /home/appuser) Chromium yüklü olmadığından
+        # doğrudan %100 kararlı ve 0.05s süren Pillow Modern 1080x1620 motoruna yönlendir.
+        is_cloud = Path("/mount/src").exists() or "/home/appuser" in os.path.expanduser("~") or os.environ.get("STREAMLIT_SHARING_MODE") is not None
+
+        if not is_cloud:
             try:
-                # 1. Öncelik: Tam teşekküllü 1080x1620 Pillow Modern Afiş Render'ı (Sıfır bağımlılık, anında üretim)
-                city_val = city or "İlanda Belirtilen İller"
-                return self._render_pillow_modern_card(
-                    filepath=filepath,
-                    sector=sector,
-                    is_cancellation=is_cancellation,
-                    clean_inst=clean_inst,
-                    clean_pos=clean_pos,
-                    tot_num=tot_num,
-                    deadline_str=d_str,
-                    edu_str=edu_str,
-                    kpss_str=kpss_str,
-                    city_str=city_val,
-                    website_url=website_url
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    page = browser.new_page(viewport={"width": self.WIDTH, "height": self.HEIGHT}, device_scale_factor=1)
+                    page.goto(f"file:///{temp_html.as_posix()}", wait_until="networkidle")
+                    page.wait_for_timeout(1000) # Google Fonts render bekleme
+                    page.screenshot(path=str(filepath), type="png")
+                    browser.close()
+                logger.info(f"Yeni Nesil Modern Afiş Üretildi [Playwright/{sector}]: {filepath}")
+                return filepath
+            except Exception as pe:
+                logger.warning(f"Playwright render kullanılamıyor ({pe}). Yüksek çözünürlüklü Pillow modern afiş motoruna devrediliyor...")
+
+        # 1. Öncelik: Tam teşekküllü 1080x1620 Pillow Modern Afiş Render'ı (Sıfır bağımlılık, anında üretim)
+        try:
+            city_val = city or "İlanda Belirtilen İller"
+            return self._render_pillow_modern_card(
+                filepath=filepath,
+                sector=sector,
+                is_cancellation=is_cancellation,
+                clean_inst=clean_inst,
+                clean_pos=clean_pos,
+                tot_num=tot_num,
+                deadline_str=d_str,
+                edu_str=edu_str,
+                kpss_str=kpss_str,
+                city_str=city_val,
+                website_url=website_url
+            )
+        except Exception as pfe:
+            logger.warning(f"Pillow modern render uyarısı ({pfe}). Klasik vitrin motoruna devrediliyor...")
+            try:
+                from graphics.generator import JobCardGenerator
+                pillow_gen = JobCardGenerator()
+                theme_name = "DARK_NOIR" if is_cancellation else "ROYAL_CRIMSON"
+                fallback_path = pillow_gen.generate_card(
+                    job_id=job_id,
+                    institution=clean_inst,
+                    position=clean_pos,
+                    total_positions=tot_num,
+                    deadline=deadline,
+                    theme=theme_name,
+                    kpss_requirement=kpss_str,
+                    education_level=edu_str,
+                    title=title
                 )
-            except Exception as pfe:
-                logger.warning(f"Pillow modern render uyarısı ({pfe}). Klasik vitrin motoruna devrediliyor...")
-                try:
-                    from graphics.generator import JobCardGenerator
-                    pillow_gen = JobCardGenerator()
-                    theme_name = "DARK_NOIR" if is_cancellation else "ROYAL_CRIMSON"
-                    fallback_path = pillow_gen.generate_card(
-                        job_id=job_id,
-                        institution=clean_inst,
-                        position=clean_pos,
-                        total_positions=tot_num,
-                        deadline=deadline,
-                        theme=theme_name,
-                        kpss_requirement=kpss_str,
-                        education_level=edu_str,
-                        title=title
-                    )
-                    logger.info(f"Yedek klasik vitrin afişi başarıyla üretildi: {fallback_path}")
-                    return fallback_path
-                except Exception as fe:
-                    logger.error(f"Tüm afiş motorları başarısız oldu: {fe}")
-                    raise
+                logger.info(f"Yedek klasik vitrin afişi başarıyla üretildi: {fallback_path}")
+                return fallback_path
+            except Exception as fe:
+                logger.error(f"Tüm afiş motorları başarısız oldu: {fe}")
+                raise RuntimeError(f"Görsel afiş üretilemedi: {fe}") from fe
         finally:
             if temp_html.exists():
                 try:
