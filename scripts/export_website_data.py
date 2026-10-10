@@ -178,7 +178,24 @@ def export_data(output_paths: List[Path]) -> None:
             # Resmi Kılavuz (PDF) Doğrudan Yerel Dosya Eşleştirmesi
             # 404 hatasını önlemek için doğrudan documents/ klasöründeki yerel PDF bağlanır
             pdf_filename = f"sbb_{j.id}.pdf"
-            local_pdf_exists = (ROOT_DIR / "docs" / "documents" / pdf_filename).exists() or (ROOT_DIR / "data" / "documents" / pdf_filename).exists()
+            docs_pdf_dest = ROOT_DIR / "docs" / "documents" / pdf_filename
+
+            # Eğer docs/documents içinde henüz yoksa ama yerel bir PDF indirilmişse otomatik kopyala
+            if not docs_pdf_dest.exists():
+                src_cand = None
+                for candidate in [j.pdf_path, ROOT_DIR / "data" / "documents" / pdf_filename, ROOT_DIR / "data" / "documents" / f"{j.id}.pdf"]:
+                    if candidate and Path(candidate).exists() and Path(candidate).stat().st_size > 100:
+                        src_cand = Path(candidate)
+                        break
+                if src_cand:
+                    try:
+                        docs_pdf_dest.parent.mkdir(parents=True, exist_ok=True)
+                        import shutil
+                        shutil.copy2(src_cand, docs_pdf_dest)
+                    except Exception:
+                        pass
+
+            local_pdf_exists = docs_pdf_dest.exists()
             direct_pdf_url = f"documents/{pdf_filename}" if local_pdf_exists else None
             portal_url = "https://kamuilan.sbb.gov.tr/"
 
@@ -269,8 +286,8 @@ def sync_and_push(auto_push: bool = True) -> bool:
         return True
 
     try:
-        # Değişiklikleri stage'e al
-        subprocess.run(["git", "add", "docs/data/jobs.json", "website/data/jobs.json"], cwd=str(ROOT_DIR), check=True)
+        # Değişiklikleri stage'e al (Veri JSON'ları + Yeni İndirilen PDF Kılavuzları)
+        subprocess.run(["git", "add", "docs/data/jobs.json", "website/data/jobs.json", "docs/documents/"], cwd=str(ROOT_DIR), check=True)
 
         # Stage'de değişiklik var mı kontrol et
         diff_res = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(ROOT_DIR))
