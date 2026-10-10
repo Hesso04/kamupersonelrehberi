@@ -735,26 +735,30 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                     c_gen, c_ai = st.columns(2)
                     with c_gen:
                         if st.button("🎨 Yeni Nesil Modern Afiş Üret", key=f"btn_img_{job.id}", use_container_width=True):
-                            generator = ModernCardGenerator()
-                            new_path = generator.generate_modern_card(
-                                job_id=job.id,
-                                institution=auto_inst,
-                                position=auto_pos,
-                                total_positions=auto_count,
-                                kpss_requirement=job.kpss_requirement,
-                                education_level=job.education_level,
-                                deadline=job.application_end_date,
-                                title=job.title or "",
-                                website_url=getattr(settings, "WEBSITE_URL", "www.kamupersonelrehberiniz.me")
-                            )
-                            with get_db() as db:
-                                target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
-                                target.image_path = str(new_path)
-                                if not target.position: target.position = auto_pos
-                                if not target.total_positions or target.total_positions == 1: target.total_positions = auto_count
-                                db.commit()
-                            st.success(f"Yeni görsel kart oluşturuldu! ({CARD_THEMES[selected_job_theme]['name']})")
-                            st.rerun()
+                            try:
+                                with st.spinner("Yeni nesil modern afiş üretiliyor..."):
+                                    generator = ModernCardGenerator()
+                                    new_path = generator.generate_modern_card(
+                                        job_id=job.id,
+                                        institution=auto_inst,
+                                        position=auto_pos,
+                                        total_positions=auto_count,
+                                        kpss_requirement=job.kpss_requirement,
+                                        education_level=job.education_level,
+                                        deadline=job.application_end_date,
+                                        title=job.title or "",
+                                        website_url=getattr(settings, "WEBSITE_URL", "www.kamupersonelrehberiniz.me")
+                                    )
+                                    with get_db() as db:
+                                        target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
+                                        target.image_path = str(new_path)
+                                        if not target.position: target.position = auto_pos
+                                        if not target.total_positions or target.total_positions == 1: target.total_positions = auto_count
+                                        db.commit()
+                                st.success(f"Yeni görsel kart oluşturuldu! ({CARD_THEMES[selected_job_theme]['name']})")
+                                st.rerun()
+                            except Exception as gen_err:
+                                st.error(f"Afiş üretimi sırasında hata oluştu: {gen_err}")
 
                     with c_ai:
                         if st.button("🤖 AI ile Yeniden İşle", key=f"btn_ai_{job.id}", use_container_width=True):
