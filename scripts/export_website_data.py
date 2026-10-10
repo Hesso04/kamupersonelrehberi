@@ -252,7 +252,7 @@ def export_data(output_paths: List[Path]) -> None:
                 "total_quotas": total_quotas,
                 "active_visitors": 2071,
                 "telegram_channel": "https://t.me/kamupersonelrehberi",
-                "instagram_account": "https://instagram.com/kamupersonelrehberiniz",
+                "instagram_account": "https://instagram.com/kamupersonelrehberi",
                 "categories": [
                     {"name": k, "count": v} for k, v in sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
                 ],
