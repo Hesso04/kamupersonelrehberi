@@ -1,0 +1,41 @@
+# =========================================================================
+# Kamu Personel Rehberi (kamupersonelrehberiniz.me) - robots.txt
+# Arama Motoru Optimizasyonu (SEO) ve Yapay Zeka Ajanları (GEO) İzinleri
+# =========================================================================
+
+User-agent: *
+Allow: /
+Disallow: /data/temp/
+
+# -------------------------------------------------------------------------
+# Yapay Zeka Arama Motorları & LLM Tarayıcıları (GEO İzinleri)
+# ChatGPT Search, OpenAI GPTBot, Google Gemini / SGE, Perplexity AI, Claude
+# -------------------------------------------------------------------------
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# -------------------------------------------------------------------------
+# Arama Motoru Site Haritası (Sitemap)
+# -------------------------------------------------------------------------
+Sitemap: https://kamupersonelrehberiniz.me/sitemap.xml

@@ -269,6 +269,92 @@ def export_data(output_paths: List[Path]) -> None:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
             print(f"💾 JSON başarıyla kaydedildi: {out_path} ({len(exported_jobs)} ilan)")
 
+        # Google SEO & AI Arama (GEO) Site Haritasını Otomatik Oluştur
+        sitemap_paths = [
+            ROOT_DIR / "website" / "sitemap.xml",
+            ROOT_DIR / "docs" / "sitemap.xml"
+        ]
+        generate_sitemap(exported_jobs, sitemap_paths)
+
+
+def generate_sitemap(jobs: List[Dict[str, Any]], sitemap_paths: List[Path]):
+    """
+    Tüm aktif kamu alım ilanları, ana sayfa ve kategoriler için
+    Google standartlarında SEO & GEO sitemap.xml üretir.
+    """
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    base_url = "https://kamupersonelrehberiniz.me"
+
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+        '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+        '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">',
+        '  <!-- Ana Sayfa (Pik Öncelik) -->',
+        '  <url>',
+        f'    <loc>{base_url}/</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>hourly</changefreq>',
+        '    <priority>1.0</priority>',
+        '  </url>',
+        '  <!-- Temel Kategori Sayfaları -->',
+        '  <url>',
+        f'    <loc>{base_url}/?kategori=memur</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{base_url}/?kategori=sozlesmeli</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{base_url}/?kategori=akademik</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{base_url}/?kategori=isci</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{base_url}/?kategori=bilisim</loc>',
+        f'    <lastmod>{today_str}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>'
+    ]
+
+    for job in jobs:
+        j_id = job.get("id")
+        if not j_id:
+            continue
+        # Güncellenme / Bitiş tarihi
+        pub_date = job.get("publish_date") or today_str
+        if len(str(pub_date)) > 10:
+            pub_date = str(pub_date)[:10]
+
+        xml_lines.append('  <url>')
+        xml_lines.append(f'    <loc>{base_url}/?ilan={j_id}</loc>')
+        xml_lines.append(f'    <lastmod>{pub_date}</lastmod>')
+        xml_lines.append('    <changefreq>daily</changefreq>')
+        xml_lines.append('    <priority>0.9</priority>')
+        xml_lines.append('  </url>')
+
+    xml_lines.append('</urlset>')
+    xml_content = "\n".join(xml_lines)
+
+    for p in sitemap_paths:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(xml_content)
+        print(f"🗺️ Sitemap XML kaydedildi: {p} ({len(jobs)} ilan linki)")
+
 
 def sync_and_push(auto_push: bool = True) -> bool:
     """
@@ -286,8 +372,14 @@ def sync_and_push(auto_push: bool = True) -> bool:
         return True
 
     try:
-        # Değişiklikleri stage'e al (Veri JSON'ları + Yeni İndirilen PDF Kılavuzları)
-        subprocess.run(["git", "add", "docs/data/jobs.json", "website/data/jobs.json", "docs/documents/"], cwd=str(ROOT_DIR), check=True)
+        # Değişiklikleri stage'e al (Veri JSON'ları + Sitemap + Robots + Belgeler)
+        subprocess.run([
+            "git", "add",
+            "docs/data/jobs.json", "website/data/jobs.json",
+            "docs/sitemap.xml", "website/sitemap.xml",
+            "docs/robots.txt", "website/robots.txt",
+            "docs/documents/"
+        ], cwd=str(ROOT_DIR), check=True)
 
         # Stage'de değişiklik var mı kontrol et
         diff_res = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=str(ROOT_DIR))

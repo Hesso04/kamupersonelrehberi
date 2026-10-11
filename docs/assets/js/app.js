@@ -548,6 +548,9 @@ function openJobDetailModal(jobId) {
 
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
+
+  // Dinamik SEO, GEO ve Google for Jobs Şema Güncellemesi
+  updateJobSeoMetadata(job);
 }
 
 function closeJobDetailModal() {
@@ -555,6 +558,106 @@ function closeJobDetailModal() {
   if (modal) {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+  }
+  // Varsayılan SEO meta verilerine dön
+  resetJobSeoMetadata();
+}
+
+function updateJobSeoMetadata(job) {
+  try {
+    const jobTitle = `${job.institution || 'Kamu Kurumu'} ${job.position || 'Personel'} Alımı (${job.total_positions || 1} Kişi)`;
+    const fullTitle = `${jobTitle} - Kamu Personel Rehberi`;
+    const jobDesc = `${job.institution} tarafından yayımlanan ${job.total_positions || 1} kişilik ${job.position} alım ilanı. Son başvuru: ${job.application_end_date_formatted || 'Resmi Kılavuzda'}. Resmi PDF başvuru kılavuzu ve şartları.`;
+    const deepUrl = `https://kamupersonelrehberiniz.me/?ilan=${job.id}`;
+
+    document.title = fullTitle;
+
+    // Meta Description & Canonical
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', jobDesc);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', deepUrl);
+
+    // OpenGraph
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', fullTitle);
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', jobDesc);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', deepUrl);
+
+    // JobPosting JSON-LD Schema Enjeksiyonu (Google for Jobs & AI Arama)
+    let schemaScript = document.getElementById('dynamic-jobposting-schema');
+    if (!schemaScript) {
+      schemaScript = document.createElement('script');
+      schemaScript.id = 'dynamic-jobposting-schema';
+      schemaScript.type = 'application/ld+json';
+      document.head.appendChild(schemaScript);
+    }
+
+    const jobSchema = {
+      "@context": "https://schema.org/",
+      "@type": "JobPosting",
+      "title": `${job.institution} ${job.position || 'Personel'} Alımı`,
+      "description": `<p>${jobDesc}</p><p>Başvuru tarihleri: ${job.application_dates || 'Resmi ilanda'}. KPSS Şartı: ${job.kpss_requirement || 'Resmi ilanda'}.</p>`,
+      "identifier": {
+        "@type": "PropertyValue",
+        "name": job.institution || "Kamu Kurumu",
+        "value": String(job.id)
+      },
+      "datePosted": (job.publish_date ? job.publish_date.split('T')[0] : new Date().toISOString().split('T')[0]),
+      "validThrough": (job.application_end_date ? job.application_end_date.split('T')[0] : "2026-12-31"),
+      "employmentType": job.is_contract ? "CONTRACTOR" : "FULL_TIME",
+      "hiringOrganization": {
+        "@type": "Organization",
+        "name": job.institution || "T.C. Kamu Kurumu",
+        "sameAs": job.source_url || "https://kamuilan.sbb.gov.tr/"
+      },
+      "jobLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": job.city || "Türkiye",
+          "addressCountry": "TR"
+        }
+      },
+      "applicantLocationRequirements": {
+        "@type": "Country",
+        "name": "TR"
+      },
+      "url": deepUrl
+    };
+
+    schemaScript.textContent = JSON.stringify(jobSchema, null, 2);
+  } catch (err) {
+    console.debug('SEO güncelleme istisnası:', err);
+  }
+}
+
+function resetJobSeoMetadata() {
+  try {
+    document.title = 'Kamu Personel Rehberi - 2026 Güncel Memur ve Personel Alım İlanları';
+    const defDesc = '2026 T.C. Kamu kurum ve kuruluşlarının güncel memur alımı, 4/B sözleşmeli personel, işçi ve akademik kadro ilanları. Resmi Gazete ve SBB Kamu İlan Portalı teyitli başvuru kılavuzları.';
+    const defUrl = 'https://kamupersonelrehberiniz.me/';
+
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', defDesc);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', defUrl);
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', document.title);
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', defDesc);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', defUrl);
+
+    const schemaScript = document.getElementById('dynamic-jobposting-schema');
+    if (schemaScript) schemaScript.remove();
+  } catch (err) {
+    console.debug('SEO sıfırlama istisnası:', err);
   }
 }
 
