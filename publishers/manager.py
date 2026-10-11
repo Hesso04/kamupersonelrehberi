@@ -54,6 +54,7 @@ class PublisherManager:
             import re
             from pathlib import Path
             from graphics.generator import to_turkish_date_str, tr_title
+            website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
 
             if job.status in [JobStatus.DRAFT, JobStatus.PENDING_APPROVAL] and not job.social_post_text:
                 pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
@@ -167,12 +168,26 @@ class PublisherManager:
             successful_channels = []
             failed_channels_log = []
 
+            def _persist_success_immediately(ch_name: str):
+                """Bir kanal başarıyla yayınlandığı anda DB'ye hemen yaz ve commit et!"""
+                c_list = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
+                if ch_name not in c_list:
+                    c_list.append(ch_name)
+                job.published_channels = ",".join(c_list)
+                job.status = JobStatus.PUBLISHED
+                job.published_at = datetime.utcnow()
+                try:
+                    db.commit()
+                except Exception as pc_err:
+                    logger.debug(f"Kanal anlık kayıt uyarısı ({ch_name}): {pc_err}")
+
             # 2. Telegram Dağıtımı
             if "TELEGRAM" in upper_channels:
                 t_success, t_msg = self.telegram.publish(job)
                 results["TELEGRAM"] = (t_success, t_msg)
                 if t_success:
                     successful_channels.append("TELEGRAM")
+                    _persist_success_immediately("TELEGRAM")
                 else:
                     failed_channels_log.append(f"Telegram: {t_msg}")
 
@@ -182,6 +197,7 @@ class PublisherManager:
                 results["WHATSAPP"] = (w_success, w_msg)
                 if w_success:
                     successful_channels.append("WHATSAPP")
+                    _persist_success_immediately("WHATSAPP")
                 else:
                     failed_channels_log.append(f"WhatsApp: {w_msg}")
 
@@ -191,6 +207,7 @@ class PublisherManager:
                 results["INSTAGRAM"] = (i_success, i_msg)
                 if i_success:
                     successful_channels.append("INSTAGRAM")
+                    _persist_success_immediately("INSTAGRAM")
                 else:
                     failed_channels_log.append(f"Instagram: {i_msg}")
 
@@ -200,23 +217,13 @@ class PublisherManager:
                 results["FACEBOOK"] = (f_success, f_msg)
                 if f_success:
                     successful_channels.append("FACEBOOK")
+                    _persist_success_immediately("FACEBOOK")
                 else:
                     failed_channels_log.append(f"Facebook: {f_msg}")
 
-            # Durum Güncellemesi
-            current_channels = job.published_channels.split(",") if job.published_channels else []
-            for sc in successful_channels:
-                if sc not in current_channels:
-                    current_channels.append(sc)
-            job.published_channels = ",".join(current_channels)
-
-            if successful_channels:
-                job.status = JobStatus.PUBLISHED
-                job.published_at = datetime.utcnow()
-
+            # Son durum notu güncellemesi
             if failed_channels_log:
                 err_summary = " | ".join(failed_channels_log)
-                # Güvenlik: Veritabanı kodlama çökmesini önlemek için emojileri temizle
                 safe_summary = re.sub(r"[^\w\s\.,\-:;()\[\]/]", "", err_summary)
                 job.admin_notes = f"[Kanal Hatası: {safe_summary[:300]}]"
             else:

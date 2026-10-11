@@ -141,9 +141,9 @@ class BackgroundScheduler:
                 target_channels = []
                 if "TELEGRAM" in configured_channels:
                     target_channels.append("TELEGRAM")
-                if "INSTAGRAM" in configured_channels and getattr(publisher.instagram, "is_configured", False):
+                if "INSTAGRAM" in configured_channels and bool(getattr(publisher.instagram, "access_token", None) and getattr(publisher.instagram, "account_id", None)):
                     target_channels.append("INSTAGRAM")
-                if "FACEBOOK" in configured_channels and getattr(publisher.facebook, "is_configured", False):
+                if "FACEBOOK" in configured_channels and bool(getattr(publisher.facebook, "raw_token", None) and getattr(publisher.facebook, "page_id", None)):
                     target_channels.append("FACEBOOK")
                 if "WHATSAPP" in configured_channels and publisher.whatsapp.is_logged_in():
                     target_channels.append("WHATSAPP")
@@ -259,9 +259,10 @@ class BackgroundScheduler:
                             should_publish = elapsed >= interval_sec
 
                     if should_publish:
+                        # KRİTİK: Zaman damgasını hemen güncelle ki 5 saniyelik döngüde mükerrer tetikleme OLMASIN!
+                        self.last_autopilot_publish_time = now
                         pub_count = self.run_autopilot_publish(limit=1)
                         if pub_count > 0:
-                            self.last_autopilot_publish_time = now
                             logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) devrede.")
 
                 # 3. Instagram Canlı Yorum ve DM Yanıtlayıcı (Her 60 saniyede bir yeni yorumları tara)
