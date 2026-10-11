@@ -4,6 +4,7 @@ import re
 import json
 from pathlib import Path
 import io
+from typing import Optional, List, Dict, Any
 
 # Proje kök dizinini Python arama yoluna ekle
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -452,9 +453,15 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                 with st.spinner("Görsel kartlar üretiliyor..."):
                     generator = ModernCardGenerator()
                     with get_db() as db:
+                        from sqlalchemy import or_
+                        now = datetime.now()
                         target_jobs = db.query(JobAnnouncement).filter(
                             JobAnnouncement.image_path == None,
-                            JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED])
+                            JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED]),
+                            or_(
+                                JobAnnouncement.application_end_date == None,
+                                JobAnnouncement.application_end_date >= now
+                            )
                         ).limit(5).all()
                         for tj in target_jobs:
                             c_path = generator.generate_modern_card(
@@ -507,8 +514,14 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
             else:
                 with st.spinner("Seçili ilanlar kanallara dağıtılıyor..."):
                     with get_db() as db:
+                        from sqlalchemy import or_
+                        now = datetime.now()
                         target_batch = db.query(JobAnnouncement).filter(
-                            JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED])
+                            JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED]),
+                            or_(
+                                JobAnnouncement.application_end_date == None,
+                                JobAnnouncement.application_end_date >= now
+                            )
                         ).order_by(JobAnnouncement.id.asc()).limit(5).all()
                         batch_ids = [b.id for b in target_batch]
 

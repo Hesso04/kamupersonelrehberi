@@ -111,6 +111,49 @@ class TelegramPublisher(BasePublisher):
             for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
         )
 
+        # 1. KESİN GÜVENLİK: Başvuru süresi dolmuş normal ilanlar Telegram'a ASLA gönderilemez
+        from datetime import datetime
+        if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
+            d_str = job.application_end_date.strftime("%d.%m.%Y")
+            logger.warning(f"[TELEGRAM ENGELİ] İlan #{job.id} ({job.institution}) başvuru süresi ({d_str}) dolduğu için gönderilmedi!")
+            return False, f"Başvuru süresi dolmuş ({d_str}) ilan Telegram kanalında paylaşılamaz."
+
+        # 2. ANTİ-SPAM & MÜKERRER KORUMASI: Bu ilan Telegram'da daha önce yayınlandı mı?
+        cur_channels = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
+        if "TELEGRAM" in cur_channels:
+            logger.info(f"[TELEGRAM ATLANDI] İlan #{job.id} daha önce Telegram kanalına zaten gönderilmiş.")
+            return True, f"İlan #{job.id} zaten Telegram kanalında mevcut (mükerrer gönderim önlendi)."
+
+        # 3. YEREL GÖNDERİM GEÇMİŞİ KONTROLÜ (Son 24 saatte aynı ilan veya kurum/pozisyon atıldı mı?)
+        cache_file = Path("data/telegram_sent_cache.json")
+        try:
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            sent_cache = {}
+            if cache_file.exists():
+                with open(cache_file, "r", encoding="utf-8") as cf:
+                    sent_cache = json.load(cf)
+            
+            job_key = f"job_{job.id}"
+            slug_inst = re.sub(r"\W+", "_", (job.institution or "").lower()).strip("_")
+            slug_pos = re.sub(r"\W+", "_", (job.position or "").lower()).strip("_")
+            entity_key = f"ent_{slug_inst}_{slug_pos}"
+            now_ts = datetime.now().timestamp()
+
+            # Son 24 saat içinde gönderilmişse engelle (86400 saniye)
+            if job_key in sent_cache and (now_ts - sent_cache[job_key]) < 86400:
+                logger.warning(f"[TELEGRAM ANTİ-SPAM] İlan #{job.id} son 24 saat içinde zaten gönderildi!")
+                return True, f"İlan #{job.id} son 24 saatte zaten kanala iletildi (Spam engeli)."
+
+            if entity_key in sent_cache and (now_ts - sent_cache[entity_key]) < 43200:
+                logger.warning(f"[TELEGRAM ANTİ-SPAM] {job.institution} {job.position} son 12 saat içinde zaten paylaşıldı!")
+                return True, f"{job.institution} ilanı yakın zamanda paylaşıldı (Spam engeli)."
+        except Exception as cache_err:
+            logger.debug(f"Telegram sent cache okuma uyarısı: {cache_err}")
+            sent_cache = {}
+            job_key = f"job_{job.id}"
+            entity_key = ""
+            now_ts = datetime.now().timestamp()
+
         if is_cancellation:
             caption_text += (
                 "\n\n📲 <i>Aday arkadaşlarına ilet, boşuna başvuru hazırlığı yapmasınlar!</i>\n"
@@ -219,6 +262,16 @@ class TelegramPublisher(BasePublisher):
                         logger.info(f"Resmi PDF kılavuzu Telegram kanalına yüklendi: ID {job.id}")
                     except Exception as pe:
                         logger.warning(f"Telegram PDF gönderme uyarısı: {pe}")
+
+                # 3. Başarılı gönderimi anti-spam önbelleğine kaydet
+                try:
+                    sent_cache[job_key] = now_ts
+                    if entity_key:
+                        sent_cache[entity_key] = now_ts
+                    with open(cache_file, "w", encoding="utf-8") as cf:
+                        json.dump(sent_cache, cf, ensure_ascii=False)
+                except Exception as save_err:
+                    logger.debug(f"Cache yazma uyarısı: {save_err}")
 
                 return True, "İlan ve resmi kılavuz Telegram kanalında başarıyla yayınlandı."
             else:

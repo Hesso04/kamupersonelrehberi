@@ -103,6 +103,19 @@ class FacebookPublisher(BasePublisher):
         if not self.is_configured:
             return False, "Facebook erişim bilgileri (Sayfa ID veya Token) eksik."
 
+        # Başvuru süresi geçmiş normal ilan kontrolü
+        from datetime import datetime
+        title_upper = (job.title or "").upper()
+        pos_upper = (job.position or "").upper()
+        is_cancellation = any(
+            w in title_upper or w in pos_upper
+            for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
+        )
+        if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
+            d_str = job.application_end_date.strftime("%d.%m.%Y")
+            logger.warning(f"[FACEBOOK ENGELİ] İlan #{job.id} ({job.institution}) başvuru süresi ({d_str}) dolduğu için gönderilmedi!")
+            return False, f"Başvuru süresi dolmuş ({d_str}) ilan Facebook'ta paylaşılamaz."
+
         # Ön teşhis
         diag = MetaHelper.diagnose_token(self.raw_token)
         if not diag["is_valid"]:

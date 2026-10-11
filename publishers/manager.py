@@ -82,11 +82,14 @@ class PublisherManager:
                 for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
 
-            # BUG-01: Başvuru süresi geçmiş normal ilanların paylaşımını kesin olarak engelle
+            # BUG-01: Başvuru süresi geçmiş normal ilanların paylaşımını kesin olarak engelle ve DB'de REJECTED yap
             from datetime import datetime
             if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
                 warn_msg = f"İlanın son başvuru tarihi ({deadline_str}) geçmiş olduğundan yayınlanamaz."
                 logger.warning(f"İlan #{job.id} engellendi: {warn_msg}")
+                job.status = JobStatus.REJECTED
+                job.admin_notes = f"[Süresi Doldu: {deadline_str}] Sistem tarafından otomatik arşivlendi."
+                db.commit()
                 return {"error": (False, warn_msg)}
 
             # Sosyal medya metnini YALNIZCA boşsa üret (BUG-08: AI/admin düzenlemeleri korunsun)
@@ -213,7 +216,9 @@ class PublisherManager:
 
             if failed_channels_log:
                 err_summary = " | ".join(failed_channels_log)
-                job.admin_notes = f"[Kanal Hatası: {err_summary}]"
+                # Güvenlik: Veritabanı kodlama çökmesini önlemek için emojileri temizle
+                safe_summary = re.sub(r"[^\w\s\.,\-:;()\[\]/]", "", err_summary)
+                job.admin_notes = f"[Kanal Hatası: {safe_summary[:300]}]"
             else:
                 job.admin_notes = "Tüm hedeflenen kanallarda başarıyla yayınlandı."
 

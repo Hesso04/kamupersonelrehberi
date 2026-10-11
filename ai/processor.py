@@ -84,9 +84,15 @@ class AIProcessor:
         """
         processed_ids = []
         with get_db() as db:
+            from sqlalchemy import or_
+            now = datetime.now()
             pending_jobs = db.query(JobAnnouncement).filter(
                 (JobAnnouncement.social_post_text == None) |
-                (JobAnnouncement.status == JobStatus.PENDING_APPROVAL)
+                (JobAnnouncement.status == JobStatus.PENDING_APPROVAL),
+                or_(
+                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date >= now
+                )
             ).limit(limit).all()
 
             target_ids = [j.id for j in pending_jobs]

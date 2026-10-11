@@ -27,7 +27,9 @@ connect_args = {}
 if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 elif "pooler.supabase.com" in db_url or ":6543" in db_url or "supabase" in db_url:
-    connect_args = {"prepare_threshold": None}
+    connect_args = {"prepare_threshold": None, "client_encoding": "utf8"}
+else:
+    connect_args = {"client_encoding": "utf8"}
 
 engine = create_engine(
     db_url,

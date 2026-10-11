@@ -181,8 +181,14 @@ class BackgroundScheduler:
         details = []
 
         with get_db() as db:
+            from sqlalchemy import or_
+            now = datetime.now()
             recent_published = db.query(JobAnnouncement).filter(
-                JobAnnouncement.status == JobStatus.PUBLISHED
+                JobAnnouncement.status == JobStatus.PUBLISHED,
+                or_(
+                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date >= now
+                )
             ).order_by(JobAnnouncement.id.desc()).limit(20).all()
 
             target_jobs = []

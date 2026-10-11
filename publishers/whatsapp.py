@@ -167,6 +167,18 @@ class WhatsAppPublisher(BasePublisher):
 
         from graphics.generator import to_turkish_date_str
         deadline_str = to_turkish_date_str(job.application_end_date)
+
+        # Başvuru süresi dolmuş normal ilan kontrolü
+        from datetime import datetime
+        title_upper = (job.title or "").upper()
+        pos_upper = (job.position or "").upper()
+        is_cancellation = any(
+            w in title_upper or w in pos_upper
+            for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
+        )
+        if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
+            logger.warning(f"[WHATSAPP ENGELİ] İlan #{job.id} süresi dolduğu için WhatsApp'a gönderilmedi.")
+            return False, f"Başvuru süresi dolmuş ilan WhatsApp kanalında paylaşılamaz."
         clean_url = job.source_url or "https://kamuilan.sbb.gov.tr/"
         if "ilanDetay.aspx" in clean_url:
             clean_url = "https://kamuilan.sbb.gov.tr/"

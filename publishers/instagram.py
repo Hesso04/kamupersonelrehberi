@@ -447,6 +447,19 @@ class InstagramPublisher(BasePublisher):
         if not self.access_token or not self.account_id:
             return False, "Instagram ayarları (Token / Account ID) eksik."
 
+        # Başvuru süresi geçmiş normal ilan kontrolü
+        from datetime import datetime
+        title_upper = (job.title or "").upper()
+        pos_upper = (job.position or "").upper()
+        is_cancellation = any(
+            w in title_upper or w in pos_upper
+            for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
+        )
+        if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
+            d_str = job.application_end_date.strftime("%d.%m.%Y")
+            logger.warning(f"[INSTAGRAM ENGELİ] İlan #{job.id} ({job.institution}) başvuru süresi ({d_str}) dolduğu için gönderilmedi!")
+            return False, f"Başvuru süresi dolmuş ({d_str}) ilan Instagram'da paylaşılamaz."
+
         diag = MetaHelper.diagnose_token(self.access_token)
         if not diag["is_valid"]:
             return False, diag["message"]
@@ -567,7 +580,7 @@ class InstagramPublisher(BasePublisher):
             if story_path and Path(story_path).exists():
                 s_ok, s_m = self.publish_story(story_path, job=job)
                 if s_ok:
-                    return " 📸 (9:16 Modern Hikaye/Story de eşzamanlı paylaşıldı!)"
+                    return " [9:16 Modern Story eszamanli paylasildi]"
                 else:
                     logger.warning(f"Story çapraz yayınlama hatası: {s_m}")
         except Exception as e:
