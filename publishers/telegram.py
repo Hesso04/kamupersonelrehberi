@@ -121,19 +121,8 @@ class TelegramPublisher(BasePublisher):
         # 2. ANTİ-SPAM & MÜKERRER KORUMASI: Bu ilan Telegram'da daha önce yayınlandı mı?
         cur_channels = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
         if "TELEGRAM" in cur_channels:
-            logger.info(f"[TELEGRAM ATLANDI] İlan #{job.id} daha önce Telegram kanalına zaten gönderilmiş.")
+            logger.info(f"[TELEGRAM ATLANDI] İlan #{job.id} daha önce Telegram kanalına zaten gönderilmiş (published_channels kontrolü).")
             return True, f"İlan #{job.id} zaten Telegram kanalında mevcut (mükerrer gönderim önlendi)."
-
-        # Doğrudan canlı veritabanından son yayın durumunu doğrula
-        try:
-            from core.database import get_db
-            with get_db() as db_check:
-                db_job = db_check.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
-                if db_job and db_job.published_channels and "TELEGRAM" in [c.strip().upper() for c in db_job.published_channels.split(",") if c.strip()]:
-                    logger.info(f"[TELEGRAM DB ATLANDI] İlan #{job.id} veritabanında TELEGRAM olarak kayıtlı.")
-                    return True, f"İlan #{job.id} zaten Telegram kanalında kayıtlı (mükerrer gönderim önlendi)."
-        except Exception as db_chk_err:
-            logger.debug(f"DB kontrol uyarısı: {db_chk_err}")
 
         # 3. YEREL GÖNDERİM GEÇMİŞİ KONTROLÜ (Son 24 saatte aynı ilan veya kurum/pozisyon atıldı mı?)
         cache_file = Path("data/telegram_sent_cache.json")

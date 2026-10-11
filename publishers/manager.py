@@ -37,7 +37,11 @@ class PublisherManager:
     ) -> Dict[str, Tuple[bool, str]]:
         """
         Belirtilen ilanı seçilen kanallara gönderir.
-        Görsel kartı istenen tema ile (varsayılan: ROYAL_CRIMSON veya ayarlardaki tema) üretir.
+        Görsel kartı istenen tema ile üretir.
+        
+        KRİTİK TASARIM: Tüm kanal sonuçları toplanır, DB güncellemesi en sonda
+        TEK BİR atomik commit ile yapılır. _persist_success_immediately kaldırıldı
+        çünkü get_db() context manager'ın çift commit'i rollback'e neden oluyordu.
         """
         if channels is None:
             channels = ["TELEGRAM"]
@@ -48,9 +52,18 @@ class PublisherManager:
             if not job:
                 return {"error": (False, f"İlan bulunamadı: ID {job_id}")}
 
+            # SAVUNMA HATTI: Bu ilan zaten PUBLISHED ise hiçbir şey yapma
+            if job.status == JobStatus.PUBLISHED:
+                cur_pub = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
+                requested = [c.upper() for c in channels]
+                missing = [c for c in requested if c not in cur_pub]
+                if not missing:
+                    logger.info(f"İlan #{job_id} tüm hedef kanallarda zaten PUBLISHED — atlanıyor.")
+                    return {c: (True, "Zaten yayınlanmış") for c in requested}
+                # Eksik kanal varsa sadece onları dene
+                channels = missing
+
             # Pozisyon ve kontenjan kontrolü / onarımı
-            # BUG-09: Yalnızca DRAFT statüsündeki (henüz işlenmemiş) ilanlara uygulanır.
-            # Onaylanmış veya AI-işlenmiş ilanların verileri korunur.
             import re
             from pathlib import Path
             from graphics.generator import to_turkish_date_str, tr_title
@@ -168,68 +181,85 @@ class PublisherManager:
             successful_channels = []
             failed_channels_log = []
 
-            def _persist_success_immediately(ch_name: str):
-                """Bir kanal başarıyla yayınlandığı anda DB'ye hemen yaz ve commit et!"""
-                c_list = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
-                if ch_name not in c_list:
-                    c_list.append(ch_name)
-                job.published_channels = ",".join(c_list)
-                job.status = JobStatus.PUBLISHED
-                job.published_at = datetime.utcnow()
-                try:
-                    db.commit()
-                except Exception as pc_err:
-                    logger.debug(f"Kanal anlık kayıt uyarısı ({ch_name}): {pc_err}")
+            # ========== KANAL DAĞITIMI (Sonuçlar toplanır, DB en sonda güncellenir) ==========
 
             # 2. Instagram Dağıtımı (Önce Instagram Carousel ve Story doğrulanır ve yayınlanır)
             if "INSTAGRAM" in upper_channels:
-                i_success, i_msg = self.instagram.publish(job)
-                results["INSTAGRAM"] = (i_success, i_msg)
-                if i_success:
-                    successful_channels.append("INSTAGRAM")
-                    _persist_success_immediately("INSTAGRAM")
-                else:
-                    failed_channels_log.append(f"Instagram: {i_msg}")
+                try:
+                    i_success, i_msg = self.instagram.publish(job)
+                    results["INSTAGRAM"] = (i_success, i_msg)
+                    if i_success:
+                        successful_channels.append("INSTAGRAM")
+                    else:
+                        failed_channels_log.append(f"Instagram: {i_msg}")
+                except Exception as ig_err:
+                    results["INSTAGRAM"] = (False, f"Instagram Exception: {ig_err}")
+                    failed_channels_log.append(f"Instagram: {ig_err}")
+                    logger.error(f"Instagram yayın istisnası: {ig_err}")
 
             # 3. Telegram Dağıtımı (Anında kanala butonları ve PDF ile iletilir)
             if "TELEGRAM" in upper_channels:
-                t_success, t_msg = self.telegram.publish(job)
-                results["TELEGRAM"] = (t_success, t_msg)
-                if t_success:
-                    successful_channels.append("TELEGRAM")
-                    _persist_success_immediately("TELEGRAM")
-                else:
-                    failed_channels_log.append(f"Telegram: {t_msg}")
+                try:
+                    t_success, t_msg = self.telegram.publish(job)
+                    results["TELEGRAM"] = (t_success, t_msg)
+                    if t_success:
+                        successful_channels.append("TELEGRAM")
+                    else:
+                        failed_channels_log.append(f"Telegram: {t_msg}")
+                except Exception as tg_err:
+                    results["TELEGRAM"] = (False, f"Telegram Exception: {tg_err}")
+                    failed_channels_log.append(f"Telegram: {tg_err}")
+                    logger.error(f"Telegram yayın istisnası: {tg_err}")
 
             # 4. Facebook Sayfa Dağıtımı
             if "FACEBOOK" in upper_channels:
-                f_success, f_msg = self.facebook.publish(job)
-                results["FACEBOOK"] = (f_success, f_msg)
-                if f_success:
-                    successful_channels.append("FACEBOOK")
-                    _persist_success_immediately("FACEBOOK")
-                else:
-                    failed_channels_log.append(f"Facebook: {f_msg}")
+                try:
+                    f_success, f_msg = self.facebook.publish(job)
+                    results["FACEBOOK"] = (f_success, f_msg)
+                    if f_success:
+                        successful_channels.append("FACEBOOK")
+                    else:
+                        failed_channels_log.append(f"Facebook: {f_msg}")
+                except Exception as fb_err:
+                    results["FACEBOOK"] = (False, f"Facebook Exception: {fb_err}")
+                    failed_channels_log.append(f"Facebook: {fb_err}")
 
             # 5. WhatsApp Dağıtımı
             if "WHATSAPP" in upper_channels:
-                w_success, w_msg = self.whatsapp.publish(job)
-                results["WHATSAPP"] = (w_success, w_msg)
-                if w_success:
-                    successful_channels.append("WHATSAPP")
-                    _persist_success_immediately("WHATSAPP")
-                else:
-                    failed_channels_log.append(f"WhatsApp: {w_msg}")
+                try:
+                    w_success, w_msg = self.whatsapp.publish(job)
+                    results["WHATSAPP"] = (w_success, w_msg)
+                    if w_success:
+                        successful_channels.append("WHATSAPP")
+                    else:
+                        failed_channels_log.append(f"WhatsApp: {w_msg}")
+                except Exception as wa_err:
+                    results["WHATSAPP"] = (False, f"WhatsApp Exception: {wa_err}")
+                    failed_channels_log.append(f"WhatsApp: {wa_err}")
+
+            # ========== TEK ATOMİK DB GÜNCELLEMESİ ==========
+            # Tüm kanal sonuçları toplandıktan sonra DB'yi güncelle
+            if successful_channels:
+                # Mevcut published_channels ile birleştir
+                cur_list = [c.strip().upper() for c in (job.published_channels or "").split(",") if c.strip()]
+                for ch in successful_channels:
+                    if ch not in cur_list:
+                        cur_list.append(ch)
+                job.published_channels = ",".join(cur_list)
+                job.status = JobStatus.PUBLISHED
+                if not job.published_at:
+                    job.published_at = datetime.utcnow()
 
             # Son durum notu güncellemesi
             if failed_channels_log:
                 err_summary = " | ".join(failed_channels_log)
                 safe_summary = re.sub(r"[^\w\s\.,\-:;()\[\]/]", "", err_summary)
                 job.admin_notes = f"[Kanal Hatası: {safe_summary[:300]}]"
-            else:
+            elif successful_channels:
                 job.admin_notes = "Tüm hedeflenen kanallarda başarıyla yayınlandı."
 
-            db.commit()
+            # get_db() context manager otomatik commit yapacak — TEK commit, TEK transaction
+            # Bu sayede çift-commit rollback sorunu tamamen ortadan kalkar
 
         return results
 

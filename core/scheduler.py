@@ -97,31 +97,41 @@ class BackgroundScheduler:
         """
         Manuel onay kapalıyken güvenilir kaynaklı ve
         daha önce paylaşılmamış ilanları otomatik olarak kanallara yayınlar.
+        
+        KRİTİK TASARIM: Her ilan seçildiği anda atomik olarak kilitlenir (published_at set edilir)
+        böylece 5 saniyelik scheduler döngüsü aynı ilanı asla tekrar seçemez.
+        Yayın başarısız olursa status FAILED yapılır ve published_at korunur.
         """
         published_count = 0
+        job_ids = []
+
+        # 1. ADIM: Yayınlanacak ilanları bul ve ATOMIK olarak kilitle
         with get_db() as db:
             now = datetime.now()
-            # Güvenilir (.gov.tr), onaylanmamış/reddedilmemiş, henüz yayınlanmamış
-            # ve başvuru süresi henüz dolmamış ilanlar
             from sqlalchemy import or_
             target_jobs = db.query(JobAnnouncement).filter(
                 JobAnnouncement.is_verified == True,
                 JobAnnouncement.status != JobStatus.PUBLISHED,
                 JobAnnouncement.status != JobStatus.REJECTED,
+                JobAnnouncement.status != JobStatus.FAILED,
                 JobAnnouncement.published_at == None,
-                # Süresi geçmiş ilanları hariç tut (BUG-01 düzeltmesi)
                 or_(
                     JobAnnouncement.application_end_date == None,
                     JobAnnouncement.application_end_date >= now
                 )
             ).order_by(JobAnnouncement.id.asc()).limit(limit).all()
 
-            job_ids = [j.id for j in target_jobs]
+            # KRİTİK: İlanları şu anda kilitle — published_at'ı set et ki tekrar seçilmesin
+            for j in target_jobs:
+                j.published_at = now  # Atomik kilit: bu ilan artık tekrar seçilemez
+                job_ids.append(j.id)
+            # Bu commit published_at'ı hemen yazar — scheduler tekrar döndüğünde bu ilanlar filtrelenir
+            # get_db() context manager otomatik commit yapar
 
         if not job_ids:
             return 0
 
-        logger.info(f"[OTOPİLOT] {len(job_ids)} adet doğrulanmış ilan otomatik yayına hazırlanıyor...")
+        logger.info(f"[OTOPİLOT] {len(job_ids)} adet doğrulanmış ilan kilitlendi ve yayına hazırlanıyor...")
 
         ai_processor = AIProcessor()
         publisher = PublisherManager()
@@ -134,7 +144,7 @@ class BackgroundScheduler:
                     if job and not job.social_post_text:
                         ai_processor.process_job(job.id)
 
-                # 2. Seçili aktif kanallarda (Telegram, Instagram, Facebook) yayınla
+                # 2. Seçili aktif kanallarda yayınla
                 raw_ap = get_system_setting("AUTOPILOT_CHANNELS", "TELEGRAM,INSTAGRAM,FACEBOOK")
                 configured_channels = [c.strip().upper() for c in raw_ap.split(",") if c.strip()]
 
@@ -155,15 +165,29 @@ class BackgroundScheduler:
                 logger.info(f"[OTOPİLOT] İlan #{j_id} şu kanallara dağıtılıyor: {target_channels} (Tema: {default_theme})")
                 results = publisher.publish_job(j_id, channels=target_channels, theme=default_theme)
                 
-                # Herhangi bir kanalda başarı sağlandıysa başarılı say
                 any_success = any(succ for succ, _ in results.values())
                 if any_success:
                     published_count += 1
                     logger.info(f"[OTOPİLOT] İlan #{j_id} başarıyla otomatik yayınlandı: {results}")
                 else:
-                    logger.warning(f"[OTOPİLOT] İlan #{j_id} yayınlanamadı: {results}")
+                    # Hiçbir kanalda başarılı olmadıysa FAILED yap ama published_at kalır (tekrar seçilmesin)
+                    with get_db() as db:
+                        fail_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == j_id).first()
+                        if fail_job:
+                            fail_job.status = JobStatus.FAILED
+                            fail_job.admin_notes = f"[Otopilot Başarısız] Tüm kanallar hata verdi: {results}"
+                    logger.warning(f"[OTOPİLOT] İlan #{j_id} yayınlanamadı, FAILED olarak işaretlendi: {results}")
             except Exception as ex:
                 logger.error(f"[OTOPİLOT] İlan #{j_id} işleme hatası: {ex}")
+                # Hata durumunda da FAILED yap ki sonsuz döngüye girmesin
+                try:
+                    with get_db() as db:
+                        fail_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == j_id).first()
+                        if fail_job:
+                            fail_job.status = JobStatus.FAILED
+                            fail_job.admin_notes = f"[Otopilot Exception] {str(ex)[:200]}"
+                except Exception:
+                    pass
 
         return published_count
 
