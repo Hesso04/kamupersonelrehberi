@@ -80,8 +80,8 @@ class MetaHelper:
 
                 if is_expired:
                     msg = (
-                        f"⚠️ Meta Erişim Belirtecinin (Access Token) süresi dolmuş! "
-                        f"(Bitiş: {exp_str or 'Az önce'}). Meta for Developers panelinden yeni bir belirteç alınız."
+                        f"[UYARI] Meta Erisim Belirtecinin (Access Token) suresi dolmus! "
+                        f"(Bitis: {exp_str or 'Az once'}). Meta for Developers panelinden yeni bir belirtec aliniz."
                     )
                     return {
                         "is_valid": False,

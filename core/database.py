@@ -52,7 +52,8 @@ def get_db() -> Generator[Session, None, None]:
         db.commit()
     except Exception as exc:
         db.rollback()
-        logger.error(f"Veritabanı oturum hatası: {exc}")
+        safe_msg = str(exc).encode("ascii", "replace").decode("ascii")
+        logger.error(f"Veritabani oturum hatasi: {safe_msg}")
         raise
     finally:
         db.close()

@@ -181,27 +181,7 @@ class PublisherManager:
                 except Exception as pc_err:
                     logger.debug(f"Kanal anlık kayıt uyarısı ({ch_name}): {pc_err}")
 
-            # 2. Telegram Dağıtımı
-            if "TELEGRAM" in upper_channels:
-                t_success, t_msg = self.telegram.publish(job)
-                results["TELEGRAM"] = (t_success, t_msg)
-                if t_success:
-                    successful_channels.append("TELEGRAM")
-                    _persist_success_immediately("TELEGRAM")
-                else:
-                    failed_channels_log.append(f"Telegram: {t_msg}")
-
-            # 3. WhatsApp Dağıtımı
-            if "WHATSAPP" in upper_channels:
-                w_success, w_msg = self.whatsapp.publish(job)
-                results["WHATSAPP"] = (w_success, w_msg)
-                if w_success:
-                    successful_channels.append("WHATSAPP")
-                    _persist_success_immediately("WHATSAPP")
-                else:
-                    failed_channels_log.append(f"WhatsApp: {w_msg}")
-
-            # 4. Instagram Dağıtımı
+            # 2. Instagram Dağıtımı (Önce Instagram Carousel ve Story doğrulanır ve yayınlanır)
             if "INSTAGRAM" in upper_channels:
                 i_success, i_msg = self.instagram.publish(job)
                 results["INSTAGRAM"] = (i_success, i_msg)
@@ -211,7 +191,17 @@ class PublisherManager:
                 else:
                     failed_channels_log.append(f"Instagram: {i_msg}")
 
-            # 5. Facebook Sayfa Dağıtımı
+            # 3. Telegram Dağıtımı (Anında kanala butonları ve PDF ile iletilir)
+            if "TELEGRAM" in upper_channels:
+                t_success, t_msg = self.telegram.publish(job)
+                results["TELEGRAM"] = (t_success, t_msg)
+                if t_success:
+                    successful_channels.append("TELEGRAM")
+                    _persist_success_immediately("TELEGRAM")
+                else:
+                    failed_channels_log.append(f"Telegram: {t_msg}")
+
+            # 4. Facebook Sayfa Dağıtımı
             if "FACEBOOK" in upper_channels:
                 f_success, f_msg = self.facebook.publish(job)
                 results["FACEBOOK"] = (f_success, f_msg)
@@ -220,6 +210,16 @@ class PublisherManager:
                     _persist_success_immediately("FACEBOOK")
                 else:
                     failed_channels_log.append(f"Facebook: {f_msg}")
+
+            # 5. WhatsApp Dağıtımı
+            if "WHATSAPP" in upper_channels:
+                w_success, w_msg = self.whatsapp.publish(job)
+                results["WHATSAPP"] = (w_success, w_msg)
+                if w_success:
+                    successful_channels.append("WHATSAPP")
+                    _persist_success_immediately("WHATSAPP")
+                else:
+                    failed_channels_log.append(f"WhatsApp: {w_msg}")
 
             # Son durum notu güncellemesi
             if failed_channels_log:
