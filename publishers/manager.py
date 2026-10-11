@@ -32,13 +32,15 @@ class PublisherManager:
     def publish_job(
         self,
         job_id: int,
-        channels: List[str] = ["TELEGRAM"],
+        channels: Optional[List[str]] = None,
         theme: Optional[str] = None
     ) -> Dict[str, Tuple[bool, str]]:
         """
         Belirtilen ilanı seçilen kanallara gönderir.
         Görsel kartı istenen tema ile (varsayılan: ROYAL_CRIMSON veya ayarlardaki tema) üretir.
         """
+        if channels is None:
+            channels = ["TELEGRAM"]
         results = {}
 
         with get_db() as db:
@@ -47,31 +49,30 @@ class PublisherManager:
                 return {"error": (False, f"İlan bulunamadı: ID {job_id}")}
 
             # Pozisyon ve kontenjan kontrolü / onarımı
+            # BUG-09: Yalnızca DRAFT statüsündeki (henüz işlenmemiş) ilanlara uygulanır.
+            # Onaylanmış veya AI-işlenmiş ilanların verileri korunur.
             import re
             from pathlib import Path
             from graphics.generator import to_turkish_date_str, tr_title
 
-            pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
-            pos_clean = re.sub(r"^\s*(\d+\s*)+", "", pos_src)
-            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE)
-            pos_clean = pos_clean.strip(" -:,")
-            pos_clean = re.sub(r"\bpersoneli\b", "Personel", pos_clean, flags=re.IGNORECASE)
-            job.position = tr_title(pos_clean) or "Kamu Personeli"
+            if job.status in [JobStatus.DRAFT, JobStatus.PENDING_APPROVAL] and not job.social_post_text:
+                pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
+                pos_clean = re.sub(r"^\s*(\d+\s*)+", "", pos_src)
+                pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE)
+                pos_clean = pos_clean.strip(" -:,")
+                pos_clean = re.sub(r"\bpersoneli\b", "Personel", pos_clean, flags=re.IGNORECASE)
+                job.position = tr_title(pos_clean) or "Kamu Personeli"
 
-            all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", job.title)]
-            if len(all_nums) > 1 and ("," in job.title or " ve " in job.title):
-                job.total_positions = sum(all_nums)
-            elif all_nums and all_nums[0] > 1:
-                job.total_positions = all_nums[0]
-            elif not job.total_positions:
-                job.total_positions = 1
+                all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", job.title)]
+                if len(all_nums) > 1 and ("," in job.title or " ve " in job.title):
+                    job.total_positions = sum(all_nums)
+                elif all_nums and all_nums[0] > 1:
+                    job.total_positions = all_nums[0]
+                elif not job.total_positions:
+                    job.total_positions = 1
 
             has_pdf = bool(job.pdf_path and Path(job.pdf_path).exists())
             deadline_str = to_turkish_date_str(job.application_end_date)
-
-            # Sosyal medya metnini her zaman resmi sitemize yönlendirecek şekilde kurumsal ve güncel olarak hazırla
-            portal_base = "https://kamupersonelrehberiniz.me"
-            portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
 
             # İptal veya Düzeltme İlanı Kontrolü
             title_upper = (job.title or "").upper()
@@ -81,74 +82,83 @@ class PublisherManager:
                 for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
 
-            website_domain = get_system_setting("WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
+            # BUG-01: Başvuru süresi geçmiş normal ilanların paylaşımını kesin olarak engelle
+            from datetime import datetime
+            if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
+                warn_msg = f"İlanın son başvuru tarihi ({deadline_str}) geçmiş olduğundan yayınlanamaz."
+                logger.warning(f"İlan #{job.id} engellendi: {warn_msg}")
+                return {"error": (False, warn_msg)}
 
-            if is_cancellation:
-                pdf_info = "📄 <b>Resmi İptal Kararı (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🌐 <b>İptal Detayları & Açıklama:</b> {portal_job_url}"
-                job.social_post_text = (
-                    f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
-                    f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
-                    f"❌ <b>Durum:</b> <b><u>ALIM SÜRECİ RESMEN İPTAL EDİLMİŞTİR</u></b>\n"
-                    f"📋 <b>İptal Edilen Pozisyon:</b> {job.position}\n"
-                    f"🗓 <b>Duyuru Tarihi:</b> {deadline_str}\n\n"
-                    f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> Bu duyuru yeni bir alım ilanı <u>DEĞİLDİR</u>! Daha önce yayımlanan personel alım süreci ilgili resmi kurum tarafından <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
-                    f"{pdf_info}\n\n"
-                    f"🌐 <b>Tüm Güncel İlanlar:</b> https://{website_domain}\n\n"
-                    f"📲 <i>Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!</i>\n"
-                    f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
-                )
-            else:
-                pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🌐 <b>Resmi Kılavuz & Şartlar:</b> {portal_job_url}"
-                job.social_post_text = (
-                    f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
-                    f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
-                    f"📋 <b>Kadro / Pozisyon:</b> {job.position}\n"
-                    f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
-                    f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
-                    f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
-                    f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
-                    f"{pdf_info}\n\n"
-                    f"🌐 <b>Resmi Başvuru Ekranı & İlan Detayı:</b> {portal_job_url}\n\n"
-                    f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
-                    f"#KamuPersoneli #İlan #KamuAlımı"
-                )
+            # Sosyal medya metnini YALNIZCA boşsa üret (BUG-08: AI/admin düzenlemeleri korunsun)
+            if not job.social_post_text:
+                portal_base = "https://kamupersonelrehberiniz.me"
+                portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
 
-            # 1. Görseli Yeni Nesil Modern Afiş Motoru ile Üret
-            try:
-                image_path = self.modern_card_generator.generate_modern_card(
-                    job_id=job.id,
-                    institution=job.institution or "Kamu Kurumu",
-                    position=job.position or "Personel Alımı",
-                    title=job.title or "",
-                    total_positions=job.total_positions,
-                    kpss_requirement=job.kpss_requirement,
-                    education_level=job.education_level,
-                    deadline=job.application_end_date,
-                    website_url=website_domain
-                )
-                job.image_path = str(image_path)
-            except Exception as me:
-                logger.warning(f"Modern görsel üretilemedi, klasik Pillow motoruna geçiliyor: {me}")
+                if is_cancellation:
+                    pdf_info = "📄 <b>Resmi İptal Kararı (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🌐 <b>İptal Detayları & Açıklama:</b> {portal_job_url}"
+                    job.social_post_text = (
+                        f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
+                        f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
+                        f"❌ <b>Durum:</b> <b><u>ALIM SÜRECİ RESMEN İPTAL EDİLMİŞTİR</u></b>\n"
+                        f"📋 <b>İptal Edilen Pozisyon:</b> {job.position}\n"
+                        f"🗓 <b>Duyuru Tarihi:</b> {deadline_str}\n\n"
+                        f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> Bu duyuru yeni bir alım ilanı <u>DEĞİLDİR</u>! Daha önce yayımlanan personel alım süreci ilgili resmi kurum tarafından <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
+                        f"{pdf_info}\n\n"
+                        f"🌐 <b>Tüm Güncel İlanlar:</b> https://{website_domain}\n\n"
+                        f"📲 <i>Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!</i>\n"
+                        f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
+                    )
+                else:
+                    pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🌐 <b>Resmi Kılavuz & Şartlar:</b> {portal_job_url}"
+                    job.social_post_text = (
+                        f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
+                        f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
+                        f"📋 <b>Kadro / Pozisyon:</b> {job.position}\n"
+                        f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
+                        f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
+                        f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
+                        f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
+                        f"{pdf_info}\n\n"
+                        f"🌐 <b>Resmi Başvuru Ekranı & İlan Detayı:</b> {portal_job_url}\n\n"
+                        f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
+                        f"#KamuPersoneli #İlan #KamuAlımı"
+                    )
+
+            # 1. Görseli Yeni Nesil Modern Afiş Motoru ile Üret (yalnızca görsel yoksa)
+            if not job.image_path or not Path(job.image_path).exists():
                 try:
-                    card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
-                    image_path = self.card_generator.generate_card(
+                    image_path = self.modern_card_generator.generate_modern_card(
                         job_id=job.id,
                         institution=job.institution or "Kamu Kurumu",
-                        position=job.position,
+                        position=job.position or "Personel Alımı",
+                        title=job.title or "",
                         total_positions=job.total_positions,
                         kpss_requirement=job.kpss_requirement,
                         education_level=job.education_level,
-                        deadline=deadline_str,
-                        source_url=job.source_url,
-                        has_pdf=has_pdf,
-                        theme=card_theme,
-                        title=job.title or ""
+                        deadline=job.application_end_date,
+                        website_url=website_domain
                     )
                     job.image_path = str(image_path)
-                except Exception as ce:
-                    logger.error(f"Görsel üretimi tamamen başarısız: {ce}")
-
-            db.commit()
+                except Exception as me:
+                    logger.warning(f"Modern görsel üretilemedi, klasik Pillow motoruna geçiliyor: {me}")
+                    try:
+                        card_theme = theme or get_system_setting("DEFAULT_CARD_THEME", "OFFICIAL_NAVY")
+                        image_path = self.card_generator.generate_card(
+                            job_id=job.id,
+                            institution=job.institution or "Kamu Kurumu",
+                            position=job.position,
+                            total_positions=job.total_positions,
+                            kpss_requirement=job.kpss_requirement,
+                            education_level=job.education_level,
+                            deadline=deadline_str,
+                            source_url=job.source_url,
+                            has_pdf=has_pdf,
+                            theme=card_theme,
+                            title=job.title or ""
+                        )
+                        job.image_path = str(image_path)
+                    except Exception as ce:
+                        logger.error(f"Görsel üretimi tamamen başarısız: {ce}")
 
             upper_channels = [c.upper() for c in channels]
             successful_channels = []

@@ -37,7 +37,7 @@ from config.settings import settings
 from core.database import get_db, get_system_setting, set_system_setting
 from core.models import JobAnnouncement, JobStatus
 from core.scheduler import AUTOPILOT_PACE_PRESETS
-from graphics.generator import JobCardGenerator, to_turkish_date_str
+from graphics.modern_generator import ModernCardGenerator, to_turkish_date_str
 from graphics.reels_engine import ReelsVideoEngine
 from publishers.instagram import InstagramPublisher
 from publishers.meta_helper import MetaHelper
@@ -47,18 +47,18 @@ from publishers.meta_helper import MetaHelper
 # META GRAPH API UYUMLU DİNAMİK YANIT HAVUZLARI (ANTİ-SPAM & ROTASYON)
 # =============================================================================
 PUBLIC_REPLY_VARIANTS = [
-    "@{username} Harika! {institution} için resmi başvuru ekranı bağlantısı ve şartlar DM kutunuza iletildi 📩 Başarılar!",
-    "@{username} Bilgiler hazır! Resmi başvuru kılavuzu ve kadro şartnamesi DM gelen kutunuza gönderildi 🚀",
-    "@{username} Selam! {institution} personel alımı başvuru bağlantısı DM'den teslim edildi 🎯 Kontrol edebilirsiniz.",
-    "@{username} Talebiniz alındı! Resmi başvuru ekranı linki DM kutunuzda 📬 Bol şans dileriz!",
-    "@{username} {institution} ilanının tüm detayları ve başvuru linki DM mesajı olarak iletildi 🌟",
-    "@{username} Başvuru kılavuzu ve resmi e-Devlet/Kariyer Kapısı linki DM kutunuza teslim edildi ⚡"
+    "@{username} Harika! {institution} için resmi başvuru kılavuzu ve şartlar DM kutunuza iletildi 📩 Sitemizden hemen inceleyin: {portal_url} 🚀",
+    "@{username} Bilgiler hazır! Resmi başvuru kılavuzu ve kadro şartnamesi DM gelen kutunuzda 📩 İlan detayları web sitemizde: {portal_url} 🎯",
+    "@{username} Selam! {institution} alım detayları ve doğrudan başvuru linki DM'den teslim edildi 📬 Sitemizden ulaşabilirsiniz: {portal_url} ⚡",
+    "@{username} Talebiniz alındı! Başvuru kılavuzu DM kutunuzda 📩 Detaylı şartlar sitemizde yayında: {portal_url} 🌟",
+    "@{username} {institution} ilanının tüm şartları ve başvuru adımları DM'den iletildi 📩 Resmi portalımız: {portal_url} 🇹🇷",
+    "@{username} Başvuru kılavuzu ve kadro tablosu DM kutunuza gönderildi 📩 İlan sayfası: {portal_url} 💫"
 ]
 
 PUBLIC_TAG_FRIEND_VARIANTS = [
-    "@{username} Harika bir dayanışma! Arkadaşınızı etiketlediğiniz için teşekkürler 👏 {institution} resmi başvuru linki DM kutunuza iletildi 📩",
-    "@{username} Arkadaşınızla paylaştığınız için teşekkürler! Kadro kılavuzu ve resmi başvuru ekranı DM'den iletildi 🚀",
-    "@{username} Süper! Hem sizin hem etiketlediğiniz arkadaşınızın faydalanması için resmi başvuru kılavuzu DM'ye gönderildi 🎯"
+    "@{username} Harika bir dayanışma! Arkadaşınızı etiketlediğiniz için teşekkürler 👏 {institution} resmi başvuru linki DM kutunuza iletildi 📩 Sitemizden inceleyin: {portal_url}",
+    "@{username} Arkadaşınızla paylaştığınız için teşekkürler! Kadro kılavuzu ve resmi başvuru ekranı DM'den iletildi 🚀 İlan linki: {portal_url}",
+    "@{username} Süper! Hem sizin hem etiketlediğiniz arkadaşınızın faydalanması için resmi başvuru kılavuzu DM'ye gönderildi 🎯 Sitemiz: {portal_url}"
 ]
 
 DM_TEXT_VARIANTS = [
@@ -69,8 +69,9 @@ DM_TEXT_VARIANTS = [
         "📢 <b>Kadro:</b> {position}\n"
         "👥 <b>Kontenjan:</b> {quota} Kişi\n"
         "🗓 <b>Son Başvuru:</b> {deadline}\n\n"
-        "🔗 <b>Resmi Başvuru Ekranı & Şartname:</b>\n{link}\n\n"
-        "🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli kamu ilanıdır. Başarılar dileriz!\n\n"
+        "🌐 <b>Resmi İlan Detayları, PDF Kılavuz & Doğrudan Başvuru Ekranı:</b>\n{portal_url}\n\n"
+        "ℹ️ <i>Yukarıdaki bağlantıya tıklayarak sitemiz üzerinden resmi başvuru kılavuzunu inceleyebilir, PDF şartnameyi indirebilir ve başvurunuzu tamamlayabilirsiniz.</i>\n\n"
+        "🇹🇷 %100 teyitli resmi kamu ilanıdır. Başarılar dileriz!\n\n"
         "📢 Yeni kamu alımlarını kaçırmamak için @kamupersonelrehberi sayfamızı takip etmeyi unutmayın!"
     ),
     (
@@ -79,8 +80,8 @@ DM_TEXT_VARIANTS = [
         "📢 <b>Pozisyon:</b> {position}\n"
         "👥 <b>Alım Sayısı:</b> {quota} Kişi\n"
         "🗓 <b>Son Başvuru Tarihi:</b> {deadline}\n\n"
-        "⚡ <b>Doğrudan Başvuru Bağlantısı:</b>\n{link}\n\n"
-        "💡 Tavsiye: Başvurunuzu son güne bırakmamanızı öneririz. Bol şans!\n\n"
+        "🌐 <b>İlanı Sitemizde İnceleyin & Hemen Başvurun:</b>\n{portal_url}\n\n"
+        "💡 <i>Sitemizden resmi kadro tablosuna, KPSS taban puanlarına ve başvuru ekranına doğrudan ulaşabilirsiniz.</i>\n\n"
         "📌 Yeni ilanlar ve sonuç duyuruları için sayfamızı takipte kalın: @kamupersonelrehberi"
     ),
     (
@@ -89,8 +90,9 @@ DM_TEXT_VARIANTS = [
         "📢 <b>Alım Yapılan Kadro:</b> {position}\n"
         "👥 <b>Toplam Kontenjan:</b> {quota} Kişi\n"
         "🗓 <b>Son Gün:</b> {deadline}\n\n"
-        "🔗 <b>Resmi Kılavuz & Başvuru Sayfası:</b>\n{link}\n\n"
-        "🎯 Atanma sürecinizde başarılar dileriz! Bizi takip etmeyi unutmayın: @kamupersonelrehberi"
+        "🌐 <b>Resmi Kılavuz & Doğrudan Başvuru Sayfası:</b>\n{portal_url}\n\n"
+        "🎯 <i>Tüm başvuru şartları ve resmi evraklar web sitemizde yayındadır. Atanma sürecinizde başarılar dileriz!</i>\n\n"
+        "Bizi takip etmeyi unutmayın: @kamupersonelrehberi"
     )
 ]
 
@@ -133,7 +135,7 @@ class InstagramGrowthManager:
 
     def __init__(self):
         self.publisher = InstagramPublisher()
-        self.card_gen = JobCardGenerator()
+        self.card_gen = ModernCardGenerator()
         self.reels_engine = ReelsVideoEngine()
 
     def get_account_profile(self) -> Dict[str, Any]:
@@ -165,6 +167,11 @@ class InstagramGrowthManager:
         cache_dir.mkdir(parents=True, exist_ok=True)
         return cache_dir / "processed_ig_comments.json"
 
+    def _get_post_users_cache_file(self) -> Path:
+        cache_dir = Path("data")
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        return cache_dir / "processed_ig_post_users.json"
+
     def get_processed_comment_ids(self) -> set:
         f = self._get_processed_cache_file()
         if f.exists():
@@ -177,13 +184,44 @@ class InstagramGrowthManager:
         return set()
 
     def mark_comment_processed(self, comment_id: str):
+        if not comment_id:
+            return
         ids = self.get_processed_comment_ids()
         ids.add(str(comment_id))
         f = self._get_processed_cache_file()
         try:
             import json
+            id_list = list(ids)[-10000:]
             with open(f, "w", encoding="utf-8") as fp:
-                json.dump(list(ids), fp)
+                json.dump(id_list, fp)
+        except Exception:
+            pass
+
+    def get_responded_post_users(self) -> set:
+        """Bir gönderide daha önce yanıt verilmiş ve bilgi iletilmiş kullanıcıların (media_id_username) kümesini döner."""
+        f = self._get_post_users_cache_file()
+        if f.exists():
+            try:
+                import json
+                with open(f, "r", encoding="utf-8") as fp:
+                    return set(json.load(fp))
+            except Exception:
+                return set()
+        return set()
+
+    def mark_user_responded_for_post(self, media_id: str, username: str):
+        """Kullanıcının bu gönderi için bilgilendirildiğini kaydeder (Spam ve mükerrer yanıtları önler)."""
+        if not media_id or not username:
+            return
+        key = f"{str(media_id).strip()}_{str(username).strip().lower()}"
+        users = self.get_responded_post_users()
+        users.add(key)
+        f = self._get_post_users_cache_file()
+        try:
+            import json
+            user_list = list(users)[-10000:]
+            with open(f, "w", encoding="utf-8") as fp:
+                json.dump(user_list, fp)
         except Exception:
             pass
 
@@ -237,7 +275,13 @@ class InstagramGrowthManager:
             if job_id:
                 matched_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == int(job_id)).first()
 
-            # 2. Aşama: Caption içinde Ref ID ara
+            # 2. Aşama: Caption içinde ilan URL'si veya Ref ID ara
+            if not matched_job and caption:
+                m_url = re.search(r'[?&]ilan=(\d+)', caption)
+                if m_url:
+                    ref_id = int(m_url.group(1))
+                    matched_job = db.query(JobAnnouncement).filter(JobAnnouncement.id == ref_id).first()
+
             if not matched_job and caption:
                 m_ref = re.search(r'(?:#KPR|İlan Ref: #|İlan No: #?)(\d+)', caption)
                 if m_ref:
@@ -275,14 +319,21 @@ class InstagramGrowthManager:
         final_pos = (matched_job.position if matched_job else pos_parsed) or "Personel Alımı"
         final_deadline = (to_turkish_date_str(matched_job.application_end_date) if matched_job else deadline_parsed) or "Resmi Kılavuzda Belirtilen Tarih"
         final_quota = (str(matched_job.total_positions) if matched_job and matched_job.total_positions else quota_parsed) or "1"
-        final_link = (matched_job.source_url if matched_job else None) or "https://isealimkariyerkapisi.cbiko.gov.tr/"
+        
+        # Kullanıcıyı ilan bilgisine göre doğrudan internet sitemize yönlendir (?ilan=ID deep-link)
+        portal_base = "https://kamupersonelrehberiniz.me"
+        if matched_job and getattr(matched_job, "id", None):
+            portal_url = f"{portal_base}/?ilan={matched_job.id}"
+        else:
+            portal_url = f"{portal_base}/"
 
         return {
             "institution": final_inst,
             "position": final_pos,
             "deadline": final_deadline,
             "quota": final_quota,
-            "source_url": final_link,
+            "source_url": portal_url,
+            "portal_url": portal_url,
             "job_id": matched_job.id if matched_job else None
         }
 
@@ -300,9 +351,10 @@ class InstagramGrowthManager:
             return {"success": False, "message": "Instagram token veya Account ID eksik.", "processed_count": 0}
 
         processed_ids = self.get_processed_comment_ids()
+        responded_post_users = self.get_responded_post_users()
         url = f"https://graph.facebook.com/v19.0/{acc_id}/media"
         params = {
-            "fields": "id,caption,shortcode,comments{id,text,username,timestamp}",
+            "fields": "id,caption,shortcode,comments{id,text,username,timestamp,replies{id,username}}",
             "limit": limit_media,
             "access_token": token
         }
@@ -324,7 +376,7 @@ class InstagramGrowthManager:
 
         for media in media_list:
             caption = media.get("caption", "")
-            media_id = media.get("id")
+            media_id = str(media.get("id") or "")
             shortcode = media.get("shortcode")
             comments_data = media.get("comments", {}).get("data", [])
 
@@ -337,18 +389,48 @@ class InstagramGrowthManager:
 
             for c in comments_data:
                 c_id = str(c.get("id"))
-                username = c.get("username", "")
+                username = (c.get("username") or "").strip()
+                username_lower = username.lower()
                 text = (c.get("text") or "").strip()
                 t_lower = text.lower().replace("i̇", "i").replace("ı", "i")
 
+                # 1. Daha önce işlenmiş yorum ID kontrolü
                 if c_id in processed_ids:
                     continue
 
-                if username == "kamupersonelrehberi":
+                # 2. Bot hesabının kendi yorumlarını atla
+                if not username or username_lower in ["kamupersonelrehberi", "kamupersonelrehberiniz", "kamupersoneli"]:
+                    processed_ids.add(c_id)
+                    self.mark_comment_processed(c_id)
                     continue
 
+                post_user_key = f"{media_id}_{username_lower}"
+
+                # 3. Instagram üzerinde bu yoruma daha önce sayfamızca yanıt verilmiş mi?
+                existing_replies = c.get("replies", {}).get("data", [])
+                has_our_reply = any(
+                    (rep.get("username") or "").lower() in ["kamupersonelrehberi", "kamupersonelrehberiniz", "kamupersoneli"]
+                    for rep in existing_replies
+                )
+                if has_our_reply:
+                    processed_ids.add(c_id)
+                    self.mark_comment_processed(c_id)
+                    responded_post_users.add(post_user_key)
+                    self.mark_user_responded_for_post(media_id, username)
+                    continue
+
+                # 4. Tetikleyici kelime kontrolü
                 is_trigger = any(trig in t_lower for trig in triggers)
                 if not is_trigger:
+                    continue
+
+                # 5. KRİTİK ANTİ-SPAM & TEK SEFERLİK BİLGİLENDİRME (1-e-1 Kuralı):
+                # Bir gönderide aynı kullanıcıya en fazla 1 kez bilgi verilir.
+                # Kullanıcı 4-5 kez yorum yapmış olsa dahi daha önce bilgilendirildiyse tekrar spam yapılmaz!
+                if post_user_key in responded_post_users:
+                    logger.info(f"[ANTI-SPAM] @{username} kullanıcısına gönderi #{media_id} için daha önce yanıt verilmişti. Mükerrer spam önlendi.")
+                    processed_ids.add(c_id)
+                    self.mark_comment_processed(c_id)
                     continue
 
                 # Arkadaş etiketleme kontrolü (@arkadasini etiketleyen kullanıcılara özel viral yanıt)
@@ -361,6 +443,7 @@ class InstagramGrowthManager:
                 # 1. Özel DM Yanıtı (Private Reply - Dinamik Rotasyon)
                 dm_ok = False
                 dm_err = ""
+                portal_url_val = details.get("portal_url") or details.get("source_url") or "https://kamupersonelrehberiniz.me/"
                 if fb_page_id:
                     dm_tpl = random.choice(DM_TEXT_VARIANTS)
                     dm_text = dm_tpl.format(
@@ -369,7 +452,8 @@ class InstagramGrowthManager:
                         position=details["position"],
                         quota=quota_str,
                         deadline=d_str,
-                        link=job_link
+                        link=portal_url_val,
+                        portal_url=portal_url_val
                     )
                     dm_url = f"https://graph.facebook.com/v19.0/{fb_page_id}/messages"
                     dm_payload = {
@@ -393,7 +477,11 @@ class InstagramGrowthManager:
                     pub_tpl = random.choice(PUBLIC_TAG_FRIEND_VARIANTS)
                 else:
                     pub_tpl = random.choice(PUBLIC_REPLY_VARIANTS)
-                pub_msg = pub_tpl.format(username=username, institution=details["institution"])
+                pub_msg = pub_tpl.format(
+                    username=username,
+                    institution=details["institution"],
+                    portal_url=portal_url_val
+                )
 
                 pub_url = f"https://graph.facebook.com/v19.0/{c_id}/replies"
                 pub_ok = False
@@ -403,8 +491,11 @@ class InstagramGrowthManager:
                 except Exception:
                     pass
 
-                # İşlendi olarak kaydet
+                # İşlendi ve bilgilendirildi olarak kaydet (Hem hafızada hem diskte)
+                processed_ids.add(c_id)
                 self.mark_comment_processed(c_id)
+                responded_post_users.add(post_user_key)
+                self.mark_user_responded_for_post(media_id, username)
 
                 action_entry = {
                     "timestamp": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
@@ -443,7 +534,7 @@ class InstagramGrowthManager:
             if not job:
                 return {"success": False, "message": "İlan bulunamadı."}
 
-            clean_link = job.source_url or "https://kamuilan.sbb.gov.tr/"
+            clean_link = f"https://kamupersonelrehberiniz.me/?ilan={job.id}" if getattr(job, "id", None) else "https://kamupersonelrehberiniz.me/"
             d_str = to_turkish_date_str(job.application_end_date)
             pos_str = job.position or job.title
 
@@ -453,7 +544,7 @@ class InstagramGrowthManager:
                 # Kullanıcı Hesabı Takip Ediyorsa -> Doğrudan Kılavuzu Teslim Et
                 comment_reply = (
                     f"@{username} Harika! Sayfamızı takip ettiğiniz için teşekkür ederiz 🎉 "
-                    f"Resmi başvuru ekranı ve kadro kılavuzu DM kutunuza iletildi! 📩 Lütfen gelen kutunuzu kontrol edin."
+                    f"Resmi başvuru ekranı ve kadro kılavuzu DM kutunuza iletildi! 📩 Sitemizden hemen inceleyebilirsiniz: {clean_link}"
                 )
 
                 dm_message = (
@@ -465,8 +556,8 @@ class InstagramGrowthManager:
                     f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
                     f"🗓 <b>Son Başvuru:</b> {d_str}\n"
                     f"{video_note}\n"
-                    f"🔗 <b>Resmi Başvuru Ekranı:</b>\n{clean_link}\n\n"
-                    f"📌 Yeni açılan ilanları ve sonuçları kaçırmamak için Telegram kanalımıza da katılabilirsiniz: https://t.me/kamupersonelrehberi\n\n"
+                    f"🔗 <b>İlan Detayları ve Resmi Başvuru Ekranı:</b>\n{clean_link}\n\n"
+                    f"📌 Yeni açılan ilanları ve sonuçları kaçırmamak için sitemizi ve Telegram kanalımızı takip edebilirsiniz: https://t.me/kamupersonelrehberi\n\n"
                     f"Başarılar dileriz! 🇹🇷"
                 )
 
@@ -500,7 +591,7 @@ class InstagramGrowthManager:
                 # Kullanıcının takip ettikten sonra kilidi açma yanıtı
                 unlocked_after_follow = (
                     f"🎉 Tebrikler @{username}! Takip ettiğiniz onaylandı, kılavuz kilidiniz açıldı: 🔓\n\n"
-                    f"🔗 <b>Resmi Başvuru Ekranı:</b> {clean_link}\n"
+                    f"🔗 <b>İlan Detayları ve Resmi Başvuru Ekranı:</b> {clean_link}\n"
                     f"🗓 <b>Son Başvuru:</b> {d_str}\n"
                     f"Başarılar dileriz!"
                 )

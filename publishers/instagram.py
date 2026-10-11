@@ -1,5 +1,6 @@
 from typing import Tuple, Optional, List, Dict, Any
 from pathlib import Path
+import re
 import time
 import requests
 from loguru import logger
@@ -98,6 +99,8 @@ class InstagramPublisher(BasePublisher):
             for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
         )
 
+        portal_link = f"https://kamupersonelrehberiniz.me/?ilan={job.id}" if getattr(job, "id", None) else "https://kamupersonelrehberiniz.me"
+
         if is_cancellation:
             caption = (
                 f"🚨 🛑 [DİKKAT: İLAN İPTAL DUYURUSU] 🛑 🚨\n\n"
@@ -107,7 +110,7 @@ class InstagramPublisher(BasePublisher):
                 f"🗓 Karar Tarihi: {d_str}\n\n"
                 f"⚠️ ÖNEMLİ BİLGİLENDİRME: Bu duyuru yeni bir alım ilanı DEĞİLDİR! İlgili kamu kurumu tarafından yayımlanan personel alım süreci RESMEN İPTAL EDİLMİŞTİR. Yeni başvuru kabul edilmemektedir.\n\n"
                 f"🌐 Güncel ve Aktif Kamu İlanları İçin:\n"
-                f"👉 www.kamupersonelrehberiniz.me\n\n"
+                f"👉 {portal_link}\n\n"
                 f"📲 Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!\n"
                 f"#KamuPersoneli #İlanİptali #KamuHaber #Duyuru #{inst_tag}"
             )
@@ -123,8 +126,8 @@ class InstagramPublisher(BasePublisher):
                 f"🗓 Son Başvuru: {d_str}\n"
                 f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
                 f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"
-                f"🌐 Tüm Branşlar & Online Başvuru:\n"
-                f"👉 www.kamupersonelrehberiniz.me\n\n"
+                f"🌐 İlan Detayları & Online Başvuru:\n"
+                f"👉 {portal_link}\n\n"
                 f"📌 İlanı kaydetmeyi ve iş arayan arkadaşınıza göndermeyi unutmayın!\n"
                 f"🇹🇷 T.C. Resmi Gazete ve SBB Kamu İlan Portalı teyitli resmi kamu ilanıdır. Sıfır bilgi kirliliği.\n\n"
                 f"#KamuPersoneli #MemurAlımı #KPSS #PersonelAlımı #İşİlanları #Kamuİlanları #KariyerKapısı #{inst_tag}"
@@ -149,6 +152,50 @@ class InstagramPublisher(BasePublisher):
             except Exception as se:
                 logger.debug(f"Status kontrol denemesi ({attempt+1}): {se}")
         return True, "Zaman aşımı (devam ediliyor)."
+
+    def post_first_comment(self, media_id: str, job: JobAnnouncement) -> Tuple[bool, str]:
+        """
+        Paylaşılan gönderinin altına ilk sabit yorum olarak resmi portal bağlantısını ve
+        'KILAVUZ' / 'LİNK' oto-yanıt çağrısını yazar.
+        Kullanıcıları https://kamupersonelrehberiniz.me/?ilan={job_id} adresine yönlendirir.
+        """
+        if not self.access_token or not media_id:
+            return False, "Eksik parametre"
+
+        try:
+            from graphics.modern_generator import to_turkish_date_str
+            deadline_str = to_turkish_date_str(job.application_end_date)
+            portal_url = f"https://kamupersonelrehberiniz.me/?ilan={job.id}" if getattr(job, "id", None) else "https://kamupersonelrehberiniz.me/"
+            inst = job.institution or "Kamu Kurumu"
+            pos = job.position or job.title or "Personel Alımı"
+            count = f"({job.total_positions} Kişi) " if job.total_positions else ""
+
+            comment_msg = (
+                f"📌 {inst} {pos} {count}Alımı Resmi Kılavuz & Başvuru Bağlantısı:\n"
+                f"👉 {portal_url}\n\n"
+                f"🗓 Son Başvuru: {deadline_str}\n"
+                f"💬 Yoruma 'KILAVUZ' veya 'LİNK' yazarsanız, kadro kılavuzu ve şartları anında DM kutunuza da iletilir! 🇹🇷"
+            )
+
+            url = f"https://graph.facebook.com/v19.0/{media_id}/comments"
+            res = requests.post(
+                url,
+                data={
+                    "message": comment_msg,
+                    "access_token": self.access_token
+                },
+                timeout=20
+            )
+            if res.status_code in [200, 201]:
+                cid = res.json().get("id")
+                logger.info(f"İlk yorum başarıyla Instagram postuna eklendi (Media ID: {media_id}, Comment ID: {cid})")
+                return True, f"İlk yorum eklendi: {cid}"
+            else:
+                logger.warning(f"İlk yorum eklenemedi ({res.status_code}): {res.text}")
+                return False, res.text
+        except Exception as e:
+            logger.warning(f"İlk yorum gönderim istisnası: {e}")
+            return False, str(e)
 
     def publish_carousel(
         self,
@@ -221,6 +268,7 @@ class InstagramPublisher(BasePublisher):
             if pub_res.status_code in [200, 201]:
                 post_id = pub_res.json().get("id")
                 MetaHelper.save_post_job_mapping(post_id, job.id)
+                self.post_first_comment(post_id, job)
                 logger.info(f"Carousel başarıyla Instagram'da yayınlandı! (İlan #{job.id}, Post ID: {post_id})")
                 return True, f"Instagram Carousel başarıyla yayınlandı! ({len(child_ids)} Slayt, Post ID: {post_id})"
             else:
@@ -276,6 +324,7 @@ class InstagramPublisher(BasePublisher):
             if pub_res.status_code in [200, 201]:
                 post_id = pub_res.json().get("id")
                 MetaHelper.save_post_job_mapping(post_id, job.id)
+                self.post_first_comment(post_id, job)
                 logger.info(f"Reels videosu başarıyla Instagram'da yayınlandı! (İlan #{job.id}, Post ID: {post_id})")
                 return True, f"Instagram Reels başarıyla yayınlandı! (Post ID: {post_id})"
             else:
@@ -403,8 +452,8 @@ class InstagramPublisher(BasePublisher):
             return False, diag["message"]
 
         ig_format = get_system_setting("AUTOPILOT_IG_FORMAT", "SMART_HYBRID")
-        from graphics.generator import JobCardGenerator, to_turkish_date_str
-        card_gen = JobCardGenerator()
+        from graphics.modern_generator import ModernCardGenerator, to_turkish_date_str
+        card_gen = ModernCardGenerator()
         deadline_str = to_turkish_date_str(job.application_end_date)
 
         # 1. Reels Denemesi (Büyük Alımlar [>=50 Kişi] veya ALWAYS_REELS modunda)
@@ -434,10 +483,10 @@ class InstagramPublisher(BasePublisher):
             except Exception as re_err:
                 logger.warning(f"Reels üretme istisnası: {re_err}")
 
-        # 2. Carousel Denemesi (4:5 Dikey Çoklu Slayt)
+        # 2. Carousel Denemesi (4:5 Dikey Çoklu Slayt - Modern Afiş Tasarımı)
         if ig_format in ["SMART_HYBRID", "ALWAYS_CAROUSEL", "ALWAYS_REELS"]:
             try:
-                slides = card_gen.generate_carousel_cards(
+                slides = card_gen.generate_modern_carousel_cards(
                     job_id=job.id,
                     institution=job.institution or "Kamu Kurumu",
                     position=job.position or job.title,
@@ -458,8 +507,9 @@ class InstagramPublisher(BasePublisher):
             except Exception as ce:
                 logger.warning(f"Carousel üretme adımı hatası: {ce}, tekil görsel deneniyor...")
 
-        # 2. Fallback: Tekil Görsel Gönderimi
-        image_url, provider_info = self._get_public_image_url(job.image_path)
+        # 3. Fallback: Tekil Görsel Gönderimi (Meta Graph API 4:5 - 1080x1350 Uyumlu)
+        feed_image_path = card_gen.ensure_instagram_compatible_card(job.image_path)
+        image_url, provider_info = self._get_public_image_url(feed_image_path)
         if not image_url:
             return False, f"Görsel yüklenemedi: {provider_info}"
 
@@ -486,6 +536,8 @@ class InstagramPublisher(BasePublisher):
             r_p = requests.post(publish_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
             if r_p.status_code in [200, 201]:
                 post_id = r_p.json().get("id")
+                MetaHelper.save_post_job_mapping(post_id, job.id)
+                self.post_first_comment(post_id, job)
                 logger.info(f"İlan başarıyla Instagram'da paylaşıldı: ID {job.id} (Post ID: {post_id})")
                 story_note = self._cross_publish_story_if_enabled(job, deadline_str, card_gen)
                 return True, f"Instagram'da başarıyla yayınlandı! (Post ID: {post_id}){story_note}"
@@ -496,11 +548,11 @@ class InstagramPublisher(BasePublisher):
             return False, f"Instagram Gönderim Hatası: {str(e)}"
 
     def _cross_publish_story_if_enabled(self, job: JobAnnouncement, deadline_str: str, card_gen: Any) -> str:
-        """İlan akışta paylaşıldıktan sonra etkinse 9:16 Dikey Hikaye (Story) olarak da çapraz yayınlar."""
+        """İlan akışta paylaşıldıktan sonra etkinse 9:16 Dikey Modern Hikaye (Story) olarak da çapraz yayınlar."""
         if get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") != "true":
             return ""
         try:
-            story_path = card_gen.generate_story_card(
+            story_path = card_gen.generate_modern_story_card(
                 job_id=job.id,
                 institution=job.institution or "Kamu Kurumu",
                 position=job.position or job.title,
@@ -509,12 +561,13 @@ class InstagramPublisher(BasePublisher):
                 education_level=job.education_level,
                 deadline=deadline_str,
                 source_url=job.source_url,
-                title=job.title or ""
+                title=job.title or "",
+                city=job.city
             )
             if story_path and Path(story_path).exists():
                 s_ok, s_m = self.publish_story(story_path, job=job)
                 if s_ok:
-                    return " 📸 (9:16 Hikaye/Story de eşzamanlı paylaşıldı!)"
+                    return " 📸 (9:16 Modern Hikaye/Story de eşzamanlı paylaşıldı!)"
                 else:
                     logger.warning(f"Story çapraz yayınlama hatası: {s_m}")
         except Exception as e:

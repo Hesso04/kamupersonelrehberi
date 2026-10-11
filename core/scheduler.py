@@ -1,6 +1,6 @@
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 from loguru import logger
 
@@ -100,12 +100,20 @@ class BackgroundScheduler:
         """
         published_count = 0
         with get_db() as db:
-            # Güvenilir (.gov.tr), onaylanmamış/reddedilmemiş, henüz yayınlanmamış ilanlar
+            now = datetime.now()
+            # Güvenilir (.gov.tr), onaylanmamış/reddedilmemiş, henüz yayınlanmamış
+            # ve başvuru süresi henüz dolmamış ilanlar
+            from sqlalchemy import or_
             target_jobs = db.query(JobAnnouncement).filter(
                 JobAnnouncement.is_verified == True,
                 JobAnnouncement.status != JobStatus.PUBLISHED,
                 JobAnnouncement.status != JobStatus.REJECTED,
-                JobAnnouncement.published_at == None
+                JobAnnouncement.published_at == None,
+                # Süresi geçmiş ilanları hariç tut (BUG-01 düzeltmesi)
+                or_(
+                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date >= now
+                )
             ).order_by(JobAnnouncement.id.asc()).limit(limit).all()
 
             job_ids = [j.id for j in target_jobs]

@@ -3,7 +3,7 @@
     "portal_name": "Kamu Personel Rehberi",
     "tagline": "Türkiye Cumhuriyeti Resmi Kamu Personel Alım İlanları Portalı",
     "domain": "kamupersonelrehberiniz.me",
-    "generated_at": "2026-10-10T23:23:23.589450+00:00",
+    "generated_at": "2026-10-11T16:44:08.950160+00:00",
     "total_active_jobs": 683,
     "total_quotas": 38773,
     "active_visitors": 2071,
@@ -12,18 +12,18 @@
     "categories": [
       {
         "name": "Akademik Kadrolar",
-        "count": 371
+        "count": 370
       },
       {
         "name": "Belediye Başkanlıkları",
         "count": 142
       },
       {
-        "name": "Memur & Genel İdari Kadrolar",
-        "count": 61
+        "name": "Kamu Personeli / Diğer",
+        "count": 62
       },
       {
-        "name": "Kamu Personeli / Diğer",
+        "name": "Memur & Genel İdari Kadrolar",
         "count": 61
       },
       {
@@ -5933,7 +5933,7 @@
       "id": 439,
       "institution": "HACETTEPE ÜNİVERSİTESİ",
       "title": "HACETTEPE ÜNİVERSİTESİ - 71 ÖĞRETİM ÜYESİ ALACAK",
-      "position": "71 ÖĞRETİM ÜYESİ",
+      "position": "Öğretim Üyesi",
       "total_positions": 71,
       "category": "Akademik Kadrolar",
       "category_slug": "akademik",
@@ -5944,9 +5944,9 @@
       "end_date_str": "09 Ekim 2026",
       "is_cancellation": false,
       "status": "SÜRESİ DOLDU",
-      "education_level": "Resmi Kılavuzda Belirtilmiştir",
-      "kpss_requirement": "Resmi İlanda Belirtilmiştir",
-      "city": "Türkiye Geneli / İlanda Belirtilen İller",
+      "education_level": "İlgili bölüm mezuniyeti",
+      "kpss_requirement": "Resmi ilanda belirtilen şartlar",
+      "city": "İlanda belirtilmiştir",
       "has_pdf": true,
       "pdf_url": "documents/sbb_439.pdf",
       "source_url": "https://kamuilan.sbb.gov.tr/",
@@ -5954,13 +5954,13 @@
     },
     {
       "id": 438,
-      "institution": "GİRESUN ÜNİVERSİTESİ",
-      "title": "GİRESUN ÜNİVERSİTESİ - 11 ÖĞRETİM ÜYESİ ALACAK",
-      "position": "11 ÖĞRETİM ÜYESİ",
+      "institution": "Giresun Üniversitesi",
+      "title": "Giresun Üniversitesi 11 Öğretim Üyesi Alacak",
+      "position": "Öğretim Üyesi",
       "total_positions": 11,
-      "category": "Akademik Kadrolar",
-      "category_slug": "akademik",
-      "category_icon": "🎓",
+      "category": "Kamu Personeli / Diğer",
+      "category_slug": "diger",
+      "category_icon": "📋",
       "date_interval": "25 Eylül - 9 Ekim",
       "pub_date_group": "25 Eylül",
       "sort_key": 20260925,
@@ -5969,7 +5969,7 @@
       "status": "SÜRESİ DOLDU",
       "education_level": "Resmi Kılavuzda Belirtilmiştir",
       "kpss_requirement": "Resmi İlanda Belirtilmiştir",
-      "city": "Türkiye Geneli / İlanda Belirtilen İller",
+      "city": "Giresun",
       "has_pdf": true,
       "pdf_url": "documents/sbb_438.pdf",
       "source_url": "https://kamuilan.sbb.gov.tr/",
@@ -5979,7 +5979,7 @@
       "id": 437,
       "institution": "ESKİŞEHİR TEKNİK ÜNİVERSİTESİ",
       "title": "ESKİŞEHİR TEKNİK ÜNİVERSİTESİ - 2 ADET ÖĞRETİM ELEMANI ALIMI",
-      "position": "2 ADET ÖĞRETİM ELEMANI",
+      "position": "Adet Öğretim Elemanı",
       "total_positions": 2,
       "category": "Akademik Kadrolar",
       "category_slug": "akademik",
@@ -5990,9 +5990,9 @@
       "end_date_str": "12 Ekim 2026",
       "is_cancellation": false,
       "status": "BAŞVURUYA AÇIK",
-      "education_level": "Resmi Kılavuzda Belirtilmiştir",
-      "kpss_requirement": "Resmi İlanda Belirtilmiştir",
-      "city": "Türkiye Geneli / İlanda Belirtilen İller",
+      "education_level": "İlgili bölüm mezuniyeti",
+      "kpss_requirement": "Resmi ilanda belirtilen şartlar",
+      "city": "İlanda belirtilmiştir",
       "has_pdf": true,
       "pdf_url": "documents/sbb_437.pdf",
       "source_url": "https://kamuilan.sbb.gov.tr/",
@@ -11752,7 +11752,7 @@
       "id": 186,
       "institution": "ZONGULDAK BELEDİYE BAŞKANLIĞI",
       "title": "ZONGULDAK BELEDİYE BAŞKANLIĞI - 10 MEMUR Alımı",
-      "position": "MEMUR",
+      "position": "Memur",
       "total_positions": 10,
       "category": "Belediye Başkanlıkları",
       "category_slug": "belediye",

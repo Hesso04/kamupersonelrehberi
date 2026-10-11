@@ -26,7 +26,7 @@ except ImportError:
     edge_tts = None
 
 from config.settings import settings
-from graphics.generator import JobCardGenerator, to_turkish_date_str
+from graphics.modern_generator import ModernCardGenerator, to_turkish_date_str
 
 
 class ReelsVideoEngine:
@@ -39,7 +39,7 @@ class ReelsVideoEngine:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scratch_dir = Path("graphics/scratch")
         self.scratch_dir.mkdir(parents=True, exist_ok=True)
-        self.card_generator = JobCardGenerator()
+        self.card_generator = ModernCardGenerator()
 
     @property
     def ffmpeg_exe(self) -> Optional[str]:
@@ -145,9 +145,9 @@ class ReelsVideoEngine:
         video_path = self.output_dir / video_filename
         voice_path = self.scratch_dir / f"voice_{job_id}_{timestamp}.mp3"
 
-        # 1. 9:16 Dikey Story/Reels Görselini Oluştur
+        # 1. 9:16 Dikey Modern Story/Reels Görselini Oluştur
         try:
-            story_img_path = self.card_generator.generate_story_card(
+            story_img_path = self.card_generator.generate_modern_story_card(
                 job_id=job_id,
                 institution=institution,
                 position=position,
@@ -160,7 +160,7 @@ class ReelsVideoEngine:
                 title=title
             )
         except Exception as ge:
-            return False, None, f"Reels görseli üretilemedi: {ge}"
+            return False, None, f"Modern Reels görseli üretilemedi: {ge}"
 
         # 2. Türkçe Seslendirme Üret
         voice_script = self.build_voice_script(

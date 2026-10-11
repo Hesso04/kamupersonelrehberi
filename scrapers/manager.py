@@ -71,7 +71,7 @@ class ScraperManager:
                             pdf_path=job.pdf_path,
                             is_verified=job.is_verified,
                             raw_content=job.raw_content,
-                            application_end_date=job.publish_date if (job.publish_date and job.publish_date != datetime.utcnow()) else None,
+                            application_end_date=job.publish_date if job.publish_date else None,
                             status=JobStatus.PENDING_APPROVAL,
                             created_at=datetime.utcnow()
                         )

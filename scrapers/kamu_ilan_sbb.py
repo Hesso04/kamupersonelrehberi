@@ -160,9 +160,12 @@ class SBBKamuIlanScraper(BaseScraper):
                 if not full_text or len(full_text) < 5:
                     continue
 
-                # İptal ilanlarını filtrele
-                if "İPTAL İLANI" in full_text.upper():
-                    continue
+                # BUG-06 & BUG-15: İptal ve düzeltme ilanları filtrelenmez;
+                # ModernCardGenerator ve PublisherManager iptal şablonu ile adaylara duyurulur.
+                is_cancellation = any(
+                    w in full_text.upper()
+                    for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
+                )
 
                 # 2. Tarih aralığını yakala (Örn: "2 Ekim - 16 Ekim" veya "( 20 Ekim - 22 Ekim)")
                 date_match = re.search(
