@@ -73,8 +73,9 @@ class AIProcessor:
             job.status = JobStatus.AI_PROCESSED
             job.updated_at = datetime.utcnow()
 
-            db.commit()
+            db.flush()
             db.refresh(job)
+            # get_db() context manager çıkışında otomatik commit yapacak
             logger.info(f"İlan AI ile başarıyla zenginleştirildi: ID {job.id} - {job.institution}")
             return job
 
@@ -87,10 +88,10 @@ class AIProcessor:
             from sqlalchemy import or_
             now = datetime.now()
             pending_jobs = db.query(JobAnnouncement).filter(
-                (JobAnnouncement.social_post_text == None) |
+                (JobAnnouncement.social_post_text.is_(None)) |
                 (JobAnnouncement.status == JobStatus.PENDING_APPROVAL),
                 or_(
-                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date.is_(None),
                     JobAnnouncement.application_end_date >= now
                 )
             ).limit(limit).all()

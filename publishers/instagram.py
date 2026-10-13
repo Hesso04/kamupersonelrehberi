@@ -241,7 +241,13 @@ class InstagramPublisher(BasePublisher):
                     return False, f"Slayt {idx+1} container_id alınamadı."
                 child_ids.append(cid)
 
-            # 2. Ana CAROUSEL container'ı oluştur
+            # 2. Child container'ların Meta tarafından indirilip hazır olmasını bekle (Zorunlu Meta Graph API kuralı)
+            for idx, cid in enumerate(child_ids):
+                ok_child, child_msg = self._wait_for_media_processing(cid, max_attempts=8)
+                if not ok_child:
+                    logger.warning(f"Slayt {idx+1} ({cid}) hazır olma uyarısı: {child_msg}")
+
+            # 3. Ana CAROUSEL container'ı oluştur
             parent_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media"
             parent_payload = {
                 "media_type": "CAROUSEL",
@@ -521,6 +527,24 @@ class InstagramPublisher(BasePublisher):
                 logger.warning(f"Carousel üretme adımı hatası: {ce}, tekil görsel deneniyor...")
 
         # 3. Fallback: Tekil Görsel Gönderimi (Meta Graph API 4:5 - 1080x1350 Uyumlu)
+        if not job.image_path or not Path(job.image_path).exists():
+            try:
+                website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
+                img_path = card_gen.generate_modern_card(
+                    job_id=job.id,
+                    institution=job.institution or "Kamu Kurumu",
+                    position=job.position or "Personel Alımı",
+                    title=job.title or "",
+                    total_positions=job.total_positions,
+                    kpss_requirement=job.kpss_requirement,
+                    education_level=job.education_level,
+                    deadline=job.application_end_date,
+                    website_url=website_domain
+                )
+                job.image_path = str(img_path)
+            except Exception as fge:
+                logger.warning(f"Fallback modern afiş üretme hatası: {fge}")
+
         feed_image_path = card_gen.ensure_instagram_compatible_card(job.image_path)
         image_url, provider_info = self._get_public_image_url(feed_image_path)
         if not image_url:

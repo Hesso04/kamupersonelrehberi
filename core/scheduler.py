@@ -92,16 +92,27 @@ class BackgroundScheduler:
         self.last_result: Dict[str, Any] = {}
         self._thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
+        self._autopilot_lock = threading.Lock()
 
-    def run_autopilot_publish(self, limit: int = 10) -> int:
+    def run_autopilot_publish(self, limit: int = 1) -> int:
         """
         Manuel onay kapalıyken güvenilir kaynaklı ve
         daha önce paylaşılmamış ilanları otomatik olarak kanallara yayınlar.
         
-        KRİTİK TASARIM: Her ilan seçildiği anda atomik olarak kilitlenir (published_at set edilir)
-        böylece 5 saniyelik scheduler döngüsü aynı ilanı asla tekrar seçemez.
-        Yayın başarısız olursa status FAILED yapılır ve published_at korunur.
+        KRİTİK GÜVENLİK (Anti-Spam & Mükerrer Koruması):
+        1. Thread lock (_autopilot_lock) ile UI thread ve worker thread'in aynı anda
+           çalışması engellenir; mükerrer gönderim riski %100 sıfırlanır.
+        2. İlanlar atomik olarak kilitlenir.
         """
+        if not self._autopilot_lock.acquire(blocking=False):
+            logger.info("[OTOPİLOT] Başka bir yayın işlemi halen yürütülüyor, çakışmayı önlemek için bu çağrı atlandı.")
+            return 0
+        try:
+            return self._execute_autopilot_publish(limit=limit)
+        finally:
+            self._autopilot_lock.release()
+
+    def _execute_autopilot_publish(self, limit: int = 1) -> int:
         published_count = 0
         job_ids = []
 
@@ -114,9 +125,9 @@ class BackgroundScheduler:
                 JobAnnouncement.status != JobStatus.PUBLISHED,
                 JobAnnouncement.status != JobStatus.REJECTED,
                 JobAnnouncement.status != JobStatus.FAILED,
-                JobAnnouncement.published_at == None,
+                JobAnnouncement.published_at.is_(None),
                 or_(
-                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date.is_(None),
                     JobAnnouncement.application_end_date >= now
                 )
             ).order_by(JobAnnouncement.id.asc()).limit(limit).all()
@@ -210,7 +221,7 @@ class BackgroundScheduler:
             recent_published = db.query(JobAnnouncement).filter(
                 JobAnnouncement.status == JobStatus.PUBLISHED,
                 or_(
-                    JobAnnouncement.application_end_date == None,
+                    JobAnnouncement.application_end_date.is_(None),
                     JobAnnouncement.application_end_date >= now
                 )
             ).order_by(JobAnnouncement.id.desc()).limit(20).all()
@@ -380,6 +391,23 @@ class BackgroundScheduler:
 
         self.interval_minutes = interval_minutes
         self._stop_event.clear()
+
+        # Askıda kalmış (yayınlanamamış ama published_at kilitli kalmış) ilanları kurtar
+        try:
+            with get_db() as db:
+                stuck_jobs = db.query(JobAnnouncement).filter(
+                    JobAnnouncement.status != JobStatus.PUBLISHED,
+                    JobAnnouncement.status != JobStatus.REJECTED,
+                    JobAnnouncement.published_channels.is_(None),
+                    JobAnnouncement.published_at.isnot(None)
+                ).all()
+                if stuck_jobs:
+                    for sj in stuck_jobs:
+                        sj.published_at = None
+                    logger.info(f"[OTOPİLOT KURTARMA] {len(stuck_jobs)} adet askıda kalmış kilitli ilan kuyruğa geri alındı.")
+        except Exception as cl_err:
+            logger.debug(f"Askıda kalan ilan temizleme kontrolü uyarısı: {cl_err}")
+
         self._thread = threading.Thread(target=self._worker, daemon=True)
         self._thread.start()
         self.is_running = True

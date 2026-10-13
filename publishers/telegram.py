@@ -125,7 +125,7 @@ class TelegramPublisher(BasePublisher):
             return True, f"İlan #{job.id} zaten Telegram kanalında mevcut (mükerrer gönderim önlendi)."
 
         # 3. YEREL GÖNDERİM GEÇMİŞİ KONTROLÜ (Son 24 saatte aynı ilan veya kurum/pozisyon atıldı mı?)
-        cache_file = Path("data/telegram_sent_cache.json")
+        cache_file = settings.DATA_DIR / "telegram_sent_cache.json"
         try:
             cache_file.parent.mkdir(parents=True, exist_ok=True)
             sent_cache = {}

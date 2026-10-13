@@ -476,7 +476,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                 website_url=getattr(settings, "WEBSITE_URL", "www.kamupersonelrehberiniz.me")
                             )
                             tj.image_path = str(c_path)
-                        db.commit()
+                        # get_db() context manager otomatik commit yapacak
                     st.success("5 adet yeni nesil modern afiş üretildi!")
                     st.rerun()
         with c_act3:
@@ -720,7 +720,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                     target.education_level = f_edu
                                     target.social_post_text = f_post
                                     target.source_url = f_link
-                                    db.commit()
+                                    # get_db() context manager otomatik commit yapacak
                             st.success("İlan bilgileri kaydedildi!")
                             st.rerun()
 
@@ -767,7 +767,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                         target.image_path = str(new_path)
                                         if not target.position: target.position = auto_pos
                                         if not target.total_positions or target.total_positions == 1: target.total_positions = auto_count
-                                        db.commit()
+                                        # get_db() context manager otomatik commit yapacak
                                 st.success(f"Yeni görsel kart oluşturuldu! ({CARD_THEMES[selected_job_theme]['name']})")
                                 st.rerun()
                             except Exception as gen_err:
@@ -835,7 +835,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                         with get_db() as db:
                             target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
                             target.status = JobStatus.REJECTED
-                            db.commit()
+                            # get_db() context manager otomatik commit yapacak
                         st.warning(f"İlan #{job.id} reddedildi.")
                         st.rerun()
 
@@ -1155,7 +1155,7 @@ elif menu == "🌐 İlan Tarayıcı & Manuel Ekle":
                             created_at=datetime.utcnow()
                         )
                         db.add(new_job)
-                        db.commit()
+                        db.flush()  # ID'yi almak için flush, commit get_db() tarafından yapılacak
                         new_id = new_job.id
 
                     # AI ile işle

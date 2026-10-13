@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 from loguru import logger
 
+from config.settings import settings
 from core.database import get_db, get_system_setting
 from core.models import JobAnnouncement, JobStatus
 from graphics.generator import JobCardGenerator
@@ -97,13 +98,12 @@ class PublisherManager:
             )
 
             # BUG-01: Başvuru süresi geçmiş normal ilanların paylaşımını kesin olarak engelle ve DB'de REJECTED yap
-            from datetime import datetime
             if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
                 warn_msg = f"İlanın son başvuru tarihi ({deadline_str}) geçmiş olduğundan yayınlanamaz."
                 logger.warning(f"İlan #{job.id} engellendi: {warn_msg}")
                 job.status = JobStatus.REJECTED
                 job.admin_notes = f"[Süresi Doldu: {deadline_str}] Sistem tarafından otomatik arşivlendi."
-                db.commit()
+                # get_db() context manager otomatik commit yapacak
                 return {"error": (False, warn_msg)}
 
             # Sosyal medya metnini YALNIZCA boşsa üret (BUG-08: AI/admin düzenlemeleri korunsun)
