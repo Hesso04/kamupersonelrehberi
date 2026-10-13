@@ -67,6 +67,7 @@ class PublisherManager:
             # Pozisyon ve kontenjan kontrolü / onarımı
             import re
             from pathlib import Path
+            from config.settings import settings
             from graphics.generator import to_turkish_date_str, tr_title
             website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
 
