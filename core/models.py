@@ -106,3 +106,25 @@ class JobAnnouncement(Base):
 
     def __repr__(self) -> str:
         return f"<JobAnnouncement(id={self.id}, institution='{self.institution}', status='{self.status}')>"
+
+
+class SiteAnalyticsEvent(Base):
+    """
+    Web Sitesi Ziyaretçi ve Tıklama Analitiği:
+    Sayfa görüntüleme, ilan detayına tıklama, resmi başvuruya gitme ve kategori filtreleme
+    olaylarını anonim olarak takip eder.
+    """
+    __tablename__ = "site_analytics_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_type = Column(String(50), nullable=False, index=True, doc="PAGEVIEW, JOB_VIEW, APPLY_CLICK, CATEGORY_CLICK, SEARCH")
+    job_id = Column(Integer, nullable=True, index=True)
+    job_title = Column(String(250), nullable=True)
+    category = Column(String(100), nullable=True)
+    referrer = Column(String(150), nullable=True, doc="Telegram, Instagram, Google, Direct")
+    ip_hash = Column(String(64), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<SiteAnalyticsEvent(id={self.id}, type='{self.event_type}', job_id={self.job_id})>"

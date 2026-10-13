@@ -201,6 +201,7 @@ menu = st.sidebar.radio(
         "📋 Onay Havuzu (Human-in-the-Loop)",
         "🤖 AI Doğrulanmış İlan Danışmanı & Arama",
         "📊 Gösterge Paneli (Dashboard)",
+        "📈 Web Sitesi Analitiği & Ziyaretçi Takibi",
         "🌐 İlan Tarayıcı & Manuel Ekle",
         "🚀 Telegram Kanal Büyütme & Üye Çekme",
         "📸 Instagram Büyüme & Otomasyon Merkezi",
@@ -732,19 +733,6 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                     else:
                         st.info("Bu ilan için henüz görsel kart üretilmedi.")
 
-                    # Çoklu Renk ve Görsel Tema Seçici
-                    theme_keys = list(CARD_THEMES.keys())
-                    default_theme_sys = get_system_setting("DEFAULT_CARD_THEME", "DARK_NOIR")
-                    cur_idx = theme_keys.index(default_theme_sys) if default_theme_sys in theme_keys else 0
-                    selected_job_theme = st.selectbox(
-                        "🎨 Afiş Tasarım Teması",
-                        options=theme_keys,
-                        index=cur_idx,
-                        format_func=lambda k: CARD_THEMES[k]["name"],
-                        key=f"theme_{job.id}",
-                        help="İlan afişinin renk paletini ve görsel temasını belirleyin."
-                    )
-
                     c_gen, c_ai = st.columns(2)
                     with c_gen:
                         if st.button("🎨 Yeni Nesil Modern Afiş Üret", key=f"btn_img_{job.id}", use_container_width=True):
@@ -767,8 +755,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                                         target.image_path = str(new_path)
                                         if not target.position: target.position = auto_pos
                                         if not target.total_positions or target.total_positions == 1: target.total_positions = auto_count
-                                        # get_db() context manager otomatik commit yapacak
-                                st.success(f"Yeni görsel kart oluşturuldu! ({CARD_THEMES[selected_job_theme]['name']})")
+                                st.success("Yeni nesil modern afiş başarıyla oluşturuldu!")
                                 st.rerun()
                             except Exception as gen_err:
                                 st.error(f"Afiş üretimi sırasında hata oluştu: {gen_err}")
@@ -814,7 +801,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                             st.warning("Lütfen en az bir paylaşım kanalı seçiniz.")
                         else:
                             publisher = PublisherManager()
-                            results = publisher.publish_job(job.id, channels=selected_channels, theme=selected_job_theme)
+                            results = publisher.publish_job(job.id, channels=selected_channels)
                             success_msgs = []
                             error_msgs = []
                             for ch, (succ, msg) in results.items():
@@ -835,7 +822,6 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                         with get_db() as db:
                             target = db.query(JobAnnouncement).filter(JobAnnouncement.id == job.id).first()
                             target.status = JobStatus.REJECTED
-                            # get_db() context manager otomatik commit yapacak
                         st.warning(f"İlan #{job.id} reddedildi.")
                         st.rerun()
 
@@ -860,96 +846,44 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                         st.link_button("🌐 Resmi Haber / Duyuru Sayfası", clean_url, use_container_width=True)
 
                 # =============================================================
-                # WHATSAPP İÇİN HIZLI MANUEL PAYLAŞIM PANELİ
+                # İSTEĞE BAĞLI AFİŞ & HİKAYE GÖRSELİ İNDİRME ALANI (HAFİF & HIZLI)
                 # =============================================================
-                with st.expander("💬 WhatsApp İçin Manuel Paylaşım Araçları (Tek Tıkla Kopyala & İndir)", expanded=False):
-                    wa_col_text, wa_col_actions = st.columns([3, 2])
-
-                    wa_formatted_text = (
-                        f"📢 *{auto_inst} Personel Alım İlanı*\n\n"
-                        f"🏛 *Kurum:* {auto_inst}\n"
-                        f"📋 *Kadro / Pozisyon:* {auto_pos}\n"
-                        f"👥 *Kontenjan:* {auto_count} Kişi\n"
-                        f"🗓 *Son Başvuru Tarihi:* {deadline_str}\n"
-                        f"🎓 *Öğrenim:* {job.education_level or 'Kılavuzda belirtilen'}\n"
-                        f"🎯 *KPSS:* {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n\n"
-                        f"🔗 *Resmi Kaynak Linki:*\n{clean_src_url}\n\n"
-                        f"⚠️ *Kamu Personel Rehberi teyitli resmi kamu ilanıdır.*\n"
-                        f"#KamuPersoneli #İlan #MemurAlımı"
-                    )
-
-                    with wa_col_text:
-                        st.text_area(
-                            "WhatsApp Formatlı Metin (*Kalın* fontlarla hazır):",
-                            value=wa_formatted_text,
-                            height=140,
-                            key=f"wa_copy_text_{job.id}",
-                            help="Metni kopyalayıp doğrudan WhatsApp kanalınıza veya grubunuza yapıştırabilirsiniz."
-                        )
-
-                    with wa_col_actions:
-                        st.write("")
-                        import urllib.parse
-                        wa_web_share_url = f"https://web.whatsapp.com/send?text={urllib.parse.quote(wa_formatted_text)}"
-                        st.link_button("📲 WhatsApp Web'de Aç (Metin Yazılı)", wa_web_share_url, use_container_width=True)
-
+                with st.expander("📥 Afiş & Hikaye Görseli İndir (İsteğe Bağlı)", expanded=False):
+                    d_col1, d_col2 = st.columns(2)
+                    with d_col1:
                         if img_path and img_path.exists():
-                            with open(img_path, "rb") as f_img_wa:
+                            with open(img_path, "rb") as f_img:
                                 st.download_button(
-                                    label="🖼️ Afiş Görselini İndir",
-                                    data=f_img_wa.read(),
-                                    file_name=f"{job.id}_{auto_inst}_Afis.png",
+                                    label="📥 4:5 Akış Afişini İndir (PNG)",
+                                    data=f_img.read(),
+                                    file_name=f"afis_{job.id}_{auto_inst}.png",
                                     mime="image/png",
-                                    key=f"dl_wa_img_{job.id}",
+                                    key=f"dl_img_{job.id}",
                                     use_container_width=True
                                 )
-
-                # =============================================================
-                # INSTAGRAM 9:16 DİKEY HİKAYE (STORY) HIZLI YAYIN & İNDİRME PANELİ
-                # =============================================================
-                with st.expander("📸 Instagram 9:16 Hikaye (Story) Önizleme & Paylaşım", expanded=False):
-                    st_col_prev, st_col_acts = st.columns([1, 2])
-                    from graphics.generator import JobCardGenerator, to_turkish_date_str
-                    card_gen = JobCardGenerator()
-                    story_p = card_gen.generate_story_card(
-                        job_id=job.id,
-                        institution=job.institution or "Kamu Kurumu",
-                        position=job.position or job.title,
-                        total_positions=job.total_positions,
-                        kpss_requirement=job.kpss_requirement,
-                        education_level=job.education_level,
-                        deadline=to_turkish_date_str(job.application_end_date),
-                        source_url=job.source_url,
-                        theme=selected_job_theme,
-                        title=job.title or ""
-                    )
-                    with st_col_prev:
-                        if story_p and Path(story_p).exists():
-                            st.image(str(story_p), caption="9:16 Story Görünümü", use_container_width=True)
-                    with st_col_acts:
-                        st.markdown("""
-                        **📱 9:16 Dikey Story Avantajı:**
-                        - 24 saat boyunca üst barda sabit kalır.
-                        - Takipçilerin DM kutusuna hızlı erişim ve link çıkartması için özel alan içerir.
-                        """)
-                        if st.button("🚀 Şimdi Instagram Story'de Yayınla", key=f"pub_story_{job.id}", type="primary", use_container_width=True):
-                            with st.spinner("Instagram Hikayelerinde yayınlanıyor..."):
-                                ip = InstagramPublisher()
-                                s_ok, s_msg = ip.publish_story(Path(story_p), job=job)
-                                if s_ok:
-                                    st.success(f"🎉 {s_msg}")
-                                else:
-                                    st.error(f"❌ {s_msg}")
-                        if story_p and Path(story_p).exists():
-                            with open(story_p, "rb") as f_st_dl:
-                                st.download_button(
-                                    label="📥 Story Görselini İndir (1080x1920 PNG)",
-                                    data=f_st_dl.read(),
-                                    file_name=f"story_{job.id}_{job.institution}.png",
-                                    mime="image/png",
-                                    key=f"dl_story_{job.id}",
-                                    use_container_width=True
+                        else:
+                            st.caption("Afiş henüz üretilmedi.")
+                    with d_col2:
+                        if st.button("📸 9:16 Story Kartı Üret & Hazırla", key=f"btn_make_story_{job.id}", use_container_width=True):
+                            try:
+                                from graphics.generator import JobCardGenerator, to_turkish_date_str
+                                card_gen = JobCardGenerator()
+                                story_p = card_gen.generate_story_card(
+                                    job_id=job.id,
+                                    institution=job.institution or "Kamu Kurumu",
+                                    position=job.position or job.title,
+                                    total_positions=job.total_positions,
+                                    kpss_requirement=job.kpss_requirement,
+                                    education_level=job.education_level,
+                                    deadline=to_turkish_date_str(job.application_end_date),
+                                    source_url=job.source_url,
+                                    title=job.title or ""
                                 )
+                                if story_p and Path(story_p).exists():
+                                    st.success("9:16 Hikaye kartı hazırlandı!")
+                                    st.image(str(story_p), caption="Story Görünümü", use_container_width=True)
+                            except Exception as story_err:
+                                st.error(f"Story üretilemedi: {story_err}")
 
 
 
@@ -1096,6 +1030,19 @@ elif menu == "📊 Gösterge Paneli (Dashboard)":
     st.subheader("🕒 Son Eklenen Resmi İlanlar")
     if export_data:
         st.dataframe(df.head(15), use_container_width=True)
+
+
+# =============================================================================
+# MODÜL: WEB SİTESİ ANALİTİĞİ & ZİYARETÇİ TAKİBİ
+# =============================================================================
+elif menu == "📈 Web Sitesi Analitiği & Ziyaretçi Takibi":
+    try:
+        import modules.site_analytics as sa_mod
+        import importlib
+        importlib.reload(sa_mod)
+        sa_mod.render_analytics_dashboard()
+    except Exception as sa_err:
+        st.error(f"Analitik paneli yüklenirken hata oluştu: {sa_err}")
 
 
 # =============================================================================

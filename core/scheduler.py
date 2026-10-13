@@ -9,6 +9,7 @@ from ai.processor import AIProcessor
 from publishers.manager import PublisherManager
 from core.database import get_db, get_system_setting, set_system_setting
 from core.models import JobAnnouncement, JobStatus
+from config.settings import settings
 
 
 AUTOPILOT_PACE_PRESETS = {

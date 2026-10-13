@@ -244,24 +244,7 @@ class TelegramPublisher(BasePublisher):
             if response.status_code == 200:
                 logger.info(f"İlan Telegram kanalında paylaşıldı: ID {job.id}")
 
-                # 3. Varsa Resmi PDF Kılavuzunu Kanala Doküman Olarak Gönder
-                pdf_file = Path(job.pdf_path) if job.pdf_path else None
-                if pdf_file and pdf_file.exists():
-                    try:
-                        with open(pdf_file, "rb") as doc:
-                            requests.post(
-                                f"{self.api_base}/sendDocument",
-                                data={
-                                    "chat_id": self.channel_id,
-                                    "caption": f"📄 <b>{job.institution or 'Kamu İlanı'}</b>\nResmi İlan Kılavuzu & Başvuru Şartları (PDF)",
-                                    "parse_mode": "HTML"
-                                },
-                                files={"document": doc},
-                                timeout=30
-                            )
-                        logger.info(f"Resmi PDF kılavuzu Telegram kanalına yüklendi: ID {job.id}")
-                    except Exception as pe:
-                        logger.warning(f"Telegram PDF gönderme uyarısı: {pe}")
+                # Kullanıcı tercihi: PDF'ler sitemizde zaten mevcut ve butonla yönlendiriliyor, ek dosya atılmıyor.
 
                 # 3. Başarılı gönderimi anti-spam önbelleğine kaydet
                 try:

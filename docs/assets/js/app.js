@@ -29,6 +29,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
   initCookieConsent();
+  trackAnalytics('PAGEVIEW');
 });
 
 async function initApp() {
@@ -524,14 +525,22 @@ function openJobDetailModal(jobId) {
       pdfBtn.style.display = 'inline-flex';
       pdfBtn.href = job.source_url || 'https://kamuilan.sbb.gov.tr/';
       pdfBtn.removeAttribute('download');
-      pdfBtn.innerHTML = `<span>🏛</span> Resmi Kurum Portalı`;
+      pdfBtn.onclick = () => {
+        trackAnalytics('PDF_DOWNLOAD', { jobId: job.id, jobTitle: job.title });
+      };
     }
   }
 
   const sourceBtn = document.getElementById('modal-source-btn');
   if (sourceBtn) {
     sourceBtn.href = job.source_url || 'https://kamuilan.sbb.gov.tr/';
+    sourceBtn.onclick = () => {
+      trackAnalytics('APPLY_CLICK', { jobId: job.id, jobTitle: job.title, category: job.category_name });
+    };
   }
+
+  // Analitik: İlan görüntüleme kaydı
+  trackAnalytics('JOB_VIEW', { jobId: job.id, jobTitle: job.title, category: job.category_name });
 
   // Paylaş
   const shareBtn = document.getElementById('modal-share-btn');
@@ -824,3 +833,49 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
+
+// =============================================================================
+// CANLI ZİYARETÇİ & TIKLAMA ANALİTİĞİ MOTORU
+// =============================================================================
+function trackAnalytics(eventType, payload = {}) {
+  try {
+    const supabaseUrl = 'https://lxffirosgbrfptnbjvdg.supabase.co';
+    const supabaseKey = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
+
+    // Trafik kaynağı tespiti (Referrer)
+    let ref = 'Doğrudan (Direct)';
+    const docRef = document.referrer.toLowerCase();
+    const query = window.location.search.toLowerCase();
+
+    if (docRef.includes('t.me') || docRef.includes('telegram') || query.includes('utm_source=telegram') || query.includes('ilan=')) {
+      ref = 'Telegram Kanalı';
+    } else if (docRef.includes('instagram.com') || query.includes('utm_source=instagram')) {
+      ref = 'Instagram Bio';
+    } else if (docRef.includes('google.') || docRef.includes('yandex.')) {
+      ref = 'Google Arama';
+    }
+
+    const bodyData = {
+      event_type: eventType,
+      job_id: payload.jobId || null,
+      job_title: payload.jobTitle ? String(payload.jobTitle).slice(0, 240) : null,
+      category: payload.category || null,
+      referrer: ref,
+      user_agent: navigator.userAgent ? navigator.userAgent.slice(0, 240) : null
+    };
+
+    fetch(`${supabaseUrl}/rest/v1/site_analytics_events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(bodyData)
+    }).catch(() => {});
+  } catch (err) {
+    // Analitik sessizce devam eder, kullanıcı deneyimini etkilemez
+  }
+}
+

@@ -64,28 +64,46 @@ class PublisherManager:
                 # Eksik kanal varsa sadece onları dene
                 channels = missing
 
-            # Pozisyon ve kontenjan kontrolü / onarımı
+            # Pozisyon ve kontenjan akıllı tespiti ve onarımı
             import re
             from pathlib import Path
             from config.settings import settings
             from graphics.generator import to_turkish_date_str, tr_title
-            website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
 
-            if job.status in [JobStatus.DRAFT, JobStatus.PENDING_APPROVAL] and not job.social_post_text:
+            website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
+            portal_base = f"https://{website_domain}"
+            portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
+
+            # 1. AKILLI KONTENJAN TESPİTİ (Başlıktan '860 Gelir Uzman Yardımcısı' vb. sayıları otomatik yakalar)
+            def extract_smart_quota(title_str: str, current_cnt: int = 1) -> int:
+                if not title_str:
+                    return current_cnt or 1
+                t_clean = title_str.strip()
+                # '860 Gelir Uzmanı', '15 Memur' gibi doğrudan tamlamalar
+                m_direct = re.findall(r"\b(\d{1,4}(?:[.,]\d{3})?)\s*(?:adet|kişi|kişilik|personel|memur|uzman|asistan|öğretim|işçi|sağlık|güvenlik|zabıta|sözleşmeli|polis|astsubay|mühendis|avukat|denetçi|müfettiş)", t_clean, re.IGNORECASE)
+                if m_direct:
+                    val = int(m_direct[0].replace(".", "").replace(",", ""))
+                    if 1 <= val < 10000 and val not in [657, 4857, 2024, 2025, 2026, 2027]:
+                        return val
+                nums = [int(n) for n in re.findall(r"\b(\d+)\b", t_clean)]
+                valid_nums = [n for n in nums if n not in [2024, 2025, 2026, 2027, 2028, 657, 4857, 375, 2547, 5018] and 1 <= n < 10000]
+                if len(valid_nums) > 1 and ("," in t_clean or " ve " in t_clean or "+" in t_clean):
+                    return sum(valid_nums)
+                elif valid_nums:
+                    return valid_nums[0]
+                return current_cnt if (current_cnt and current_cnt > 1) else 1
+
+            detected_quota = extract_smart_quota(job.title or "", job.total_positions or 1)
+            if detected_quota > (job.total_positions or 1) or not job.total_positions:
+                job.total_positions = detected_quota
+
+            if job.status in [JobStatus.DRAFT, JobStatus.PENDING_APPROVAL] or not job.position or job.position == "None":
                 pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
                 pos_clean = re.sub(r"^\s*(\d+\s*)+", "", pos_src)
                 pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|alınacak|alım ilanı).*$", "", pos_clean, flags=re.IGNORECASE)
                 pos_clean = pos_clean.strip(" -:,")
                 pos_clean = re.sub(r"\bpersoneli\b", "Personel", pos_clean, flags=re.IGNORECASE)
                 job.position = tr_title(pos_clean) or "Kamu Personeli"
-
-                all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", job.title)]
-                if len(all_nums) > 1 and ("," in job.title or " ve " in job.title):
-                    job.total_positions = sum(all_nums)
-                elif all_nums and all_nums[0] > 1:
-                    job.total_positions = all_nums[0]
-                elif not job.total_positions:
-                    job.total_positions = 1
 
             has_pdf = bool(job.pdf_path and Path(job.pdf_path).exists())
             deadline_str = to_turkish_date_str(job.application_end_date)
@@ -98,22 +116,17 @@ class PublisherManager:
                 for w in ["İPTAL", "IPTAL", "DÜZELTME", "DUZELTME", "İLAN İPTALİ"]
             )
 
-            # BUG-01: Başvuru süresi geçmiş normal ilanların paylaşımını kesin olarak engelle ve DB'de REJECTED yap
+            # Başvuru süresi geçmiş normal ilanları engelle
             if not is_cancellation and job.application_end_date and job.application_end_date.date() < datetime.now().date():
                 warn_msg = f"İlanın son başvuru tarihi ({deadline_str}) geçmiş olduğundan yayınlanamaz."
                 logger.warning(f"İlan #{job.id} engellendi: {warn_msg}")
                 job.status = JobStatus.REJECTED
                 job.admin_notes = f"[Süresi Doldu: {deadline_str}] Sistem tarafından otomatik arşivlendi."
-                # get_db() context manager otomatik commit yapacak
                 return {"error": (False, warn_msg)}
 
-            # Sosyal medya metnini YALNIZCA boşsa üret (BUG-08: AI/admin düzenlemeleri korunsun)
+            # Sosyal medya metnini üret veya varsa kontenjanını güncelle
             if not job.social_post_text:
-                portal_base = "https://kamupersonelrehberiniz.me"
-                portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
-
                 if is_cancellation:
-                    pdf_info = "📄 <b>Resmi İptal Kararı (PDF):</b> Ekte sunulmuştur." if has_pdf else f"🌐 <b>İptal Detayları & Açıklama:</b> {portal_job_url}"
                     job.social_post_text = (
                         f"🚨 🛑 <b>[DİKKAT: İLAN İPTAL DUYURUSU]</b> 🛑 🚨\n\n"
                         f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
@@ -121,13 +134,11 @@ class PublisherManager:
                         f"📋 <b>İptal Edilen Pozisyon:</b> {job.position}\n"
                         f"🗓 <b>Duyuru Tarihi:</b> {deadline_str}\n\n"
                         f"⚠️ <b>ÖNEMLİ BİLGİLENDİRME:</b> Bu duyuru yeni bir alım ilanı <u>DEĞİLDİR</u>! Daha önce yayımlanan personel alım süreci ilgili resmi kurum tarafından <b>RESMEN İPTAL EDİLMİŞTİR</b>. Yeni başvuru kabul edilmemektedir.\n\n"
-                        f"{pdf_info}\n\n"
-                        f"🌐 <b>Tüm Güncel İlanlar:</b> https://{website_domain}\n\n"
+                        f"🌐 <b>İptal Kararı & Detaylar:</b> {portal_job_url}\n\n"
                         f"📲 <i>Adayların boşuna başvuru hazırlığı yapmaması için arkadaşlarınızla paylaşınız!</i>\n"
                         f"#KamuPersoneli #İptalİlanı #Duyuru #KamuHaber"
                     )
                 else:
-                    pdf_info = "📄 <b>Resmi Kılavuz & Başvuru:</b> Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur." if has_pdf else f"🌐 <b>Resmi Kılavuz & Şartlar:</b> {portal_job_url}"
                     job.social_post_text = (
                         f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
                         f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
@@ -136,11 +147,23 @@ class PublisherManager:
                         f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
                         f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
                         f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
-                        f"{pdf_info}\n\n"
-                        f"🌐 <b>Resmi Başvuru Ekranı & İlan Detayı:</b> {portal_job_url}\n\n"
+                        f"📄 <b>Resmi Kılavuz & Başvuru Ekranı:</b> {portal_job_url}\n\n"
                         f"⚠️ <i>Bilgi kirliliğine karşı %100 teyitli resmi kamu ilanıdır.</i>\n"
                         f"#KamuPersoneli #İlan #KamuAlımı"
                     )
+            else:
+                # Mevcut metindeki eski 1 Kişi kalıntılarını tespit edilen gerçek kontenjan ile onar
+                if job.total_positions and job.total_positions > 1:
+                    job.social_post_text = re.sub(
+                        r"Kontenjan:(?:</b>)?\s*(?:1|None|\[Sayı\])\s*Kişi",
+                        f"Kontenjan:</b> {job.total_positions} Kişi",
+                        job.social_post_text
+                    )
+                # PDF eklenmediği için metindeki 'PDF ekte sunulmuştur' ifadesini site linkiyle güncelle
+                job.social_post_text = job.social_post_text.replace(
+                    "Resmi alım şartnamesi ve kadro tablosu (PDF) ekte sunulmuştur.",
+                    f"Resmi başvuru ekranı ve kadro dağılımı: {portal_job_url}"
+                )
 
             # 1. Görseli Yeni Nesil Modern Afiş Motoru ile Üret (yalnızca görsel yoksa)
             if not job.image_path or not Path(job.image_path).exists():

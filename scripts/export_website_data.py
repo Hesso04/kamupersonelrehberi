@@ -107,8 +107,14 @@ def clean_institution_and_position(job: JobAnnouncement) -> tuple:
     # 3. Kontenjan (Total Positions) Çözümleme
     quota = job.total_positions or 1
     nums = [int(n) for n in re.findall(r"\b(\d+)\b", title)]
-    if nums and nums[0] > 0 and nums[0] < 5000:
-        quota = nums[0]
+    valid_nums = [n for n in nums if n not in [2024, 2025, 2026, 2027, 2028, 657, 4857, 375, 2547, 5018] and 1 <= n < 10000]
+    if valid_nums:
+        if len(valid_nums) > 1 and ("," in title or " ve " in title or "+" in title):
+            quota = sum(valid_nums)
+        else:
+            quota = valid_nums[0]
+    elif not job.total_positions:
+        quota = 1
 
     return inst, position, quota, is_cancellation
 
