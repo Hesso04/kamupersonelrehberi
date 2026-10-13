@@ -94,14 +94,27 @@ def get_analytics_summary() -> Dict[str, Any]:
 
 def render_analytics_dashboard():
     """Web sitesi analitik ve ziyaretçi paneli görünümü."""
-    st.markdown('<div class="main-header">📈 Web Sitesi Analitiği & Ziyaretçi Takip Merkezi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">📊 Web Sitesi Analitiği & Ziyaretçi Takip Merkezi</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="sub-header">'
-        'kamupersonelrehberiniz.me portalının canlı ziyaretçi trafiği, kullanıcıların tıkladığı alanlar, '
-        'kategori ilgileri ve gelecekte siteyi büyütmek için uygulanacak stratejik yol haritası.'
+        'kamupersonelrehberiniz.me portalının gerçek zamanlı canlı ziyaretçi trafiği, tıklanan resmi ilanlar ve aday etkileşimleri.'
         '</div>',
         unsafe_allow_html=True
     )
+
+    col_btn1, col_btn2, _ = st.columns([1, 1, 3])
+    with col_btn1:
+        if st.button("🔄 Verileri Yenile", use_container_width=True):
+            st.rerun()
+    with col_btn2:
+        if st.button("🗑️ Sayaçları Sıfırla", use_container_width=True):
+            try:
+                with get_db() as db:
+                    db.query(SiteAnalyticsEvent).delete()
+                st.success("Tüm analitik kayıtları sıfırlandı.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Sıfırlama hatası: {e}")
 
     data = get_analytics_summary()
 
@@ -111,13 +124,13 @@ def render_analytics_dashboard():
         st.metric(
             label="👁️ Toplam Sayfa Görüntüleme",
             value=f"{data['total_pageviews']:,}".replace(",", "."),
-            delta="Canlı Organik Veri"
+            delta="Canlı Gerçek Ziyaretçi"
         )
     with col2:
         st.metric(
             label="👤 İlan Detay İncelemesi",
             value=f"{data['total_job_views']:,}".replace(",", "."),
-            delta="Gerçek Ziyaretçi Tıklaması"
+            delta="Aday Tıklamaları"
         )
     with col3:
         st.metric(
@@ -139,20 +152,21 @@ def render_analytics_dashboard():
 
     with g_col1:
         st.subheader("📅 Günlük Ziyaretçi & Etkileşim Trendi (Son 7 Gün)")
-        if data["daily_trend"]:
+        has_any_daily = any(item.get("Etkileşim", 0) > 0 for item in data.get("daily_trend", []))
+        if data["daily_trend"] and has_any_daily:
             df_trend = pd.DataFrame(data["daily_trend"])
-            st.bar_chart(df_trend.set_index("Tarih"), use_container_width=True, color="#3B82F6")
+            st.bar_chart(df_trend.set_index("Tarih"), use_container_width=True, color="#2C4A3E")
         else:
-            st.info("Henüz yeterli günlük veri bulunmuyor.")
+            st.info("Canlı veri toplanıyor. Sitenize yeni ziyaretçiler girdikçe günlük trend burada anlık oluşacaktır.")
 
     with g_col2:
         st.subheader("🧭 Trafik Kaynakları (Kullanıcı Nereden Geliyor?)")
         if data["traffic_sources"]:
             src_df = pd.DataFrame(list(data["traffic_sources"].items()), columns=["Kaynak", "Ziyaret"])
             st.dataframe(src_df.sort_values(by="Ziyaret", ascending=False), hide_index=True, use_container_width=True)
-            st.caption("✈️ **En Büyük Trafik Kaynağımız:** Telegram kanalımızdan gelen doğrudan adaylar.")
+            st.caption("✈️ **En Büyük Trafik Kaynağımız:** Telegram ve doğrudan aday girişleri.")
         else:
-            st.info("Kaynak verisi bekleniyor.")
+            st.info("Henüz harici referans verisi kaydedilmedi. Organik ve sosyal trafik buraya anlık yansıyacaktır.")
 
     st.markdown("---")
 

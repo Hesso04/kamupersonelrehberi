@@ -130,6 +130,12 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: 84px;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -199,6 +205,7 @@ input, select, textarea {
 /* Organik Bölüm Işığı & Dalga Geçişleri (Keskin Çizgi Yok) */
 .organic-section-glow {
   position: relative;
+  overflow: hidden;
 }
 .organic-section-glow::before {
   content: '';
@@ -207,6 +214,7 @@ input, select, textarea {
   left: 50%;
   transform: translateX(-50%);
   width: 800px;
+  max-width: 100vw;
   height: 240px;
   background: radial-gradient(50% 50% at 50% 50%, rgba(var(--primary-accent-rgb), 0.05) 0%, transparent 100%);
   pointer-events: none;
@@ -275,6 +283,24 @@ html.dark .tilt-surface::after {
   padding-bottom: 6px;
   display: flex;
   justify-content: center;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+@media (max-width: 640px) {
+  .dynamic-island-bar {
+    padding-top: 6px;
+    padding-bottom: 2px;
+  }
+  .dynamic-island-capsule {
+    padding: 4px 10px;
+    font-size: 0.6875rem;
+    gap: 8px;
+    max-width: 100%;
+  }
+  .island-text span {
+    display: none;
+  }
 }
 
 .dynamic-island-capsule {
@@ -341,20 +367,88 @@ html.dark .tilt-surface::after {
    ========================================================================== */
 .sticky-nav-wrapper {
   position: sticky;
-  top: 10px;
+  top: 0;
   z-index: 990;
-  padding: 0 16px;
+  padding: 8px 16px;
+  margin-bottom: 14px;
+  background: rgba(247, 246, 242, 0.90);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(24, 24, 22, 0.05);
+  transition: background-color var(--transition-normal);
+}
+
+html.dark .sticky-nav-wrapper {
+  background: rgba(18, 18, 17, 0.90);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-capsule {
   max-width: 1120px;
-  height: 56px;
+  height: 52px;
   margin: 0 auto;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 18px;
+  padding: 0 16px;
+  background: var(--nav-glass-bg);
+  border: 1px solid var(--nav-glass-border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 768px) {
+  .sticky-nav-wrapper {
+    top: 0;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+  }
+  .nav-capsule {
+    height: 48px;
+    padding: 0 10px;
+  }
+  .nav-brand-group {
+    gap: 6px;
+    min-width: 0;
+  }
+  .nav-brand-logo {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .nav-brand-title {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-badge-archive {
+    display: none;
+  }
+  .nav-actions-right {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .nav-cmd-btn {
+    padding: 6px 8px;
+    gap: 0;
+  }
+  .nav-cmd-btn span {
+    display: none;
+  }
+  .nav-cmd-badge {
+    display: none;
+  }
+  .nav-telegram-btn {
+    padding: 6px 8px;
+  }
+  .nav-telegram-btn span {
+    display: none;
+  }
+  .nav-theme-btn {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* Sol Logo & Marka */
@@ -850,13 +944,10 @@ html.dark .nav-telegram-btn {
 
 @media (min-width: 1024px) {
   .job-row-desktop-grid {
-    display: grid;
+    display: grid !important;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: center;
     gap: 16px;
-  }
-  .job-row-mobile-view {
-    display: none;
   }
 }
 
@@ -1046,11 +1137,17 @@ html.dark .nav-telegram-btn {
   transform: translateX(2px);
 }
 
-/* Mobil Görünümü (lg:hidden) */
+/* Mobil Görünümü (Masaüstünde Kesinlikle Gizlenir) */
 .job-row-mobile-view {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+@media (min-width: 1024px) {
+  .job-row-mobile-view {
+    display: none !important;
+  }
 }
 
 .mobile-row-header {
@@ -1648,17 +1745,25 @@ html.dark .nav-telegram-btn {
 
 .ios-bottom-dock {
   position: fixed;
-  bottom: 14px;
-  left: 16px;
-  right: 16px;
+  bottom: 12px;
+  left: 14px;
+  right: 14px;
   z-index: 980;
-  height: 58px;
+  height: 54px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  padding: 0 8px;
+  background: rgba(247, 246, 242, 0.94);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14);
+}
+
+html.dark .ios-bottom-dock {
+  background: rgba(18, 18, 17, 0.94);
 }
 
 @media (min-width: 1024px) {
@@ -1687,6 +1792,17 @@ html.dark .nav-telegram-btn {
 
 .dock-icon-symbol {
   font-size: 1.15rem;
+}
+
+/* Apple Dokunsal Buton & Mikro Etkileşimler */
+button, .btn-apple-primary, .btn-apple-secondary, .quick-pill-item, .category-tab-btn, .dock-item-btn, .nav-cmd-btn, .nav-telegram-btn, .nav-theme-btn, .pagination-btn {
+  transition: transform 160ms cubic-bezier(0.25, 1, 0.5, 1), background-color 160ms ease, box-shadow 160ms ease, color 160ms ease, border-color 160ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active, .btn-apple-primary:active, .btn-apple-secondary:active, .quick-pill-item:active, .category-tab-btn:active, .dock-item-btn:active, .nav-cmd-btn:active, .nav-telegram-btn:active, .nav-theme-btn:active {
+  transform: scale(0.96);
 }
 
 /* ==========================================================================
@@ -1782,16 +1898,24 @@ html.dark .nav-telegram-btn {
 /* Çerez Bannerı */
 .cookie-banner {
   position: fixed;
-  bottom: 80px;
-  left: 20px;
-  right: 20px;
+  bottom: 74px;
+  left: 14px;
+  right: 14px;
   z-index: 970;
   max-width: 480px;
   border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  padding: 14px 18px;
   display: none;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  background: rgba(247, 246, 242, 0.96);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16);
+}
+
+html.dark .cookie-banner {
+  background: rgba(24, 24, 22, 0.96);
 }
 
 @media (min-width: 768px) {

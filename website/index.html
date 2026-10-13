@@ -63,7 +63,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Ana Tasarım Sistemi (Editorial Apple Glass) -->
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2.0.1">
 
   <!-- =========================================================================
        GELİŞMİŞ YAPILANDIRILMIŞ VERİ ŞEMASI (JSON-LD SCHEMA.ORG)
@@ -320,22 +320,34 @@
       <div class="summary-bar-wrapper">
         <div class="summary-bar-card apple-glass tilt-surface">
           <div class="summary-stat-col">
-            <span class="summary-stat-label">Açık Kontenjan</span>
+            <span class="summary-stat-label">
+              <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              AÇIK KONTENJAN
+            </span>
             <div class="summary-stat-value" id="stat-total-quota">14.850+</div>
             <span class="summary-stat-sub">Türkiye Geneli</span>
           </div>
           <div class="summary-stat-col">
-            <span class="summary-stat-label">Yayındaki İlan</span>
+            <span class="summary-stat-label">
+              <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              YAYINDAKİ İLAN
+            </span>
             <div class="summary-stat-value" id="stat-total-jobs">683</div>
             <span class="summary-stat-sub">Resmi İlan Duyurusu</span>
           </div>
           <div class="summary-stat-col">
-            <span class="summary-stat-label">Anlık İnceleyen</span>
+            <span class="summary-stat-label">
+              <span class="pulse-ring-dot" style="display:inline-block;width:6px;height:6px;margin-right:4px;"></span>
+              ANLIK İNCELEYEN
+            </span>
             <div class="summary-stat-value" id="stat-active-visitors">2.071</div>
             <span class="summary-stat-sub">Aday Portaldadır</span>
           </div>
           <div class="summary-stat-col">
-            <span class="summary-stat-label">Resmi Bildirim</span>
+            <span class="summary-stat-label">
+              <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              RESMİ BİLDİRİM
+            </span>
             <div class="summary-stat-value">%100</div>
             <span class="summary-stat-sub">Doğrulanmış Kaynak</span>
           </div>
@@ -813,6 +825,6 @@
     </div>
   </footer>
 
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/app.js?v=2.0.1"></script>
 </body>
 </html>
