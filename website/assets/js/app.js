@@ -1,11 +1,10 @@
 /**
- * KAMU PERSONEL REHBERİ - WEB İSTEMCİ MOTORU (v5.0)
- * SBB Kamu İlan Referanslı, Cam Efektli (Glassmorphic) & Yüksek Hızlı Sayfalamalı Mimari
+ * KAMU PERSONEL REHBERİ - EDITORIAL APPLE GLASS & TACTILE MOTORU (v6.0)
+ * 3D Cursor/Touch Weight Tilt, iOS Bottom Sheet Swipe, SBB Senkronizasyonu & Hızlı Sayfalama
  */
 
 const CONFIG = {
-  PAGE_SIZE: 15, // Her sayfada tam 15 ilan gösterilir (Sayfanın aşırı uzun olmasını kalıcı çözer)
-  HERO_AUTO_SLIDE_MS: 6000,
+  PAGE_SIZE: 15,
   DATA_URL: 'data/jobs.json',
 };
 
@@ -14,24 +13,74 @@ const state = {
   allJobs: [],
   filteredJobs: [],
   meta: {},
-  featuredJobs: [],
   activeCategory: 'all',
+  quickPill: 'all',
   searchQuery: '',
+  educationLevel: 'all',
   filterOnlyOpen: false,
   filterOnlyCanc: false,
   filterOnlyPdf: false,
+  filterKpssSartsiz: false,
   sortBy: 'date_desc',
   currentPage: 1,
-  currentHeroIndex: 0,
-  heroTimer: null,
+  theme: 'light',
 };
 
+// DOM Yüklendiğinde Başlat
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   initApp();
   initCookieConsent();
+  initGlobalKeyboardShortcuts();
+  initModalSwipeDown();
   trackAnalytics('PAGEVIEW');
 });
 
+// =============================================================================
+// 1. TEMA YÖNETİMİ (LIGHT MONOKROM TAŞ / DARK EDİTORYAL)
+// =============================================================================
+function initTheme() {
+  const savedTheme = localStorage.getItem('kpr_theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    state.theme = 'dark';
+    document.documentElement.classList.add('dark');
+  } else {
+    state.theme = 'light';
+    document.documentElement.classList.remove('dark');
+  }
+  updateThemeIcon();
+
+  const themeBtn = document.getElementById('theme-toggle-btn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', toggleTheme);
+  }
+}
+
+function toggleTheme() {
+  if (state.theme === 'dark') {
+    state.theme = 'light';
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('kpr_theme', 'light');
+  } else {
+    state.theme = 'dark';
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('kpr_theme', 'dark');
+  }
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  const iconEl = document.getElementById('theme-icon');
+  if (iconEl) {
+    iconEl.textContent = state.theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
+// =============================================================================
+// 2. ANA UYGULAMA BAŞLATICI (DATA LOADING & INIT)
+// =============================================================================
 async function initApp() {
   try {
     const res = await fetch(CONFIG.DATA_URL);
@@ -40,32 +89,33 @@ async function initApp() {
 
     state.allJobs = data.jobs || [];
     state.meta = data.meta || {};
-    state.featuredJobs = data.meta?.featured_jobs || state.allJobs.slice(0, 10);
 
-    // İstatistikler
+    // İstatistik Kartlarını Güncelle
     updatePortalStats();
 
-    // SBB Tarzı Numaralı Manşet Vitrini (1 2 3 ... 10)
-    initHeroShowcase();
-
-    // Sol Kategori Menüsü
-    renderCategoryMenu();
-
-    // Filtrele & Sayfala
+    // Filtre & Sayfalamayı Başlat
     applyFiltersAndPaginate(1);
 
-    // Etkileşim Dinleyicileri
+    // Olay Dinleyicilerini Bağla
     bindSearchAndFilters();
 
-    // URL'deki ?ilan=123 parametresiyle ilanı doğrudan aç (Telegram paylaşımları için)
+    // 3D Dokunsal Ağırlık / Eğilme Motorunu Başlat
+    initCursorWeightTilt();
+
+    // Deep Link İlan Kontrolü (?ilan=123)
     checkAndOpenDeepLinkedJob();
   } catch (err) {
     console.error('İlan verisi yüklenirken hata:', err);
     const feed = document.getElementById('jobs-feed');
     if (feed) {
       feed.innerHTML = `
-        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:24px;text-align:center;color:#991B1B;">
-          <strong>İlan verileri yüklenemedi.</strong> Lütfen internet bağlantınızı kontrol edip sayfayı yenileyiniz.
+        <div style="background:var(--glass-bg);border:1px solid var(--warning-border);border-radius:16px;padding:32px 20px;text-align:center;color:var(--text-primary);">
+          <div style="font-size:2rem;margin-bottom:8px;">⚠️</div>
+          <strong style="font-size:1.1rem;display:block;margin-bottom:6px;">İlan verileri yüklenemedi.</strong>
+          <p style="font-size:0.875rem;color:var(--text-secondary);max-width:460px;margin:0 auto 16px auto;">
+            Sunucu veya internet bağlantınızı kontrol ederek sayfayı yeniden yükleyiniz.
+          </p>
+          <button onclick="location.reload()" class="btn-apple-primary">Sayfayı Yenile</button>
         </div>
       `;
     }
@@ -73,205 +123,73 @@ async function initApp() {
 }
 
 function updatePortalStats() {
+  // Aktif Ziyaretçi
+  const visitors = state.meta.active_visitors || 2071;
   const visitorsEl = document.getElementById('stat-active-visitors');
-  if (visitorsEl && state.meta.active_visitors) {
-    visitorsEl.textContent = state.meta.active_visitors.toLocaleString('tr-TR');
-  }
+  const visitorsFooterEl = document.getElementById('stat-active-visitors-footer');
+  if (visitorsEl) visitorsEl.textContent = visitors.toLocaleString('tr-TR');
+  if (visitorsFooterEl) visitorsFooterEl.textContent = visitors.toLocaleString('tr-TR');
 
+  // Toplam İlan
+  const totalJobs = state.allJobs.length;
   const totalJobsEl = document.getElementById('stat-total-jobs');
-  if (totalJobsEl) {
-    totalJobsEl.textContent = state.allJobs.length.toLocaleString('tr-TR');
-  }
+  const totalJobsFooterEl = document.getElementById('stat-total-jobs-footer');
+  if (totalJobsEl) totalJobsEl.textContent = totalJobs.toLocaleString('tr-TR');
+  if (totalJobsFooterEl) totalJobsFooterEl.textContent = totalJobs.toLocaleString('tr-TR');
+
+  // Toplam Kontenjan
+  const totalQuota = state.allJobs.reduce((acc, j) => acc + (parseInt(j.total_positions, 10) || 1), 0);
+  const quotaEl = document.getElementById('stat-total-quota');
+  if (quotaEl) quotaEl.textContent = totalQuota > 0 ? `${totalQuota.toLocaleString('tr-TR')}+` : '14.850+';
+
+  // Canlı Şerit Rozeti
+  const countBadge = document.getElementById('strip-count-badge');
+  if (countBadge) countBadge.textContent = `${totalJobs} İLAN YAYINDA`;
 }
 
 // =============================================================================
-// HERO SHOWCASE (SBB STİLİ NUMARALI MANŞET VİTRİNİ)
-// =============================================================================
-function initHeroShowcase() {
-  const showcaseContainer = document.getElementById('hero-showcase-content');
-  const numbersNav = document.getElementById('hero-numbers-nav');
-  if (!showcaseContainer || !state.featuredJobs.length) return;
-
-  // 1. Numaralı Düğmeleri Oluştur (1 2 3 4 5 ...)
-  if (numbersNav) {
-    numbersNav.innerHTML = '';
-    state.featuredJobs.forEach((job, idx) => {
-      const btn = document.createElement('button');
-      btn.className = `hero-num-btn ${idx === 0 ? 'active' : ''}`;
-      btn.textContent = idx + 1;
-      btn.title = job.institution;
-      btn.addEventListener('click', () => {
-        stopHeroTimer();
-        state.currentHeroIndex = idx;
-        renderHeroSlide();
-        startHeroTimer();
-      });
-      numbersNav.appendChild(btn);
-    });
-  }
-
-  // 2. İlk Slaytı Çiz
-  renderHeroSlide();
-  startHeroTimer();
-}
-
-function renderHeroSlide() {
-  const container = document.getElementById('hero-showcase-content');
-  if (!container || !state.featuredJobs.length) return;
-
-  const job = state.featuredJobs[state.currentHeroIndex];
-  const isCanc = job.is_cancellation;
-  const badgeText = isCanc ? '🚨 İLAN İPTAL DUYURUSU' : (job.total_positions >= 50 ? '🔥 YÜKSEK KONTENJAN' : '🏛 RESMİ KAMU ALIMI');
-
-  // PDF indirme bağlantısı: Doğrudan documents/sbb_{id}.pdf'e gider
-  const pdfActionMarkup = job.has_pdf && job.pdf_url
-    ? `<a href="${job.pdf_url}" target="_blank" rel="noopener noreferrer" class="hero-btn-pdf" download>📄 Kılavuzu İndir (PDF)</a>`
-    : `<a href="${job.source_url || 'https://kamuilan.sbb.gov.tr/'}" target="_blank" rel="noopener noreferrer" class="hero-btn-pdf">🏛 Resmi Portal</a>`;
-
-  container.innerHTML = `
-    <div class="hero-glass-showcase">
-      <div class="hero-showcase-left">
-        <div class="hero-pill-row">
-          <span class="hero-tag-badge">${badgeText}</span>
-          <span class="hero-quota-pill">👥 ${job.total_positions} Personel Alımı</span>
-          <span class="hero-date-highlight">🗓 Başvuru: ${escapeHtml(job.date_interval || job.end_date_str)}</span>
-        </div>
-        <div class="hero-inst-name">${escapeHtml(job.institution)}</div>
-        <h2 class="hero-card-headline">${escapeHtml(job.title)}</h2>
-        <div class="hero-meta-chips">
-          <span>🎓 ${escapeHtml(job.education_level)}</span>
-          <span>🎯 ${escapeHtml(job.kpss_requirement)}</span>
-          <span>📍 ${escapeHtml(job.city)}</span>
-        </div>
-      </div>
-      <div class="hero-showcase-right">
-        <button class="hero-btn-primary" onclick="openJobDetailModal(${job.id})">
-          Şartları İncele →
-        </button>
-        ${pdfActionMarkup}
-      </div>
-    </div>
-  `;
-
-  // Aktif numara butonunu güncelle
-  const numBtns = document.querySelectorAll('.hero-num-btn');
-  numBtns.forEach((btn, idx) => {
-    btn.classList.toggle('active', idx === state.currentHeroIndex);
-  });
-}
-
-function startHeroTimer() {
-  stopHeroTimer();
-  state.heroTimer = setInterval(() => {
-    state.currentHeroIndex = (state.currentHeroIndex + 1) % state.featuredJobs.length;
-    renderHeroSlide();
-  }, CONFIG.HERO_AUTO_SLIDE_MS);
-}
-
-function stopHeroTimer() {
-  if (state.heroTimer) clearInterval(state.heroTimer);
-}
-
-// =============================================================================
-// SOL SÜTUN KATEGORİ MENÜSÜ
-// =============================================================================
-function renderCategoryMenu() {
-  const menu = document.getElementById('category-menu-list');
-  if (!menu) return;
-
-  const categories = state.meta.categories || [];
-  const total = state.allJobs.length;
-
-  let html = `
-    <li>
-      <button class="category-pill-btn ${state.activeCategory === 'all' ? 'active' : ''}" onclick="filterByCategory('all')">
-        <span>🌐 Tüm İlanlar</span>
-        <span class="category-pill-counter">${total}</span>
-      </button>
-    </li>
-  `;
-
-  categories.forEach(cat => {
-    const slug = getCategorySlug(cat.name);
-    const icon = getCategoryIcon(cat.name);
-    const isActive = state.activeCategory === slug;
-
-    html += `
-      <li>
-        <button class="category-pill-btn ${isActive ? 'active' : ''}" onclick="filterByCategory('${slug}')">
-          <span>${icon} ${escapeHtml(cat.name)}</span>
-          <span class="category-pill-counter">${cat.count}</span>
-        </button>
-      </li>
-    `;
-  });
-
-  menu.innerHTML = html;
-}
-
-function filterByCategory(slug) {
-  state.activeCategory = slug;
-  renderCategoryMenu();
-  applyFiltersAndPaginate(1);
-}
-
-function getCategorySlug(catName) {
-  const map = {
-    'Memur & Genel İdari Kadrolar': 'memur',
-    'Sözleşmeli Personel': 'sozlesmeli',
-    'Akademik Kadrolar': 'akademik',
-    'Bilişim & Teknik Kadrolar': 'bilisim',
-    'Sağlık Personeli': 'saglik',
-    'Askeri & Emniyet Personeli': 'askeri',
-    'Sürekli İşçi Alımları': 'isci',
-    'Belediye Başkanlıkları': 'belediye',
-  };
-  return map[catName] || 'diger';
-}
-
-function getCategoryIcon(catName) {
-  const map = {
-    'Memur & Genel İdari Kadrolar': '👔',
-    'Sözleşmeli Personel': '📑',
-    'Akademik Kadrolar': '🎓',
-    'Bilişim & Teknik Kadrolar': '💻',
-    'Sağlık Personeli': '🏥',
-    'Askeri & Emniyet Personeli': '🛡',
-    'Sürekli İşçi Alımları': '⚙',
-    'Belediye Başkanlıkları': '🏛',
-  };
-  return map[catName] || '📋';
-}
-
-// =============================================================================
-// FİLTRELEME & AKILLI SAYFALAMA MOTORU (SAYFANIN UZUN OLMASINI ENGELLEYEN ÇEKİRDEK)
+// 3. FİLTRELEME & AKILLI SAYFALAMA MOTORU
 // =============================================================================
 function applyFiltersAndPaginate(page = 1) {
   state.currentPage = page;
 
-  // 1. Filtrele
+  // Filtreler
   state.filteredJobs = state.allJobs.filter(job => {
-    // Kategori
+    // 1. Kategori Filtresi
     if (state.activeCategory !== 'all' && job.category_slug !== state.activeCategory) {
       return false;
     }
 
-    // Arama
+    // 2. Arama Metni
     if (state.searchQuery) {
       const q = state.searchQuery.toLocaleLowerCase('tr-TR');
-      const text = `${job.institution} ${job.title} ${job.position} ${job.city}`.toLocaleLowerCase('tr-TR');
-      if (!text.includes(q)) return false;
+      const searchTarget = `${job.institution} ${job.title} ${job.position} ${job.city}`.toLocaleLowerCase('tr-TR');
+      if (!searchTarget.includes(q)) return false;
     }
 
-    // Durum Filtreleri
+    // 3. Öğrenim Düzeyi Filtresi
+    if (state.educationLevel !== 'all') {
+      const edu = (job.education_level || '').toLocaleLowerCase('tr-TR');
+      if (state.educationLevel === 'lisans' && !edu.includes('lisans') && !edu.includes('fakülte')) return false;
+      if (state.educationLevel === 'onlisans' && !edu.includes('ön lisans') && !edu.includes('önlisans') && !edu.includes('meslek yüksek')) return false;
+      if (state.educationLevel === 'lise' && !edu.includes('lise') && !edu.includes('ortaöğretim')) return false;
+      if (state.educationLevel === 'ilkogretim' && !edu.includes('ilköğretim') && !edu.includes('ilkokul') && !edu.includes('ortaokul')) return false;
+    }
+
+    // 4. Hızlı Durum Filtreleri
     if (state.filterOnlyOpen && job.status !== 'BAŞVURUYA AÇIK') return false;
     if (state.filterOnlyCanc && !job.is_cancellation) return false;
     if (state.filterOnlyPdf && !job.has_pdf) return false;
+    if (state.filterKpssSartsiz) {
+      const kpss = (job.kpss_requirement || '').toLocaleLowerCase('tr-TR');
+      const isSartsiz = kpss.includes('şartsız') || kpss.includes('aranmamaktadır') || kpss.includes('muaf') || kpss.includes('kura');
+      if (!isSartsiz) return false;
+    }
 
     return true;
   });
 
-  // 2. Sırala
+  // Sıralama
   if (state.sortBy === 'quota_desc') {
     state.filteredJobs.sort((a, b) => (b.total_positions || 0) - (a.total_positions || 0));
   } else if (state.sortBy === 'quota_asc') {
@@ -280,26 +198,29 @@ function applyFiltersAndPaginate(page = 1) {
     state.filteredJobs.sort((a, b) => (b.sort_key || 0) - (a.sort_key || 0));
   }
 
-  // 3. İstatistik Rozetini Güncelle
+  // Canlı Şerit Sayaç Güncellemesi
   const countBadge = document.getElementById('strip-count-badge');
   if (countBadge) {
-    countBadge.textContent = `TÜM İLANLAR (${state.filteredJobs.length} İlan)`;
+    countBadge.textContent = `${state.filteredJobs.length} İLAN LİSTELENDİ`;
   }
 
-  // 4. Sayfalamayı Hesapla
+  // Sayfalama Hesabı
   const totalPages = Math.ceil(state.filteredJobs.length / CONFIG.PAGE_SIZE) || 1;
   if (state.currentPage > totalPages) state.currentPage = totalPages;
 
   const startIndex = (state.currentPage - 1) * CONFIG.PAGE_SIZE;
   const pageJobs = state.filteredJobs.slice(startIndex, startIndex + CONFIG.PAGE_SIZE);
 
-  // 5. İlan Akışını ve Sayfalama Çubuğunu Çiz
+  // İlan Listesini ve Sayfalamayı Çiz
   renderJobsFeed(pageJobs);
   renderPaginationBar(totalPages);
+
+  // Yeniden çizilen satırlara 3D tilt motorunu bağla
+  rebindTiltSurfaces();
 }
 
 // =============================================================================
-// KRONOLOJİK İLAN AKIŞI ÇİZİMİ (SBB KAMU İLAN GİBİ TARİHE GÖRE GRUPLANMIŞ)
+// 4. İLAN LİSTESİ ÇİZİMİ (HORIZONTAL STACKED ROWS)
 // =============================================================================
 function renderJobsFeed(jobsToRender) {
   const feed = document.getElementById('jobs-feed');
@@ -307,108 +228,135 @@ function renderJobsFeed(jobsToRender) {
 
   if (jobsToRender.length === 0) {
     feed.innerHTML = `
-      <div style="background:rgba(255,255,255,0.85);backdrop-filter:blur(10px);border:1px solid #E2E8F0;border-radius:10px;padding:48px 24px;text-align:center;">
-        <div style="font-size:2.4rem;margin-bottom:10px;">🔍</div>
-        <h3 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:6px;">Aradığınız Kriterlere Uygun İlan Bulunamadı</h3>
-        <p style="font-size:0.875rem;color:#64748B;">Lütfen arama teriminizi değiştiriniz veya filtreleri sıfırlayınız.</p>
-        <button onclick="resetFilters()" style="margin-top:14px;background:#2563EB;color:#FFF;padding:8px 18px;border-radius:6px;font-size:0.8125rem;font-weight:700;">Filtreleri Temizle</button>
+      <div class="apple-glass" style="border-radius:20px;padding:56px 24px;text-align:center;">
+        <div style="font-size:2.8rem;margin-bottom:12px;">🔍</div>
+        <h3 class="font-editorial" style="font-size:1.35rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;">
+          Kriterlere Uygun İlan Bulunamadı
+        </h3>
+        <p style="font-size:0.875rem;color:var(--text-secondary);max-width:440px;margin:0 auto 18px auto;">
+          Arama teriminizi değiştirmeyi veya filtreleri temizlemeyi deneyebilirsiniz.
+        </p>
+        <button onclick="resetAllFilters()" class="btn-apple-primary">Filtreleri Temizle</button>
       </div>
     `;
     return;
   }
 
-  // Sayfadaki ilanları tarihe göre grupla (Örn: "9 Ekim", "8 Ekim", "28 Eylül")
-  const groupsMap = new Map();
-  jobsToRender.forEach(job => {
-    const gName = job.pub_date_group || 'Güncel İlanlar';
-    if (!groupsMap.has(gName)) {
-      groupsMap.set(gName, []);
-    }
-    groupsMap.get(gName).push(job);
-  });
-
-  let html = '';
-
-  groupsMap.forEach((groupJobs, groupName) => {
-    html += `
-      <section class="date-group-card">
-        <div class="date-group-badge-row">
-          <span class="date-group-badge-title">
-            <span>📅</span>
-            <span>${escapeHtml(groupName)}</span>
-          </span>
-          <span class="date-group-count-text">(${groupJobs.length} İlan)</span>
-        </div>
-
-        <div class="jobs-group-list">
-          ${groupJobs.map(job => renderJobRowItem(job)).join('')}
-        </div>
-      </section>
-    `;
-  });
-
-  feed.innerHTML = html;
+  feed.innerHTML = jobsToRender.map(job => renderJobRowItem(job)).join('');
 }
 
 function renderJobRowItem(job) {
   const isCanc = job.is_cancellation;
-  const emblemLetter = (job.institution || 'K')[0].toUpperCase();
+  const emblemChar = (job.institution || 'K').trim()[0].toUpperCase();
+  const quota = job.total_positions || 1;
+  const dateStr = escapeHtml(job.date_interval || job.end_date_str || 'Güncel İlan');
+  const eduStr = escapeHtml(job.education_level || 'Belirtilmedi');
+  const kpssStr = escapeHtml(job.kpss_requirement || 'KPSS Şartı İlanda');
+  const cityStr = escapeHtml(job.city || 'Türkiye Geneli');
 
-  // PDF aksiyon butonu: Eğer yerel dosya varsa doğrudan indirir, 404 vermez!
-  let pdfBtn = '';
-  if (job.has_pdf && job.pdf_url) {
-    pdfBtn = `
-      <a href="${job.pdf_url}" target="_blank" rel="noopener noreferrer" class="btn-row-action pdf" download onclick="event.stopPropagation()">
-        📄 PDF İndir
-      </a>
-    `;
-  }
-
-  let tagMarkup = '';
+  // Durum Rozeti
+  let statusBadge = '';
   if (isCanc) {
-    tagMarkup = `<span class="job-item-tag canc">🚨 İPTAL / DÜZELTME</span>`;
-  } else if (job.category_slug === 'akademik') {
-    tagMarkup = `<span class="job-item-tag badge">🎓 Akademik</span>`;
-  } else if (job.category_slug === 'belediye') {
-    tagMarkup = `<span class="job-item-tag badge">🏛 Belediye</span>`;
+    statusBadge = `<span class="job-status-pill amber">🚨 İptal / Düzeltme</span>`;
+  } else {
+    const kpssLow = (job.kpss_requirement || '').toLowerCase();
+    if (kpssLow.includes('şartsız') || kpssLow.includes('aranmamaktadır') || kpssLow.includes('muaf') || kpssLow.includes('kura')) {
+      statusBadge = `<span class="job-status-pill pine">⚡ KPSS Şartsız</span>`;
+    } else {
+      statusBadge = `<span class="job-status-pill pine">Kariyer Kapısı</span>`;
+    }
   }
 
   return `
-    <article class="sbb-job-item ${isCanc ? 'cancellation' : ''}" onclick="openJobDetailModal(${job.id})">
-      <div class="inst-emblem-badge">${emblemLetter}</div>
-
-      <div class="job-item-text-wrap">
-        <div class="job-item-inst-line">
-          <strong class="job-item-inst-name">${escapeHtml(job.institution)}</strong>
-          ${tagMarkup}
+    <article class="job-stacked-row apple-glass tilt-surface ${isCanc ? 'is-cancellation' : ''}" onclick="openJobDetailModal(${job.id})" role="button" tabindex="0" aria-label="${escapeHtml(job.institution)}: ${escapeHtml(job.title)}">
+      
+      <!-- ================= MASAÜSTÜ 12 SÜTUNLU GÖRÜNÜM ================= -->
+      <div class="job-row-desktop-grid">
+        
+        <!-- Col 5: Kurum & İlan Başlığı -->
+        <div class="col-job-identity">
+          <div class="job-inst-emblem" aria-hidden="true">${emblemChar}</div>
+          <div class="job-identity-text">
+            <div class="job-inst-kicker-line">
+              <span class="job-inst-name-kicker">${escapeHtml(job.institution)}</span>
+              ${statusBadge}
+            </div>
+            <h2 class="job-row-title-headline font-editorial">${escapeHtml(job.title)}</h2>
+          </div>
         </div>
-        <div class="job-item-desc">${escapeHtml(job.title)}</div>
+
+        <!-- Col 2: Öğrenim Düzeyi & KPSS -->
+        <div class="col-job-education">
+          <span class="job-meta-primary">🎓 ${eduStr}</span>
+          <span class="job-meta-secondary">🎯 ${kpssStr}</span>
+        </div>
+
+        <!-- Col 2: Görev Yeri & Kaynak -->
+        <div class="col-job-location">
+          <span class="job-meta-primary">📍 ${cityStr}</span>
+          <span class="job-meta-secondary">🏛 Resmi Kamu İlanı</span>
+        </div>
+
+        <!-- Col 1: Kontenjan Sayısı -->
+        <div class="col-job-quota">
+          <span class="job-quota-number font-editorial">${quota}</span>
+          <span class="job-quota-caption">Kontenjan</span>
+        </div>
+
+        <!-- Col 2: Son Başvuru Tarihi & Ok Butonu -->
+        <div class="col-job-action">
+          <div class="job-deadline-wrap">
+            <div class="job-deadline-status-line">
+              <span class="status-dot-green" aria-hidden="true"></span>
+              <span>Son Gün</span>
+            </div>
+            <span class="job-deadline-date-sub">${dateStr}</span>
+          </div>
+          <div class="job-row-arrow-btn" aria-hidden="true">→</div>
+        </div>
+
       </div>
 
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="job-item-quota-pill">👥 ${job.total_positions} Kişi</span>
-        <span class="job-item-date-pill">🗓 ( ${escapeHtml(job.date_interval || job.end_date_str)} )</span>
+      <!-- ================= MOBİL DUYARLI GÖRÜNÜM (KESİNTİSİZ BAŞLIK) ================= -->
+      <div class="job-row-mobile-view">
+        <div class="mobile-row-header">
+          <span class="mobile-inst-tag">${escapeHtml(job.institution)}</span>
+          ${statusBadge}
+        </div>
+
+        <!-- Kesilmeyen, Alt Satıra Temiz Kayabilen Başlık -->
+        <h2 class="mobile-title-text font-editorial">${escapeHtml(job.title)}</h2>
+
+        <div class="mobile-divider"></div>
+
+        <div class="mobile-pills-wrap">
+          <span class="mobile-info-pill quota">👥 ${quota} Kişi</span>
+          <span class="mobile-info-pill">🎓 ${eduStr}</span>
+          <span class="mobile-info-pill">📍 ${cityStr}</span>
+        </div>
+
+        <div class="mobile-bottom-bar">
+          <span class="mobile-kpss-req">🎯 ${kpssStr}</span>
+          <span class="mobile-date-arrow">
+            <span>🗓 ${dateStr}</span>
+            <span style="font-weight:700;color:var(--primary-accent);">→</span>
+          </span>
+        </div>
       </div>
 
-      <div class="job-item-actions" onclick="event.stopPropagation()">
-        ${pdfBtn}
-        <button class="btn-row-action" onclick="openJobDetailModal(${job.id})">
-          🔍 İncele
-        </button>
-      </div>
     </article>
   `;
 }
 
 // =============================================================================
-// SAYFALAMA ÇUBUĞU (SBB GİBİ 1/12 SAYFA GEÇİŞİ)
+// 5. SAYFALAMA ÇUBUĞU
 // =============================================================================
 function renderPaginationBar(totalPages) {
-  const paginationContainer = document.getElementById('pagination-container');
-  if (!paginationContainer) return;
+  const container = document.getElementById('pagination-container');
+  if (!container) return;
 
   if (totalPages <= 1) {
-    paginationContainer.innerHTML = '';
+    container.innerHTML = '';
     return;
   }
 
@@ -417,14 +365,14 @@ function renderPaginationBar(totalPages) {
 
   // Önceki Butonu
   buttonsHtml += `
-    <button class="pg-btn" ${current === 1 ? 'disabled' : ''} onclick="goToPage(${current - 1})">
+    <button class="pagination-btn" ${current === 1 ? 'disabled' : ''} onclick="goToPage(${current - 1})">
       ◀ Önceki
     </button>
   `;
 
-  // Sayfa Numaraları
-  const maxButtons = 7;
-  let startPage = Math.max(1, current - 3);
+  // Sayfa Butonları
+  const maxButtons = 5;
+  let startPage = Math.max(1, current - 2);
   let endPage = Math.min(totalPages, startPage + maxButtons - 1);
 
   if (endPage - startPage < maxButtons - 1) {
@@ -432,36 +380,37 @@ function renderPaginationBar(totalPages) {
   }
 
   if (startPage > 1) {
-    buttonsHtml += `<button class="pg-btn" onclick="goToPage(1)">1</button>`;
-    if (startPage > 2) buttonsHtml += `<span style="color:#94A3B8;padding:0 4px;">...</span>`;
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+    if (startPage > 2) buttonsHtml += `<span style="color:var(--text-tertiary);padding:0 4px;">…</span>`;
   }
 
   for (let p = startPage; p <= endPage; p++) {
     buttonsHtml += `
-      <button class="pg-btn ${p === current ? 'active' : ''}" onclick="goToPage(${p})">
+      <button class="pagination-btn ${p === current ? 'active' : ''}" onclick="goToPage(${p})">
         ${p}
       </button>
     `;
   }
 
   if (endPage < totalPages) {
-    if (endPage < totalPages - 1) buttonsHtml += `<span style="color:#94A3B8;padding:0 4px;">...</span>`;
-    buttonsHtml += `<button class="pg-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    if (endPage < totalPages - 1) buttonsHtml += `<span style="color:var(--text-tertiary);padding:0 4px;">…</span>`;
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
   }
 
   // Sonraki Butonu
   buttonsHtml += `
-    <button class="pg-btn" ${current === totalPages ? 'disabled' : ''} onclick="goToPage(${current + 1})">
+    <button class="pagination-btn" ${current === totalPages ? 'disabled' : ''} onclick="goToPage(${current + 1})">
       Sonraki ▶
     </button>
   `;
 
-  paginationContainer.innerHTML = `
-    <div class="pagination-glass-bar">
-      <div class="pagination-info-text">
-        Sayfa <strong>${current}</strong> / <strong>${totalPages}</strong> &nbsp;•&nbsp; Toplam <strong>${state.filteredJobs.length}</strong> ilan
+  container.innerHTML = `
+    <div class="pagination-glass-card apple-glass">
+      <div class="pagination-stat-info">
+        Sayfa <strong>${current}</strong> / <strong>${totalPages}</strong> &nbsp;•&nbsp; 
+        Toplam <strong>${state.filteredJobs.length}</strong> ilan
       </div>
-      <div class="pagination-controls-wrap">
+      <div class="pagination-btn-group">
         ${buttonsHtml}
       </div>
     </div>
@@ -470,17 +419,129 @@ function renderPaginationBar(totalPages) {
 
 function goToPage(page) {
   applyFiltersAndPaginate(page);
-  const target = document.getElementById('jobs-feed');
+  const target = document.getElementById('ilanlar');
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
 // =============================================================================
-// İLAN DETAY MODALI (DOĞRUDAN AKTARMALI PDF & SIFIR 404 HATASI)
+// 6. 3D CURSOR & TOUCH WEIGHT TILT MOTORU (.tilt-surface)
 // =============================================================================
+function initCursorWeightTilt() {
+  document.addEventListener('mousemove', handleTiltMove);
+  document.addEventListener('mouseleave', handleTiltLeave, true);
+  document.addEventListener('touchmove', handleTiltTouch, { passive: true });
+  document.addEventListener('touchend', handleTiltTouchEnd, { passive: true });
+}
+
+function rebindTiltSurfaces() {
+  // Dinamik olarak eklenen elemanlar zaten event delegation ile handleTiltMove tarafından yakalanır.
+}
+
+function handleTiltMove(e) {
+  const target = e.target.closest('.tilt-surface');
+  if (!target) return;
+
+  const rect = target.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const normX = x / rect.width - 0.5;
+  const normY = y / rect.height - 0.5;
+
+  // İnce satırlar (<120px) için 2.6deg, büyük kartlar için 4.2deg
+  const maxTilt = rect.height < 120 ? 2.6 : 4.2;
+
+  const rx = (-normY * maxTilt * 2).toFixed(2);
+  const ry = (normX * maxTilt * 2).toFixed(2);
+
+  target.style.setProperty('--rx', `${rx}deg`);
+  target.style.setProperty('--ry', `${ry}deg`);
+  target.style.setProperty('--tz', '-2px');
+  target.style.setProperty('--spot-x', `${((normX + 0.5) * 100).toFixed(1)}%`);
+  target.style.setProperty('--spot-y', `${((normY + 0.5) * 100).toFixed(1)}%`);
+  target.classList.add('is-tilting');
+}
+
+function handleTiltLeave(e) {
+  const target = e.target.closest ? e.target.closest('.tilt-surface') : null;
+  if (!target) return;
+  resetTiltSurface(target);
+}
+
+function handleTiltTouch(e) {
+  if (!e.touches || !e.touches[0]) return;
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.tilt-surface');
+  if (!target) return;
+
+  const rect = target.getBoundingClientRect();
+  const normX = (touch.clientX - rect.left) / rect.width - 0.5;
+  const normY = (touch.clientY - rect.top) / rect.height - 0.5;
+  const maxTilt = rect.height < 120 ? 2.6 : 4.2;
+
+  const rx = (-normY * maxTilt * 2).toFixed(2);
+  const ry = (normX * maxTilt * 2).toFixed(2);
+
+  target.style.setProperty('--rx', `${rx}deg`);
+  target.style.setProperty('--ry', `${ry}deg`);
+  target.style.setProperty('--tz', '-3px');
+  target.style.setProperty('--spot-x', `${((normX + 0.5) * 100).toFixed(1)}%`);
+  target.style.setProperty('--spot-y', `${((normY + 0.5) * 100).toFixed(1)}%`);
+  target.classList.add('is-tilting');
+}
+
+function handleTiltTouchEnd() {
+  document.querySelectorAll('.tilt-surface.is-tilting').forEach(resetTiltSurface);
+}
+
+function resetTiltSurface(el) {
+  el.style.setProperty('--rx', '0deg');
+  el.style.setProperty('--ry', '0deg');
+  el.style.setProperty('--tz', '0px');
+  el.classList.remove('is-tilting');
+}
+
+// =============================================================================
+// 7. iOS SWIPEABLE BOTTOM SHEET DETAY MODALI
+// =============================================================================
+let touchStartY = 0;
+let touchCurrentY = 0;
+
+function initModalSwipeDown() {
+  const sheet = document.getElementById('modal-sheet-container');
+  if (!sheet) return;
+
+  sheet.addEventListener('touchstart', e => {
+    if (e.touches && e.touches[0]) {
+      touchStartY = e.touches[0].clientY;
+      touchCurrentY = touchStartY;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    if (e.touches && e.touches[0]) {
+      touchCurrentY = e.touches[0].clientY;
+      const deltaY = touchCurrentY - touchStartY;
+      if (deltaY > 0) {
+        sheet.style.transform = `translateY(${deltaY}px)`;
+      }
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', () => {
+    const deltaY = touchCurrentY - touchStartY;
+    sheet.style.transform = '';
+    // 75px'den fazla aşağı çekildiyse kapat
+    if (deltaY > 75) {
+      closeJobDetailModal();
+    }
+  }, { passive: true });
+}
+
 function openJobDetailModal(jobId) {
-  const job = state.allJobs.find(j => j.id === jobId);
+  const job = state.allJobs.find(j => String(j.id) === String(jobId));
   if (!job) return;
 
   const modal = document.getElementById('job-detail-modal');
@@ -490,8 +551,8 @@ function openJobDetailModal(jobId) {
   document.getElementById('modal-job-title').textContent = job.title;
 
   document.getElementById('modal-spec-position').textContent = job.position || 'Kamu Personeli';
-  document.getElementById('modal-spec-quota').textContent = `${job.total_positions} Kişi`;
-  document.getElementById('modal-spec-dates').textContent = job.date_interval || job.end_date_str;
+  document.getElementById('modal-spec-quota').textContent = `${job.total_positions || 1} Kişi`;
+  document.getElementById('modal-spec-dates').textContent = job.date_interval || job.end_date_str || 'Resmi İlanda Belirtilmiştir';
   document.getElementById('modal-spec-education').textContent = job.education_level || 'Resmi Kılavuzda Belirtilmiştir';
   document.getElementById('modal-spec-kpss').textContent = job.kpss_requirement || 'Resmi İlanda Belirtilmiştir';
   document.getElementById('modal-spec-city').textContent = job.city || 'Türkiye Geneli / İlanda Belirtilen İller';
@@ -502,9 +563,9 @@ function openJobDetailModal(jobId) {
     if (job.is_cancellation) {
       alertBox.style.display = 'block';
       alertBox.innerHTML = `
-        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:12px 16px;color:#991B1B;font-size:0.8125rem;">
+        <div style="background:var(--warning-bg);border:1px solid var(--warning-border);border-radius:10px;padding:12px 16px;color:var(--warning-text);font-size:0.8125rem;">
           <strong>🚨 DİKKAT: ALIM İPTALİ / DÜZELTME DUYURUSUDUR!</strong><br>
-          Bu alım süreci ilgili resmi kamu kurumu tarafından iptal edilmiş veya düzeltilmiştir. Yeni başvuru alınmamaktadır.
+          Bu alım süreci ilgili kamu kurumu tarafından iptal edilmiş veya düzeltilmiştir. Yeni başvuru alınmamaktadır.
         </div>
       `;
     } else {
@@ -512,7 +573,7 @@ function openJobDetailModal(jobId) {
     }
   }
 
-  // PDF İndirme Butonu (Doğrudan Yerel Dosya Eşleştirmesi - 0 Hata)
+  // PDF İndirme Butonu
   const pdfBtn = document.getElementById('modal-pdf-download-btn');
   if (pdfBtn) {
     if (job.has_pdf && job.pdf_url) {
@@ -521,16 +582,17 @@ function openJobDetailModal(jobId) {
       pdfBtn.download = `sbb_${job.id}_kilavuz.pdf`;
       pdfBtn.innerHTML = `<span>📄</span> Resmi Kılavuzu İndir (PDF)`;
     } else {
-      // Yerel PDF henüz indirilmemişse doğrudan resmi ana portala yönlendir (404 sayfası yerine)
       pdfBtn.style.display = 'inline-flex';
       pdfBtn.href = job.source_url || 'https://kamuilan.sbb.gov.tr/';
       pdfBtn.removeAttribute('download');
-      pdfBtn.onclick = () => {
-        trackAnalytics('PDF_DOWNLOAD', { jobId: job.id, jobTitle: job.title });
-      };
+      pdfBtn.innerHTML = `<span>📄</span> Kılavuz Bağlantısı (Resmi Portal)`;
     }
+    pdfBtn.onclick = () => {
+      trackAnalytics('PDF_DOWNLOAD', { jobId: job.id, jobTitle: job.title });
+    };
   }
 
+  // Kaynak Butonu
   const sourceBtn = document.getElementById('modal-source-btn');
   if (sourceBtn) {
     sourceBtn.href = job.source_url || 'https://kamuilan.sbb.gov.tr/';
@@ -539,26 +601,26 @@ function openJobDetailModal(jobId) {
     };
   }
 
-  // Analitik: İlan görüntüleme kaydı
-  trackAnalytics('JOB_VIEW', { jobId: job.id, jobTitle: job.title, category: job.category_name });
-
-  // Paylaş
+  // Paylaş Butonu
   const shareBtn = document.getElementById('modal-share-btn');
   if (shareBtn) {
     shareBtn.onclick = () => {
-      const shareText = `📢 ${job.institution} Personel Alım İlanı:\n${job.title}\nDetaylar: https://kamupersonelrehberiniz.me/`;
+      const shareUrl = `https://kamupersonelrehberiniz.me/?ilan=${job.id}`;
+      const shareText = `📢 ${job.institution} Personel Alım İlanı:\n${job.title}\nDetaylar: ${shareUrl}`;
       if (navigator.share) {
-        navigator.share({ title: job.institution, text: shareText, url: window.location.href }).catch(() => {});
+        navigator.share({ title: job.institution, text: shareText, url: shareUrl }).catch(() => {});
       } else {
-        navigator.clipboard.writeText(shareText).then(() => alert('✅ İlan bilgileri kopyalandı!'));
+        navigator.clipboard.writeText(shareText).then(() => alert('✅ İlan bağlantısı kopyalandı!'));
       }
     };
   }
 
+  // Modal'ı Aç
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // Dinamik SEO, GEO ve Google for Jobs Şema Güncellemesi
+  // Analitik & Dinamik SEO
+  trackAnalytics('JOB_VIEW', { jobId: job.id, jobTitle: job.title, category: job.category_name });
   updateJobSeoMetadata(job);
 }
 
@@ -568,10 +630,226 @@ function closeJobDetailModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
   }
-  // Varsayılan SEO meta verilerine dön
   resetJobSeoMetadata();
 }
 
+// Modal dışına tıklandığında kapat
+document.addEventListener('click', e => {
+  const modal = document.getElementById('job-detail-modal');
+  if (modal && modal.classList.contains('active') && e.target === modal) {
+    closeJobDetailModal();
+  }
+});
+
+// ESC Tuşu ile Modal Kapatma
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeJobDetailModal();
+    closeLegalModal('modal-kvkk');
+    closeLegalModal('modal-legal-warning');
+  }
+});
+
+// =============================================================================
+// 8. ETKİLEŞİM DİNLEYİCİLERİ, ARAMA & KISAYOLLAR
+// =============================================================================
+function bindSearchAndFilters() {
+  const sInput = document.getElementById('search-input');
+  if (sInput) {
+    sInput.addEventListener('input', debounce(e => {
+      state.searchQuery = e.target.value.trim();
+      applyFiltersAndPaginate(1);
+    }, 250));
+
+    sInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        state.searchQuery = sInput.value.trim();
+        applyFiltersAndPaginate(1);
+      }
+    });
+  }
+
+  const sBtn = document.getElementById('search-btn-trigger');
+  if (sBtn && sInput) {
+    sBtn.addEventListener('click', () => {
+      state.searchQuery = sInput.value.trim();
+      applyFiltersAndPaginate(1);
+    });
+  }
+
+  const eduSelect = document.getElementById('education-select');
+  if (eduSelect) {
+    eduSelect.addEventListener('change', e => {
+      state.educationLevel = e.target.value;
+      applyFiltersAndPaginate(1);
+    });
+  }
+
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', e => {
+      state.sortBy = e.target.value;
+      applyFiltersAndPaginate(1);
+    });
+  }
+
+  const cmdBtn = document.getElementById('nav-cmd-search-btn');
+  if (cmdBtn) {
+    cmdBtn.addEventListener('click', focusSpotlightSearch);
+  }
+}
+
+function initGlobalKeyboardShortcuts() {
+  window.addEventListener('keydown', e => {
+    // ⌘K veya Ctrl+K ile aramaya odaklan
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      focusSpotlightSearch();
+    }
+  });
+}
+
+function focusSpotlightSearch() {
+  const sInput = document.getElementById('search-input');
+  if (sInput) {
+    sInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => sInput.focus(), 300);
+  }
+}
+
+function scrollToSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Hızlı Filtre Hapları (Quick Pills)
+function selectQuickPill(pillType) {
+  state.quickPill = pillType;
+
+  // Aktif hap sınıfını güncelle
+  document.querySelectorAll('.quick-pill-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-pill') === pillType);
+  });
+
+  // Filtre durumlarını sıfırla
+  state.searchQuery = '';
+  state.activeCategory = 'all';
+  state.filterKpssSartsiz = false;
+  state.filterOnlyOpen = false;
+  state.filterOnlyCanc = false;
+  state.filterOnlyPdf = false;
+
+  const sInput = document.getElementById('search-input');
+  if (sInput) sInput.value = '';
+
+  if (pillType === 'all') {
+    // Tümü
+  } else if (pillType === 'kpss_sartsiz') {
+    state.filterKpssSartsiz = true;
+  } else if (pillType === 'akademik') {
+    state.activeCategory = 'akademik';
+  } else if (pillType === 'sozlesmeli') {
+    state.activeCategory = 'sozlesmeli';
+  } else if (pillType === 'bilisim') {
+    state.activeCategory = 'bilisim';
+  } else if (pillType === 'ankara') {
+    state.searchQuery = 'ankara';
+    if (sInput) sInput.value = 'Ankara';
+  } else if (pillType === 'isci') {
+    state.activeCategory = 'isci';
+  }
+
+  updateCategoryTabsUI();
+  applyFiltersAndPaginate(1);
+  scrollToSection('ilanlar');
+}
+
+// Kategori Sekmesi Seçimi
+function filterByCategory(catSlug) {
+  state.activeCategory = catSlug;
+  state.filterOnlyOpen = false;
+  state.filterOnlyCanc = false;
+  state.filterOnlyPdf = false;
+  state.filterKpssSartsiz = false;
+
+  updateCategoryTabsUI();
+  applyFiltersAndPaginate(1);
+}
+
+function toggleQuickFilter(type) {
+  if (type === 'open') {
+    state.filterOnlyOpen = !state.filterOnlyOpen;
+  } else if (type === 'kpss_sartsiz') {
+    state.filterKpssSartsiz = !state.filterKpssSartsiz;
+  } else if (type === 'pdf') {
+    state.filterOnlyPdf = !state.filterOnlyPdf;
+  } else if (type === 'canc') {
+    state.filterOnlyCanc = !state.filterOnlyCanc;
+  }
+
+  updateCategoryTabsUI();
+  applyFiltersAndPaginate(1);
+}
+
+function updateCategoryTabsUI() {
+  const tabs = document.querySelectorAll('.category-tab-btn');
+  tabs.forEach(btn => {
+    const cat = btn.getAttribute('data-cat');
+    if (cat === 'all') {
+      btn.classList.toggle('active', state.activeCategory === 'all' && !state.filterOnlyOpen && !state.filterKpssSartsiz && !state.filterOnlyPdf && !state.filterOnlyCanc);
+    } else if (cat === 'open') {
+      btn.classList.toggle('active', state.filterOnlyOpen);
+    } else if (cat === 'kpss_sartsiz') {
+      btn.classList.toggle('active', state.filterKpssSartsiz);
+    } else if (cat === 'pdf') {
+      btn.classList.toggle('active', state.filterOnlyPdf);
+    } else if (cat === 'canc') {
+      btn.classList.toggle('active', state.filterOnlyCanc);
+    }
+  });
+}
+
+function filterByKpssGeneral() {
+  state.searchQuery = 'kpss';
+  const sInput = document.getElementById('search-input');
+  if (sInput) sInput.value = 'KPSS';
+  applyFiltersAndPaginate(1);
+  scrollToSection('ilanlar');
+}
+
+function resetAllFilters() {
+  state.searchQuery = '';
+  state.activeCategory = 'all';
+  state.quickPill = 'all';
+  state.educationLevel = 'all';
+  state.filterOnlyOpen = false;
+  state.filterOnlyCanc = false;
+  state.filterOnlyPdf = false;
+  state.filterKpssSartsiz = false;
+  state.sortBy = 'date_desc';
+
+  const sInput = document.getElementById('search-input');
+  if (sInput) sInput.value = '';
+
+  const eduSelect = document.getElementById('education-select');
+  if (eduSelect) eduSelect.value = 'all';
+
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) sortSelect.value = 'date_desc';
+
+  document.querySelectorAll('.quick-pill-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-pill') === 'all');
+  });
+
+  updateCategoryTabsUI();
+  applyFiltersAndPaginate(1);
+}
+
+// =============================================================================
+// 9. DİNAMİK SEO & GOOGLE FOR JOBS ŞEMASI
+// =============================================================================
 function updateJobSeoMetadata(job) {
   try {
     const jobTitle = `${job.institution || 'Kamu Kurumu'} ${job.position || 'Personel'} Alımı (${job.total_positions || 1} Kişi)`;
@@ -581,14 +859,12 @@ function updateJobSeoMetadata(job) {
 
     document.title = fullTitle;
 
-    // Meta Description & Canonical
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', jobDesc);
 
     let canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute('href', deepUrl);
 
-    // OpenGraph
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', fullTitle);
     const ogDesc = document.querySelector('meta[property="og:description"]');
@@ -596,7 +872,6 @@ function updateJobSeoMetadata(job) {
     const ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) ogUrl.setAttribute('content', deepUrl);
 
-    // JobPosting JSON-LD Schema Enjeksiyonu (Google for Jobs & AI Arama)
     let schemaScript = document.getElementById('dynamic-jobposting-schema');
     if (!schemaScript) {
       schemaScript = document.createElement('script');
@@ -688,84 +963,7 @@ function checkAndOpenDeepLinkedJob() {
 }
 
 // =============================================================================
-// ARAMA VE FİLTRELEME OLAYLARI
-// =============================================================================
-function bindSearchAndFilters() {
-  const sInput = document.getElementById('search-input');
-  if (sInput) {
-    sInput.addEventListener('input', debounce(e => {
-      state.searchQuery = e.target.value.trim();
-      applyFiltersAndPaginate(1);
-    }, 250));
-  }
-
-  const sBtn = document.getElementById('search-btn-trigger');
-  if (sBtn && sInput) {
-    sBtn.addEventListener('click', () => {
-      state.searchQuery = sInput.value.trim();
-      applyFiltersAndPaginate(1);
-    });
-  }
-
-  const sortSelect = document.getElementById('sort-select');
-  if (sortSelect) {
-    sortSelect.addEventListener('change', e => {
-      state.sortBy = e.target.value;
-      applyFiltersAndPaginate(1);
-    });
-  }
-
-  const chkOpen = document.getElementById('chk-only-open');
-  if (chkOpen) {
-    chkOpen.addEventListener('change', e => {
-      state.filterOnlyOpen = e.target.checked;
-      applyFiltersAndPaginate(1);
-    });
-  }
-
-  const chkCanc = document.getElementById('chk-only-canc');
-  if (chkCanc) {
-    chkCanc.addEventListener('change', e => {
-      state.filterOnlyCanc = e.target.checked;
-      applyFiltersAndPaginate(1);
-    });
-  }
-
-  const chkPdf = document.getElementById('chk-only-pdf');
-  if (chkPdf) {
-    chkPdf.addEventListener('change', e => {
-      state.filterOnlyPdf = e.target.checked;
-      applyFiltersAndPaginate(1);
-    });
-  }
-}
-
-function resetFilters() {
-  state.searchQuery = '';
-  state.activeCategory = 'all';
-  state.filterOnlyOpen = false;
-  state.filterOnlyCanc = false;
-  state.filterOnlyPdf = false;
-  state.sortBy = 'date_desc';
-
-  const sInput = document.getElementById('search-input');
-  if (sInput) sInput.value = '';
-
-  const chkOpen = document.getElementById('chk-only-open');
-  if (chkOpen) chkOpen.checked = false;
-
-  const chkCanc = document.getElementById('chk-only-canc');
-  if (chkCanc) chkCanc.checked = false;
-
-  const chkPdf = document.getElementById('chk-only-pdf');
-  if (chkPdf) chkPdf.checked = false;
-
-  renderCategoryMenu();
-  applyFiltersAndPaginate(1);
-}
-
-// =============================================================================
-// YASAL MODALLAR & ÇEREZ YÖNETİMİ
+// 10. YASAL MODALLAR & ÇEREZ YÖNETİMİ
 // =============================================================================
 function openLegalModal(modalId) {
   const modal = document.getElementById(modalId);
@@ -789,7 +987,7 @@ function initCookieConsent() {
 
   const consent = localStorage.getItem('kpr_cookie_consent');
   if (!consent) {
-    setTimeout(() => banner.classList.add('show'), 1000);
+    setTimeout(() => banner.classList.add('show'), 1200);
   }
 
   const acceptBtn = document.getElementById('cookie-accept-btn');
@@ -810,7 +1008,7 @@ function initCookieConsent() {
 }
 
 // =============================================================================
-// YARDIMCI METOTLAR
+// 11. YARDIMCI METOTLAR (ESCAPE, DEBOUNCE, ANALYTICS)
 // =============================================================================
 function escapeHtml(str) {
   if (!str) return '';
@@ -834,15 +1032,11 @@ function debounce(func, wait) {
   };
 }
 
-// =============================================================================
-// CANLI ZİYARETÇİ & TIKLAMA ANALİTİĞİ MOTORU
-// =============================================================================
 function trackAnalytics(eventType, payload = {}) {
   try {
     const supabaseUrl = 'https://lxffirosgbrfptnbjvdg.supabase.co';
     const supabaseKey = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
 
-    // Trafik kaynağı tespiti (Referrer)
     let ref = 'Doğrudan (Direct)';
     const docRef = document.referrer.toLowerCase();
     const query = window.location.search.toLowerCase();
@@ -875,7 +1069,6 @@ function trackAnalytics(eventType, payload = {}) {
       body: JSON.stringify(bodyData)
     }).catch(() => {});
   } catch (err) {
-    // Analitik sessizce devam eder, kullanıcı deneyimini etkilemez
+    // Analitik sessizce devam eder
   }
 }
-
