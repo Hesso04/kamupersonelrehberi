@@ -172,7 +172,7 @@ RESMİ KAYNAK LİNKİ: {source_url}
                     "temperature": 0.1,
                     "max_tokens": 800
                 }
-                r = requests.post(url, headers=headers, json=payload, timeout=25)
+                r = requests.post(url, headers=headers, json=payload, timeout=5)
                 if r.status_code == 200:
                     raw = r.json()["choices"][0]["message"]["content"]
                     return self._parse_json_reply(raw)

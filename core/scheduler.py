@@ -145,8 +145,20 @@ class BackgroundScheduler:
 
         logger.info(f"[OTOPİLOT] {len(job_ids)} adet doğrulanmış ilan kilitlendi ve yayına hazırlanıyor...")
 
-        ai_processor = AIProcessor()
-        publisher = PublisherManager()
+        import importlib
+        import publishers.manager as pub_mod
+        try:
+            importlib.reload(pub_mod)
+        except Exception:
+            pass
+        publisher = pub_mod.PublisherManager()
+
+        import ai.processor as ai_mod
+        try:
+            importlib.reload(ai_mod)
+        except Exception:
+            pass
+        ai_processor = ai_mod.AIProcessor()
 
         for j_id in job_ids:
             try:

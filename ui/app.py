@@ -11,6 +11,16 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Streamlit Cloud Hot-Reload: Disk'teki güncel kodları belleğe zorunlu yenile
+import importlib
+for mod_prefix in ["publishers", "core", "graphics", "ai", "modules", "config"]:
+    for mod_name in list(sys.modules.keys()):
+        if mod_name == mod_prefix or mod_name.startswith(mod_prefix + "."):
+            try:
+                importlib.reload(sys.modules[mod_name])
+            except Exception:
+                pass
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -400,12 +410,19 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     with col_mode_action:
         if not is_manual_active:
             if st.button("🚀 Otopilotu Şimdi Çalıştır (Bekleyenleri Kanallara Dağıt)", use_container_width=True, type="primary"):
-                with st.spinner("Otopilot devrede: Doğrulanmış ilanlar Telegram, WhatsApp ve Instagram'a aktarılıyor..."):
-                    pub_count = scheduler.trigger_autopilot_now(limit=5)
+                with st.spinner("Otopilot devrede: Doğrulanmış ilanlar Telegram ve Instagram'a aktarılıyor..."):
+                    import importlib
+                    import core.scheduler as s_mod
+                    try:
+                        importlib.reload(s_mod)
+                    except Exception:
+                        pass
+                    pub_count = s_mod.scheduler.run_autopilot_publish(limit=5)
                     if pub_count > 0:
-                        st.success(f"{pub_count} adet yeni ilan başarıyla seçili kanallara otomatik yayınlandı!")
+                        st.balloons()
+                        st.success(f"🎉 {pub_count} adet yeni ilan başarıyla seçili kanallara (Telegram & Instagram) otomatik yayınlandı!")
                     else:
-                        st.info("Yayınlanacak bekleyen doğrulanmış ilan bulunamadı.")
+                        st.info("Yayınlanacak bekleyen doğrulanmış ilan bulunamadı veya tümü zaten güncel.")
                     st.rerun()
 
     if not is_manual_active:
