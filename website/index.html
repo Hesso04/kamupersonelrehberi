@@ -46,14 +46,24 @@
   <meta name="twitter:description" content="2026 yılı güncel kamu personeli ve memur alım ilanlarını tek ekrandan inceleyin, resmi PDF kılavuzlarını indirin.">
   <meta name="twitter:image" content="https://kamupersonelrehberiniz.me/assets/img/og-banner.png">
 
-  <!-- Editorial Typography & Fonts (Fraunces & Plus Jakarta Sans) -->
+  <!-- Favicon, Apple Touch Icon & PWA Manifest -->
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <!-- DNS Prefetch & Preconnect for High Performance -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://lxffirosgbrfptnbjvdg.supabase.co">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Editorial Typography & Fonts (Fraunces & Plus Jakarta Sans) -->
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Ana Tasarım Sistemi (Editorial Apple Glass) -->
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232C4A3E'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
 
   <!-- =========================================================================
        GELİŞMİŞ YAPILANDIRILMIŞ VERİ ŞEMASI (JSON-LD SCHEMA.ORG)
@@ -83,7 +93,9 @@
         "url": "https://kamupersonelrehberiniz.me/",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://kamupersonelrehberiniz.me/assets/img/logo.png"
+          "url": "https://kamupersonelrehberiniz.me/assets/img/logo.png",
+          "width": 512,
+          "height": 512
         },
         "sameAs": [
           "https://instagram.com/kamupersonelrehberi",
@@ -186,8 +198,12 @@
     <nav class="nav-capsule apple-nav-glass" aria-label="Ana Gezinme">
       
       <!-- Sol: Kurum Logosu + Fraunces Başlık + Rozet -->
-      <a href="/" class="nav-brand-group">
-        <div class="nav-brand-logo" aria-hidden="true">🏛</div>
+      <a href="/" class="nav-brand-group" aria-label="Kamu Personel Rehberi Ana Sayfa">
+        <div class="nav-brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
         <div class="nav-brand-title">
           <span>Kamu Personel Rehberi</span>
           <span class="nav-badge-archive">TEYİTLİ ARŞİV</span>
@@ -206,18 +222,27 @@
       <!-- Sağ: ⌘K Butonu, Telegram & Tema Değiştirici -->
       <div class="nav-actions-right">
         <button class="nav-cmd-btn" id="nav-cmd-search-btn" title="Hızlı Arama ve Filtreleme (⌘K / Ctrl+K)">
-          <span>🔍</span>
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="9" r="6"/>
+            <path d="M14 14l4 4"/>
+          </svg>
           <span>Filtrele</span>
           <span class="nav-cmd-badge">⌘K</span>
         </button>
 
         <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="nav-telegram-btn" title="Resmi Telegram Kanalı">
-          <span>📢</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
+          </svg>
           <span>Telegram</span>
         </a>
 
         <button class="nav-theme-btn" id="theme-toggle-btn" aria-label="Temayı Değiştir" title="Açık / Koyu Tema">
-          <span id="theme-icon">🌙</span>
+          <span id="theme-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+          </span>
         </button>
       </div>
 
@@ -231,7 +256,10 @@
     <div class="container">
       
       <div class="hero-kicker-tag tilt-surface">
-        <span>🏛 T.C. RESMİ KAMU İLAN PORTALI VERİLERİ</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span>T.C. RESMİ KAMU İLAN PORTALI VERİLERİ</span>
       </div>
 
       <h1 class="hero-main-headline">
@@ -245,21 +273,47 @@
       <!-- Odaklı Arama (Spotlight Search) -->
       <div class="spotlight-search-wrap">
         <div class="spotlight-search-box apple-glass tilt-surface">
-          <span class="spotlight-search-icon" aria-hidden="true">🔍</span>
-          <input type="text" id="search-input" class="spotlight-search-input" placeholder="Kurum, unvan, pozisyon veya şehir ara (örn: Savunma Sanayii, BDDK, Ankara)..." autocomplete="off" spellcheck="false">
+          <span class="spotlight-search-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="9" r="6"/>
+              <path d="M14 14l4 4"/>
+            </svg>
+          </span>
+          <input type="text" id="search-input" class="spotlight-search-input" placeholder="Kurum, unvan, pozisyon veya şehir ara (örn: Savunma Sanayii, BDDK, Ankara)..." autocomplete="off" spellcheck="false" aria-label="İlan Arama">
           <button class="spotlight-search-btn" id="search-btn-trigger">ARA</button>
         </div>
       </div>
 
       <!-- Hızlı Filtre Hapları (Quick Pills) -->
       <div class="quick-pills-row no-scrollbar" id="quick-filter-pills" role="tablist" aria-label="Hızlı Filtre Seçenekleri">
-        <button class="quick-pill-item active" data-pill="all" onclick="selectQuickPill('all')">🌐 Tümü</button>
-        <button class="quick-pill-item" data-pill="kpss_sartsiz" onclick="selectQuickPill('kpss_sartsiz')">⚡ KPSS Şartsız</button>
-        <button class="quick-pill-item" data-pill="akademik" onclick="selectQuickPill('akademik')">🎓 Üniversiteler</button>
-        <button class="quick-pill-item" data-pill="sozlesmeli" onclick="selectQuickPill('sozlesmeli')">📑 4/B Sözleşmeli</button>
-        <button class="quick-pill-item" data-pill="bilisim" onclick="selectQuickPill('bilisim')">💻 Bilişim</button>
-        <button class="quick-pill-item" data-pill="ankara" onclick="selectQuickPill('ankara')">📍 Ankara</button>
-        <button class="quick-pill-item" data-pill="isci" onclick="selectQuickPill('isci')">⚙ İşçi Alımları</button>
+        <button class="quick-pill-item active" data-pill="all" onclick="selectQuickPill('all')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          <span>Tümü</span>
+        </button>
+        <button class="quick-pill-item" data-pill="kpss_sartsiz" onclick="selectQuickPill('kpss_sartsiz')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>KPSS Şartsız</span>
+        </button>
+        <button class="quick-pill-item" data-pill="akademik" onclick="selectQuickPill('akademik')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <span>Üniversiteler</span>
+        </button>
+        <button class="quick-pill-item" data-pill="sozlesmeli" onclick="selectQuickPill('sozlesmeli')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>4/B Sözleşmeli</span>
+        </button>
+        <button class="quick-pill-item" data-pill="bilisim" onclick="selectQuickPill('bilisim')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span>Bilişim</span>
+        </button>
+        <button class="quick-pill-item" data-pill="ankara" onclick="selectQuickPill('ankara')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Ankara</span>
+        </button>
+        <button class="quick-pill-item" data-pill="isci" onclick="selectQuickPill('isci')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>İşçi Alımları</span>
+        </button>
       </div>
 
       <!-- Tek Satır Kompakt Özet Barı (Summary Bar) -->
@@ -357,7 +411,14 @@
         <!-- Kart 1: KPSS P3 / P93 / P94 -->
         <article class="guide-feature-card apple-glass tilt-surface" onclick="filterByKpssGeneral()">
           <div>
-            <div class="guide-card-icon">📋</div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
             <h3 class="guide-card-title">KPSS Puan Türleri & Şartlar</h3>
             <p class="guide-card-desc">
               Lisans için <strong>P3</strong>, Ön Lisans için <strong>P93</strong>, Ortaöğretim için <strong>P94</strong> puan türleriyle yapılan merkezi ve kurumsal sözleşmeli alımların taban puan kriterleri.
@@ -367,9 +428,13 @@
         </article>
 
         <!-- Kart 2: KPSS Şartsız & İşçi Alımları -->
-        <article class="guide-feature-card apple-glass tilt-surface" onclick="quickFilterSelect('kpss_sartsiz')">
+        <article class="guide-feature-card apple-glass tilt-surface" onclick="selectQuickPill('kpss_sartsiz')">
           <div>
-            <div class="guide-card-icon">⚡</div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
             <h3 class="guide-card-title">KPSS Şartsız Daimi Kadrolar</h3>
             <p class="guide-card-desc">
               İŞKUR üzerinden noter kurası ile istihdam edilen kamu işçileri, üniversitelerin akademik kadro duyuruları ve tecrübeli bilişim personeli alımlarında sınav muafiyet şartları.
@@ -379,9 +444,13 @@
         </article>
 
         <!-- Kart 3: 4/B Sözleşmeli Hakları -->
-        <article class="guide-feature-card apple-glass tilt-surface" onclick="quickFilterSelect('sozlesmeli')">
+        <article class="guide-feature-card apple-glass tilt-surface" onclick="selectQuickPill('sozlesmeli')">
           <div>
-            <div class="guide-card-icon">🛡</div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
             <h3 class="guide-card-title">4/B Sözleşmeli Personel Mevzuatı</h3>
             <p class="guide-card-desc">
               657 Sayılı Kanun'un 4/B maddesi kapsamında istihdam edilen personelin 3 yıl sonrasında memur kadrosuna (4/A) geçiş hakkı, tayin prosedürleri ve özlük hakları rehberi.
@@ -410,7 +479,9 @@
             Başvuru süreçleri, kılavuz indirme işlemleri ve yasal istihdam şartlarına dair resmi ve teyitli yanıtlar.
           </p>
           <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="btn-apple-secondary tilt-surface">
-            <span>📢</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
+            </svg>
             <span>Telegram Soru & Destek</span>
           </a>
         </div>
@@ -421,7 +492,11 @@
           <details class="faq-detail-item apple-glass" open>
             <summary class="faq-summary-btn">
               <span>Kamu personeli alımlarına başvuru nasıl yapılır?</span>
-              <span class="faq-arrow-icon" aria-hidden="true">▾</span>
+              <span class="faq-arrow-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </summary>
             <div class="faq-answer-content">
               Kamu kurum ve kuruluşlarının memur, sözleşmeli personel ve işçi alımlarına başvurular; ilgili ilanın şartnamesinde belirtilen tarihler arasında <strong>e-Devlet Kariyer Kapısı</strong> (isealimkariyerkapisi.cbiko.gov.tr), ÖSYM Aday İşlemleri Sistemi (AİS) veya kurumların kendi resmi başvuru portalları üzerinden online olarak gerçekleştirilir.
@@ -431,7 +506,11 @@
           <details class="faq-detail-item apple-glass">
             <summary class="faq-summary-btn">
               <span>2026 yılında KPSS şartsız memur veya personel alımı var mı?</span>
-              <span class="faq-arrow-icon" aria-hidden="true">▾</span>
+              <span class="faq-arrow-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </summary>
             <div class="faq-answer-content">
               Evet. İŞKUR aracılığıyla yapılan sürekli işçi alımları (güvenlik, temizlik, bakım personeli) noter kurasıyla yapılmakta ve KPSS şartı aranmamaktadır. Ayrıca üniversite araştırma görevlisi ve öğretim görevlisi alımları ile belirli kıdemli bilişim personeli alımları KPSS sınav şartından muaftır.
@@ -441,7 +520,11 @@
           <details class="faq-detail-item apple-glass">
             <summary class="faq-summary-btn">
               <span>4/B Sözleşmeli Personel ile 4/A Kadrolu Memur arasındaki fark nedir?</span>
-              <span class="faq-arrow-icon" aria-hidden="true">▾</span>
+              <span class="faq-arrow-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </summary>
             <div class="faq-answer-content">
               657 Sayılı Devlet Memurları Kanunu kapsamında 4/A kadrolu memurlar asli ve daimi kamu personeli statüsündedir. 4/B sözleşmeli personel ise yıllık hizmet sözleşmesiyle istihdam edilir. Ancak son mevzuat düzenlemesiyle 3 yıl sözleşmeli çalışan personel talep etmesi halinde memur kadrosuna atanmaktadır.
@@ -451,7 +534,11 @@
           <details class="faq-detail-item apple-glass">
             <summary class="faq-summary-btn">
               <span>Resmi başvuru kılavuzu (PDF) nasıl indirilir?</span>
-              <span class="faq-arrow-icon" aria-hidden="true">▾</span>
+              <span class="faq-arrow-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </summary>
             <div class="faq-answer-content">
               Listede ilgilendiğiniz herhangi bir ilana tıkladığınızda açılan detay penceresinden <strong>"Resmi Kılavuzu İndir (PDF)"</strong> butonuna tıklayarak ilgili kurumun orijinal başvuru şartnamesini ve kontenjan tablosunu doğrudan cihazınıza indirebilirsiniz.
@@ -461,7 +548,11 @@
           <details class="faq-detail-item apple-glass">
             <summary class="faq-summary-btn">
               <span>İlan iptal ve düzeltme duyuruları nasıl takip edilir?</span>
-              <span class="faq-arrow-icon" aria-hidden="true">▾</span>
+              <span class="faq-arrow-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
             </summary>
             <div class="faq-answer-content">
               Kamu Personel Rehberi, resmi kurumlardan gelen iptal ve düzeltme metinlerini anlık olarak tespit eder ve ilgili ilanın üzerine <strong>🚨 İPTAL / DÜZELTME UYARISI</strong> yerleştirerek adayların yanıltılmasını önler.
@@ -489,7 +580,12 @@
           <span class="modal-inst-kicker" id="modal-inst-name">Kamu Kurumu</span>
           <h2 class="modal-title-text" id="modal-job-title">Personel Alım İlanı</h2>
         </div>
-        <button class="modal-dismiss-btn" onclick="closeJobDetailModal()" aria-label="Kapat">✕</button>
+        <button class="modal-dismiss-btn" onclick="closeJobDetailModal()" aria-label="Pencereyi Kapat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
       <!-- Body -->
@@ -505,7 +601,7 @@
           </div>
           <div class="modal-spec-card">
             <span class="modal-spec-label">Toplam Kontenjan</span>
-            <span class="modal-spec-val font-editorial" id="modal-spec-quota" style="font-size:1.1rem;">-</span>
+            <span class="modal-spec-val font-editorial" id="modal-spec-quota" style="font-size:1.15rem;">-</span>
           </div>
           <div class="modal-spec-card">
             <span class="modal-spec-label">Başvuru Tarihleri</span>
@@ -527,7 +623,10 @@
 
         <!-- Resmi Teyit Kartı -->
         <div class="modal-verified-card">
-          <span style="font-size:1.4rem;">🛡</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary-accent);flex-shrink:0;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
           <div>
             <strong>%100 Teyitli Resmi İlan:</strong>
             Bu duyuru T.C. Resmi Gazete ve Cumhurbaşkanlığı Strateji ve Bütçe Başkanlığı Kamu İlan sisteminden doğrulanmıştır.
@@ -542,17 +641,31 @@
       <!-- Footer Butonları -->
       <div class="modal-footer-block">
         <button class="btn-apple-secondary" id="modal-share-btn">
-          <span>📲</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
           <span>İlanı Paylaş</span>
         </button>
 
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <a href="#" target="_blank" rel="noopener noreferrer" class="btn-apple-secondary" id="modal-source-btn">
-            <span>🔗</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
             <span>Resmi Portal</span>
           </a>
           <a href="#" class="btn-apple-primary" id="modal-pdf-download-btn">
-            <span>📄</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
             <span>Resmi Kılavuzu İndir (PDF)</span>
           </a>
         </div>
@@ -568,7 +681,12 @@
     <div class="modal-sheet-dialog apple-glass" style="max-width:540px;">
       <div class="modal-header-block">
         <h3 class="modal-title-text">KVKK Aydınlatma Metni</h3>
-        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-kvkk')">✕</button>
+        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-kvkk')" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-scroll-body" style="font-size:0.875rem;line-height:1.6;color:var(--text-secondary);">
         <p><strong>6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Bilgilendirme:</strong></p>
@@ -585,7 +703,12 @@
     <div class="modal-sheet-dialog apple-glass" style="max-width:540px;">
       <div class="modal-header-block">
         <h3 class="modal-title-text">Yasal Uyarı ve Sorumluluk Reddi</h3>
-        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-legal-warning')">✕</button>
+        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-legal-warning')" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
       <div class="modal-scroll-body" style="font-size:0.875rem;line-height:1.6;color:var(--text-secondary);">
         <p>Kamu Personel Rehberi (kamupersonelrehberiniz.me), Türkiye Cumhuriyeti resmi kurumları ile idari veya organik bağı bulunmayan, kamu yararı doğrultusunda resmi alım ilanlarını tek ekranda derleyerek adaylara kolaylık sağlayan <strong>bağımsız bir rehberlik ve bilgilendirme platformudur</strong>.</p>
@@ -613,19 +736,32 @@
        ========================================================================= -->
   <nav class="ios-bottom-dock apple-glass" aria-label="Mobil Hızlı Menü">
     <button class="dock-item-btn active" onclick="scrollToSection('ilanlar')">
-      <span class="dock-icon-symbol">📋</span>
+      <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
       <span>İlanlar</span>
     </button>
     <button class="dock-item-btn" onclick="focusSpotlightSearch()">
-      <span class="dock-icon-symbol">🔍</span>
+      <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
       <span>Filtrele</span>
     </button>
     <button class="dock-item-btn" onclick="selectQuickPill('kpss_sartsiz')">
-      <span class="dock-icon-symbol">⚡</span>
+      <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
       <span>Şartsız</span>
     </button>
     <button class="dock-item-btn" onclick="scrollToSection('rehber')">
-      <span class="dock-icon-symbol">📖</span>
+      <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      </svg>
       <span>Rehber</span>
     </button>
   </nav>

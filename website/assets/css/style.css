@@ -1616,8 +1616,36 @@ html.dark .nav-telegram-btn {
 }
 
 /* ==========================================================================
-   15. iOS MOBİL ALT ERİŞİM BARI (THUMB-ZONE FLOATING DOCK)
+   15. iOS MOBİL ALT ERİŞİM BARI (THUMB-ZONE FLOATING DOCK) & MINI ICONS
    ========================================================================== */
+.mini-meta-icon {
+  display: inline-block;
+  vertical-align: -1.5px;
+  margin-right: 4px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.job-meta-primary, .job-meta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dock-icon-svg {
+  display: block;
+  margin-bottom: 2px;
+  transition: transform var(--transition-fast);
+}
+
+.dock-item-btn:hover .dock-icon-svg,
+.dock-item-btn.active .dock-icon-svg {
+  transform: translateY(-1px);
+}
+
 .ios-bottom-dock {
   position: fixed;
   bottom: 14px;

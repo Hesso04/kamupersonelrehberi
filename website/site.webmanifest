@@ -1,0 +1,26 @@
+{
+  "name": "Kamu Personel Rehberi",
+  "short_name": "Kamu İlan",
+  "description": "T.C. Resmi Gazete ve SBB Kamu İlan Portalı ile anlık eşzamanlı memur ve personel alım ilanları.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F6F2",
+  "theme_color": "#2C4A3E",
+  "icons": [
+    {
+      "src": "/assets/img/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

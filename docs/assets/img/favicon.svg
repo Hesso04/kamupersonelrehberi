@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Rounded Base in Dark Pine -->
+  <rect width="64" height="64" rx="16" fill="#2C4A3E"/>
+  
+  <!-- Subtle Inner Border -->
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#F7F6F2" stroke-opacity="0.15" stroke-width="1.5"/>
+  
+  <!-- Architectural Pediment / Roof -->
+  <path d="M32 15L16 23H48L32 15Z" fill="#F7F6F2"/>
+  <rect x="15" y="23" width="34" height="2.5" rx="0.5" fill="#F7F6F2"/>
+  
+  <!-- 4 Classical Columns -->
+  <!-- Col 1 -->
+  <rect x="18" y="27" width="4" height="15" rx="0.5" fill="#F7F6F2"/>
+  <rect x="17" y="26" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  <rect x="17" y="42" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  
+  <!-- Col 2 -->
+  <rect x="26" y="27" width="4" height="15" rx="0.5" fill="#F7F6F2"/>
+  <rect x="25" y="26" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  <rect x="25" y="42" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  
+  <!-- Col 3 -->
+  <rect x="34" y="27" width="4" height="15" rx="0.5" fill="#F7F6F2"/>
+  <rect x="33" y="26" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  <rect x="33" y="42" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  
+  <!-- Col 4 -->
+  <rect x="42" y="27" width="4" height="15" rx="0.5" fill="#F7F6F2"/>
+  <rect x="41" y="26" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  <rect x="41" y="42" width="6" height="1.5" rx="0.5" fill="#F7F6F2"/>
+  
+  <!-- Stepped Base -->
+  <rect x="14" y="44" width="36" height="2.5" rx="0.5" fill="#F7F6F2"/>
+  <rect x="11" y="46.5" width="42" height="3" rx="1" fill="#F7F6F2"/>
+</svg>

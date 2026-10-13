@@ -74,7 +74,9 @@ function toggleTheme() {
 function updateThemeIcon() {
   const iconEl = document.getElementById('theme-icon');
   if (iconEl) {
-    iconEl.textContent = state.theme === 'dark' ? '☀️' : '🌙';
+    iconEl.innerHTML = state.theme === 'dark'
+      ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
+      : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`;
   }
 }
 
@@ -261,7 +263,7 @@ function renderJobRowItem(job) {
   } else {
     const kpssLow = (job.kpss_requirement || '').toLowerCase();
     if (kpssLow.includes('şartsız') || kpssLow.includes('aranmamaktadır') || kpssLow.includes('muaf') || kpssLow.includes('kura')) {
-      statusBadge = `<span class="job-status-pill pine">⚡ KPSS Şartsız</span>`;
+      statusBadge = `<span class="job-status-pill pine">KPSS Şartsız</span>`;
     } else {
       statusBadge = `<span class="job-status-pill pine">Kariyer Kapısı</span>`;
     }
@@ -287,14 +289,26 @@ function renderJobRowItem(job) {
 
         <!-- Col 2: Öğrenim Düzeyi & KPSS -->
         <div class="col-job-education">
-          <span class="job-meta-primary">🎓 ${eduStr}</span>
-          <span class="job-meta-secondary">🎯 ${kpssStr}</span>
+          <span class="job-meta-primary">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            ${eduStr}
+          </span>
+          <span class="job-meta-secondary">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            ${kpssStr}
+          </span>
         </div>
 
         <!-- Col 2: Görev Yeri & Kaynak -->
         <div class="col-job-location">
-          <span class="job-meta-primary">📍 ${cityStr}</span>
-          <span class="job-meta-secondary">🏛 Resmi Kamu İlanı</span>
+          <span class="job-meta-primary">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${cityStr}
+          </span>
+          <span class="job-meta-secondary">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Resmi Kamu İlanı
+          </span>
         </div>
 
         <!-- Col 1: Kontenjan Sayısı -->
@@ -312,7 +326,12 @@ function renderJobRowItem(job) {
             </div>
             <span class="job-deadline-date-sub">${dateStr}</span>
           </div>
-          <div class="job-row-arrow-btn" aria-hidden="true">→</div>
+          <div class="job-row-arrow-btn" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </div>
         </div>
 
       </div>
@@ -330,16 +349,22 @@ function renderJobRowItem(job) {
         <div class="mobile-divider"></div>
 
         <div class="mobile-pills-wrap">
-          <span class="mobile-info-pill quota">👥 ${quota} Kişi</span>
-          <span class="mobile-info-pill">🎓 ${eduStr}</span>
-          <span class="mobile-info-pill">📍 ${cityStr}</span>
+          <span class="mobile-info-pill quota">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            ${quota} Kişi
+          </span>
+          <span class="mobile-info-pill">${eduStr}</span>
+          <span class="mobile-info-pill">${cityStr}</span>
         </div>
 
         <div class="mobile-bottom-bar">
-          <span class="mobile-kpss-req">🎯 ${kpssStr}</span>
+          <span class="mobile-kpss-req">
+            <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            ${kpssStr}
+          </span>
           <span class="mobile-date-arrow">
-            <span>🗓 ${dateStr}</span>
-            <span style="font-weight:700;color:var(--primary-accent);">→</span>
+            <span>${dateStr}</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary-accent);"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </span>
         </div>
       </div>
