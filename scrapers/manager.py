@@ -8,18 +8,27 @@ from core.models import JobAnnouncement, JobStatus
 from .base import BaseScraper, ScrapedJob
 from .kamu_ilan_sbb import SBBKamuIlanScraper
 from .resmi_gazete import ResmiGazeteScraper
+from .ilan_gov_tr import IlanGovTrScraper
+from .kariyer_kapisi import KariyerKapisiScraper
+from .iskur_kamu import IskurKamuScraper
+from .csb_yerel_yonetimler import CSBYerelYonetimlerScraper
 
 
 class ScraperManager:
     """
     Tüm resmi kazıyıcıları yöneten, mükerrer kayıtları (deduplication)
     engelleyen ve veritabanı senkronizasyonunu sağlayan merkezi servis.
+    Tüm kaynaklar resmi, yasal ve teyitli kamu alım portallarıdır.
     """
 
     def __init__(self):
         self.scrapers: List[BaseScraper] = [
             SBBKamuIlanScraper(),
             ResmiGazeteScraper(),
+            IlanGovTrScraper(),
+            KariyerKapisiScraper(),
+            IskurKamuScraper(),
+            CSBYerelYonetimlerScraper(),
         ]
 
     def run_all(self) -> Dict[str, Any]:

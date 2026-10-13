@@ -110,26 +110,26 @@ def render_analytics_dashboard():
     with col1:
         st.metric(
             label="👁️ Toplam Sayfa Görüntüleme",
-            value=f"{data['total_pageviews'] + 3840:,}".replace(",", "."),
-            delta="+%24 Bu Hafta"
+            value=f"{data['total_pageviews']:,}".replace(",", "."),
+            delta="Canlı Organik Veri"
         )
     with col2:
         st.metric(
             label="👤 İlan Detay İncelemesi",
-            value=f"{data['total_job_views'] + 2150:,}".replace(",", "."),
-            delta="+%38 Yüksek İlgi"
+            value=f"{data['total_job_views']:,}".replace(",", "."),
+            delta="Gerçek Ziyaretçi Tıklaması"
         )
     with col3:
         st.metric(
             label="🔗 Resmi Başvuruya Tıklama",
-            value=f"{data['total_apply_clicks'] + 784:,}".replace(",", "."),
-            delta="%36.4 Dönüşüm Oranı"
+            value=f"{data['total_apply_clicks']:,}".replace(",", "."),
+            delta=f"%{(data['total_apply_clicks'] / data['total_job_views'] * 100):.1f} Dönüşüm" if data['total_job_views'] > 0 else "0 Dönüşüm"
         )
     with col4:
         st.metric(
             label="📄 Resmi Kılavuz & PDF İndirme",
-            value=f"{data['total_pdf_downloads'] + 412:,}".replace(",", "."),
-            delta="Mobil & Masaüstü"
+            value=f"{data['total_pdf_downloads']:,}".replace(",", "."),
+            delta="Doğrudan İndirme"
         )
 
     st.markdown("---")

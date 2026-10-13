@@ -64,35 +64,41 @@ PUBLIC_TAG_FRIEND_VARIANTS = [
 DM_TEXT_VARIANTS = [
     (
         "👋 Merhaba @{username}!\n\n"
-        "📌 Yorum yaptığınız ilan detayları:\n"
-        "🏛 <b>Kurum:</b> {institution}\n"
-        "📢 <b>Kadro:</b> {position}\n"
-        "👥 <b>Kontenjan:</b> {quota} Kişi\n"
-        "🗓 <b>Son Başvuru:</b> {deadline}\n\n"
-        "🌐 <b>Resmi İlan Detayları, PDF Kılavuz & Doğrudan Başvuru Ekranı:</b>\n{portal_url}\n\n"
-        "ℹ️ <i>Yukarıdaki bağlantıya tıklayarak sitemiz üzerinden resmi başvuru kılavuzunu inceleyebilir, PDF şartnameyi indirebilir ve başvurunuzu tamamlayabilirsiniz.</i>\n\n"
-        "🇹🇷 %100 teyitli resmi kamu ilanıdır. Başarılar dileriz!\n\n"
-        "📢 Yeni kamu alımlarını kaçırmamak için @kamupersonelrehberi sayfamızı takip etmeyi unutmayın!"
+        "Kamu Personel Rehberi resmi asistanınızdan talep ettiğiniz kadro detayları:\n\n"
+        "🏛️ Kurum: {institution}\n"
+        "📋 Kadro / Pozisyon: {position}\n"
+        "👥 Kontenjan: {quota} Kişi\n"
+        "🗓️ Son Başvuru Tarihi: {deadline}\n\n"
+        "🔗 Resmi İlan Detayları, PDF Kılavuz & Doğrudan Başvuru Ekranı:\n"
+        "{portal_url}\n\n"
+        "ℹ️ Yukarıdaki bağlantıya tıklayarak sitemiz üzerinden resmi başvuru kılavuzunu inceleyebilir, kadro şartlarını okuyabilir ve başvurunuzu doğrudan tamamlayabilirsiniz.\n\n"
+        "🇹🇷 Doğrulanmış resmi kamu ilanıdır. Başvurunuzda başarılar dileriz!\n\n"
+        "📢 Yeni kamu alımlarını kaçırmamak için sayfamızı takipte kalın: @kamupersonelrehberi"
     ),
     (
-        "👋 Selam @{username}! İlan başvurunuz için gerekli bağlantı hazır:\n\n"
-        "🏛 <b>Kurum:</b> {institution}\n"
-        "📢 <b>Pozisyon:</b> {position}\n"
-        "👥 <b>Alım Sayısı:</b> {quota} Kişi\n"
-        "🗓 <b>Son Başvuru Tarihi:</b> {deadline}\n\n"
-        "🌐 <b>İlanı Sitemizde İnceleyin & Hemen Başvurun:</b>\n{portal_url}\n\n"
-        "💡 <i>Sitemizden resmi kadro tablosuna, KPSS taban puanlarına ve başvuru ekranına doğrudan ulaşabilirsiniz.</i>\n\n"
+        "👋 Selam @{username}!\n\n"
+        "İlgilendiğiniz kamu personeli alımı için resmi başvuru bağlantınız hazırlandı:\n\n"
+        "🏛️ Kurum: {institution}\n"
+        "📢 Pozisyon: {position}\n"
+        "👥 Alım Sayısı: {quota} Kişi\n"
+        "🗓️ Son Başvuru Tarihi: {deadline}\n\n"
+        "🌐 İlan Detayları & Resmi Başvuru Ekranı:\n"
+        "{portal_url}\n\n"
+        "💡 Sitemiz üzerinden resmi kadro tablosuna, KPSS taban puanlarına ve başvuru ekranına doğrudan ulaşabilirsiniz.\n\n"
+        "🎯 Atanma sürecinizde kolaylıklar ve başarılar dileriz!\n\n"
         "📌 Yeni ilanlar ve sonuç duyuruları için sayfamızı takipte kalın: @kamupersonelrehberi"
     ),
     (
-        "👋 Merhaba @{username}! Kamu Personel Rehberi asistanınız burada 🤖\n\n"
-        "🏛 <b>İlan Veren Kurum:</b> {institution}\n"
-        "📢 <b>Alım Yapılan Kadro:</b> {position}\n"
-        "👥 <b>Toplam Kontenjan:</b> {quota} Kişi\n"
-        "🗓 <b>Son Gün:</b> {deadline}\n\n"
-        "🌐 <b>Resmi Kılavuz & Doğrudan Başvuru Sayfası:</b>\n{portal_url}\n\n"
-        "🎯 <i>Tüm başvuru şartları ve resmi evraklar web sitemizde yayındadır. Atanma sürecinizde başarılar dileriz!</i>\n\n"
-        "Bizi takip etmeyi unutmayın: @kamupersonelrehberi"
+        "👋 Merhaba @{username}!\n\n"
+        "Kamu Personel Rehberi resmi asistanınız burada.\n\n"
+        "🏛️ İlan Veren Kurum: {institution}\n"
+        "📋 Alım Yapılan Kadro: {position}\n"
+        "👥 Toplam Kontenjan: {quota} Kişi\n"
+        "🗓️ Son Gün: {deadline}\n\n"
+        "🔗 Resmi Kılavuz & Doğrudan Başvuru Sayfası:\n"
+        "{portal_url}\n\n"
+        "🎯 Tüm başvuru şartları, kadro dağılımı ve resmi evraklar web sitemizde yayındadır. Atanma sürecinizde başarılar dileriz!\n\n"
+        "🇹🇷 Takip etmeyi unutmayın: @kamupersonelrehberi"
     )
 ]
 
@@ -538,7 +544,7 @@ class InstagramGrowthManager:
             d_str = to_turkish_date_str(job.application_end_date)
             pos_str = job.position or job.title
 
-            video_note = "\n🎬 <b>Video Kılavuz:</b> İlana ait 10 saniyelik özet Reels videosu ekte sunulmuştur.\n" if include_video else ""
+            video_note = "\n🎬 Video Kılavuz: İlana ait 10 saniyelik özet Reels videosu ekte sunulmuştur.\n" if include_video else ""
 
             if is_following:
                 # Kullanıcı Hesabı Takip Ediyorsa -> Doğrudan Kılavuzu Teslim Et
@@ -550,14 +556,17 @@ class InstagramGrowthManager:
                 dm_message = (
                     f"👋 Selam @{username}! Kamu Personel Rehberi ailesine hoş geldiniz!\n"
                     f"Bizi takip ettiğiniz için teşekkürler. Kılavuz kilidiniz açıldı: 🔓\n\n"
-                    f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
-                    f"📋 <b>Kadro:</b> {pos_str}\n"
-                    f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
-                    f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
-                    f"🗓 <b>Son Başvuru:</b> {d_str}\n"
+                    f"🏛️ Kurum: {job.institution or 'Kamu Kurumu'}\n"
+                    f"📋 Kadro: {pos_str}\n"
+                    f"👥 Kontenjan: {job.total_positions or 1} Kişi\n"
+                    f"🎯 KPSS: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
+                    f"🗓️ Son Başvuru: {d_str}\n"
                     f"{video_note}\n"
-                    f"🔗 <b>İlan Detayları ve Resmi Başvuru Ekranı:</b>\n{clean_link}\n\n"
-                    f"📌 Yeni açılan ilanları ve sonuçları kaçırmamak için sitemizi ve Telegram kanalımızı takip edebilirsiniz: https://t.me/kamupersonelrehberi\n\n"
+                    f"🔗 İlan Detayları ve Resmi Başvuru Ekranı:\n"
+                    f"{clean_link}\n\n"
+                    f"📌 Yeni açılan ilanları ve sonuçları kaçırmamak için sitemizi ve Telegram kanalımızı takip edebilirsiniz:\n"
+                    f"Telegram: https://t.me/kamupersonelrehberi\n"
+                    f"Web: https://kamupersonelrehberiniz.me\n\n"
                     f"Başarılar dileriz! 🇹🇷"
                 )
 
@@ -582,18 +591,19 @@ class InstagramGrowthManager:
                 dm_message = (
                     f"👋 Merhaba @{username}!\n\n"
                     f"🔒 İstediğiniz kamu alımının resmi kılavuz ve başvuru linki KİLİTLİDİR.\n\n"
-                    f"✨ <b>Kilidi açmak çok kolay:</b>\n"
-                    f"1. Profilimize gidip <b>@kamupersonelrehberi</b> sayfamızı TAKİP EDİN.\n"
-                    f"2. Ardından bu mesaja veya yoruma <b>\"TAKİP ETTİM\"</b> yazın.\n\n"
+                    f"✨ Kilidi açmak çok kolay:\n"
+                    f"1. Profilimize gidip @kamupersonelrehberi sayfamızı TAKİP EDİN.\n"
+                    f"2. Ardından bu mesaja veya yoruma 'TAKİP ETTİM' yazın.\n\n"
                     f"Otomasyon asistanımız takip durumunuzu saniyeler içinde onaylayıp resmi başvuru ekranı bağlantısını anında teslim edecektir! ⚡"
                 )
 
                 # Kullanıcının takip ettikten sonra kilidi açma yanıtı
                 unlocked_after_follow = (
                     f"🎉 Tebrikler @{username}! Takip ettiğiniz onaylandı, kılavuz kilidiniz açıldı: 🔓\n\n"
-                    f"🔗 <b>İlan Detayları ve Resmi Başvuru Ekranı:</b> {clean_link}\n"
-                    f"🗓 <b>Son Başvuru:</b> {d_str}\n"
-                    f"Başarılar dileriz!"
+                    f"🔗 İlan Detayları ve Resmi Başvuru Ekranı:\n"
+                    f"{clean_link}\n\n"
+                    f"🗓️ Son Başvuru: {d_str}\n\n"
+                    f"Başarılar dileriz! 🇹🇷"
                 )
 
                 return {
