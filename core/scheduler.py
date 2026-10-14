@@ -298,6 +298,17 @@ class BackgroundScheduler:
                     pace_cfg = AUTOPILOT_PACE_PRESETS.get(pace_key, AUTOPILOT_PACE_PRESETS["1_PER_HOUR"])
                     interval_sec = pace_cfg["interval_seconds"]
 
+                    def _calc_elapsed(p_dt: datetime) -> float:
+                        if not p_dt:
+                            return 999999.0
+                        n = datetime.now()
+                        u = datetime.utcnow()
+                        diff_l = (n - p_dt).total_seconds()
+                        diff_u = (u - p_dt).total_seconds()
+                        if 0 <= diff_u < diff_l and (diff_l - diff_u) >= 7000:
+                            return max(0.0, diff_u)
+                        return max(0.0, diff_l)
+
                     if pace_key == "SMART_PEAK":
                         # Türkiye yerel saati pik pencereleri:
                         # Sabah (08:30-10:00), Öğle (12:30-14:00), Akşam (18:30-20:00), Gece (21:00-23:00)
@@ -306,13 +317,13 @@ class BackgroundScheduler:
                         if self.last_autopilot_publish_time is None:
                             should_publish = in_peak
                         else:
-                            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+                            elapsed = _calc_elapsed(self.last_autopilot_publish_time)
                             should_publish = in_peak and (elapsed >= 3600)
                     else:
                         if self.last_autopilot_publish_time is None:
                             should_publish = True
                         else:
-                            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+                            elapsed = _calc_elapsed(self.last_autopilot_publish_time)
                             should_publish = elapsed >= interval_sec
 
                     if should_publish:
@@ -435,7 +446,14 @@ class BackgroundScheduler:
 
         if last_pub is not None:
             self.last_autopilot_publish_time = last_pub
-            elapsed = (now - last_pub).total_seconds()
+            n = datetime.now()
+            u = datetime.utcnow()
+            diff_l = (n - last_pub).total_seconds()
+            diff_u = (u - last_pub).total_seconds()
+            if 0 <= diff_u < diff_l and (diff_l - diff_u) >= 7000:
+                elapsed = max(0.0, diff_u)
+            else:
+                elapsed = max(0.0, diff_l)
             remaining = max(0, int(interval_sec - elapsed))
         else:
             remaining = interval_sec

@@ -272,7 +272,7 @@ class PublisherManager:
                 job.published_channels = ",".join(cur_list)
                 job.status = JobStatus.PUBLISHED
                 if not job.published_at:
-                    job.published_at = datetime.utcnow()
+                    job.published_at = datetime.now()
 
             # Son durum notu güncellemesi
             if failed_channels_log:
