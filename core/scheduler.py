@@ -74,10 +74,16 @@ class BackgroundScheduler:
     _lock = threading.Lock()
 
     def __new__(cls):
+        # Python process-level global singleton (Streamlit reloadlarına karşı tam bağışıklık)
+        import sys
+        if hasattr(sys, "_kamu_background_scheduler") and sys._kamu_background_scheduler is not None:
+            return sys._kamu_background_scheduler
+
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super(BackgroundScheduler, cls).__new__(cls)
                 cls._instance._initialized = False
+                sys._kamu_background_scheduler = cls._instance
             return cls._instance
 
     def __init__(self):
@@ -120,6 +126,7 @@ class BackgroundScheduler:
         # 1. ADIM: Yayınlanacak ilanları bul ve ATOMIK olarak kilitle
         with get_db() as db:
             now = datetime.now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             from sqlalchemy import or_
             target_jobs = db.query(JobAnnouncement).filter(
                 JobAnnouncement.is_verified == True,
@@ -129,7 +136,7 @@ class BackgroundScheduler:
                 JobAnnouncement.published_at.is_(None),
                 or_(
                     JobAnnouncement.application_end_date.is_(None),
-                    JobAnnouncement.application_end_date >= now
+                    JobAnnouncement.application_end_date >= today_start
                 )
             ).order_by(JobAnnouncement.id.asc()).limit(limit).all()
 
@@ -231,11 +238,12 @@ class BackgroundScheduler:
         with get_db() as db:
             from sqlalchemy import or_
             now = datetime.now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             recent_published = db.query(JobAnnouncement).filter(
                 JobAnnouncement.status == JobStatus.PUBLISHED,
                 or_(
                     JobAnnouncement.application_end_date.is_(None),
-                    JobAnnouncement.application_end_date >= now
+                    JobAnnouncement.application_end_date >= today_start
                 )
             ).order_by(JobAnnouncement.id.desc()).limit(20).all()
 
@@ -259,8 +267,9 @@ class BackgroundScheduler:
 
     def _worker(self):
         logger.info(f"Arka plan zamanlayıcı ve otopilot motoru başlatıldı. Tarama aralığı: {self.interval_minutes} dk.")
-        last_scan_time = datetime.min
-        last_ig_comment_check = datetime.min
+        now_init = datetime.now()
+        last_scan_time = now_init  # Başlangıçta hemen loopa girmesin, interval_minutes süresini beklesin
+        last_ig_comment_check = now_init
 
         while not self._stop_event.is_set():
             try:
@@ -307,11 +316,18 @@ class BackgroundScheduler:
                             should_publish = elapsed >= interval_sec
 
                     if should_publish:
-                        # KRİTİK: Zaman damgasını hemen güncelle ki 5 saniyelik döngüde mükerrer tetikleme OLMASIN!
-                        self.last_autopilot_publish_time = now
                         pub_count = self.run_autopilot_publish(limit=1)
                         if pub_count > 0:
+                            # Sadece ilan gerçekten yayınlandıysa tempoyu başlat ve DB'ye yaz
+                            self.last_autopilot_publish_time = now
+                            try:
+                                set_system_setting("LAST_AUTOPILOT_PUBLISH_TIME", now.isoformat())
+                            except Exception:
+                                pass
                             logger.info(f"[OTOPİLOT] 1 ilan başarıyla paylaşıldı. Belirlenen tempo ({pace_cfg['name']}) devrede.")
+                        else:
+                            # Havuzda uygun ilan kalmadıysa süreyi kilitleme; yeni ilan gelirse 30 sn sonra hemen denesin
+                            self.last_autopilot_publish_time = now - timedelta(seconds=max(0, interval_sec - 30))
 
                 # 3. Instagram Canlı Yorum ve DM Yanıtlayıcı (Her 60 saniyede bir yeni yorumları tara)
                 if (now - last_ig_comment_check).total_seconds() >= 60:
@@ -323,12 +339,15 @@ class BackgroundScheduler:
                     except Exception as ige:
                         logger.debug(f"Otomatik Instagram yorum işleme hatası: {ige}")
 
-                # 4. Otomatik KPSS Quiz Otopilotu (Günde 10 soru, Telegram Anket + Instagram Post Eşzamanlı)
-                if get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "true") == "true":
+                # 4. Otomatik KPSS Quiz Otopilotu (Kullanıcı panelden açıkça açmadıkça KESİNLİKLE KAPALIDIR)
+                is_quiz_on = get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "false").strip().lower() == "true"
+                if is_quiz_on:
                     target_daily = int(get_system_setting("AUTO_KPSS_QUIZ_DAILY_TARGET", "10"))
                     default_interval = round(15.0 / max(1, target_daily), 2)
                     interval_hours = float(get_system_setting("AUTO_KPSS_QUIZ_INTERVAL_HOURS", str(default_interval)))
-                    if self.last_kpss_quiz_time is None or (now - self.last_kpss_quiz_time).total_seconds() >= interval_hours * 3600:
+                    if self.last_kpss_quiz_time is None:
+                        self.last_kpss_quiz_time = now  # İlk başlangıçta hemen tetiklenmesin, sürenin dolmasını beklesin
+                    elif (now - self.last_kpss_quiz_time).total_seconds() >= interval_hours * 3600:
                         # Türkiye saatiyle 08:30 - 23:30 saatleri arasında gönder
                         if 8 <= now.hour <= 23:
                             self.last_kpss_quiz_time = now
@@ -370,15 +389,66 @@ class BackgroundScheduler:
         interval_sec = pace_cfg["interval_seconds"]
 
         now = datetime.now()
-        if self.last_autopilot_publish_time is not None:
-            elapsed = (now - self.last_autopilot_publish_time).total_seconds()
+        last_pub = self.last_autopilot_publish_time
+        
+        # 1. RAM'de yoksa veritabanından kalıcı zaman damgasını çek (Streamlit Cloud oturumları için kritik)
+        if last_pub is None:
+            raw_last = get_system_setting("LAST_AUTOPILOT_PUBLISH_TIME", "")
+            if raw_last:
+                try:
+                    last_pub = datetime.fromisoformat(raw_last)
+                except Exception:
+                    pass
+
+        # 2. Hala yoksa veritabanında son yayınlanan gerçek ilanın published_at tarihini al
+        if last_pub is None:
+            try:
+                with get_db() as db:
+                    latest_job = db.query(JobAnnouncement).filter(
+                        JobAnnouncement.published_at.isnot(None),
+                        JobAnnouncement.status == JobStatus.PUBLISHED
+                    ).order_by(JobAnnouncement.published_at.desc()).first()
+                    if latest_job and latest_job.published_at:
+                        last_pub = latest_job.published_at
+            except Exception:
+                pass
+
+        # 3. Havuzda bekleyen yayınlanabilir ilan sayısını kontrol et
+        pool_count = 0
+        try:
+            with get_db() as db:
+                today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                from sqlalchemy import or_
+                pool_count = db.query(JobAnnouncement).filter(
+                    JobAnnouncement.is_verified == True,
+                    JobAnnouncement.status != JobStatus.PUBLISHED,
+                    JobAnnouncement.status != JobStatus.REJECTED,
+                    JobAnnouncement.status != JobStatus.FAILED,
+                    JobAnnouncement.published_at.is_(None),
+                    or_(
+                        JobAnnouncement.application_end_date.is_(None),
+                        JobAnnouncement.application_end_date >= today_start
+                    )
+                ).count()
+        except Exception:
+            pass
+
+        if last_pub is not None:
+            self.last_autopilot_publish_time = last_pub
+            elapsed = (now - last_pub).total_seconds()
             remaining = max(0, int(interval_sec - elapsed))
         else:
-            remaining = 0
+            remaining = interval_sec
 
         rem_min = remaining // 60
         rem_sec = remaining % 60
-        countdown_str = f"{rem_min} dk {rem_sec} sn" if rem_min > 0 else f"{rem_sec} sn"
+
+        if pool_count == 0:
+            countdown_str = "Kuyruk Boş (Yeni Resmi İlan Bekleniyor)"
+        elif remaining == 0:
+            countdown_str = "Sıradaki ilan yayına alınıyor..."
+        else:
+            countdown_str = f"{rem_min} dk {rem_sec} sn" if rem_min > 0 else f"{rem_sec} sn"
 
         return {
             "pace_key": pace_key,
@@ -388,7 +458,8 @@ class BackgroundScheduler:
             "interval_seconds": interval_sec,
             "remaining_seconds": remaining,
             "countdown_str": countdown_str,
-            "last_publish_time": self.last_autopilot_publish_time,
+            "pool_count": pool_count,
+            "last_publish_time": last_pub,
         }
 
     def trigger_autopilot_now(self, limit: int = 5) -> int:
@@ -405,19 +476,38 @@ class BackgroundScheduler:
         self.interval_minutes = interval_minutes
         self._stop_event.clear()
 
-        # Askıda kalmış (yayınlanamamış ama published_at kilitli kalmış) ilanları kurtar
+        # Askıda kalmış veya geçmiş hata sebebiyle FAILED olup süresi dolmamış ilanları otopilot havuzuna kurtar
         try:
             with get_db() as db:
-                stuck_jobs = db.query(JobAnnouncement).filter(
+                from sqlalchemy import or_
+                today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                
+                # Hiçbir kanalda yayınlanmamış ama published_at kilitli kalmış veya FAILED düşmüş güncel ilanlar
+                recoverable_jobs = db.query(JobAnnouncement).filter(
                     JobAnnouncement.status != JobStatus.PUBLISHED,
                     JobAnnouncement.status != JobStatus.REJECTED,
                     JobAnnouncement.published_channels.is_(None),
-                    JobAnnouncement.published_at.isnot(None)
+                    or_(
+                        JobAnnouncement.application_end_date.is_(None),
+                        JobAnnouncement.application_end_date >= today_start
+                    )
                 ).all()
-                if stuck_jobs:
-                    for sj in stuck_jobs:
-                        sj.published_at = None
-                    logger.info(f"[OTOPİLOT KURTARMA] {len(stuck_jobs)} adet askıda kalmış kilitli ilan kuyruğa geri alındı.")
+
+                fixed_cnt = 0
+                for rj in recoverable_jobs:
+                    changed = False
+                    if rj.published_at is not None:
+                        rj.published_at = None
+                        changed = True
+                    if rj.status == JobStatus.FAILED:
+                        rj.status = JobStatus.PENDING_APPROVAL
+                        rj.admin_notes = "[Otopilot Kurtarma] Askıdan kurtarılarak yeniden kuyruğa alındı."
+                        changed = True
+                    if changed:
+                        fixed_cnt += 1
+
+                if fixed_cnt > 0:
+                    logger.info(f"[OTOPİLOT KURTARMA] {fixed_cnt} adet askıda/hatada kalmış güncel ilan otopilot kuyruğuna geri kazandırıldı.")
         except Exception as cl_err:
             logger.debug(f"Askıda kalan ilan temizleme kontrolü uyarısı: {cl_err}")
 

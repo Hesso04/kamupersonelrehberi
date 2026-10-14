@@ -11,9 +11,9 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-# Streamlit Cloud Hot-Reload: Disk'teki güncel kodları belleğe zorunlu yenile
+# Streamlit Cloud Hot-Reload: UI ve grafik modüllerini belleğe yenile (core ve config thread & DB bütünlüğü için hariç tutulur)
 import importlib
-for mod_prefix in ["publishers", "core", "graphics", "ai", "modules", "config"]:
+for mod_prefix in ["publishers", "graphics", "ai", "modules"]:
     for mod_name in list(sys.modules.keys()):
         if mod_name == mod_prefix or mod_name.startswith(mod_prefix + "."):
             try:
@@ -434,9 +434,15 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
         ch_text = ", ".join(active_ch_names) if active_ch_names else "Seçili kanal yok"
         
         ap_stat = scheduler.get_autopilot_status()
+        p_cnt = ap_stat.get("pool_count", 0)
+        if p_cnt > 0:
+            status_desc = f"⏳ **Sonraki İlan:** `{ap_stat['countdown_str']}` | 📥 **Kuyruk:** `{p_cnt} İlan Yayına Hazır`"
+        else:
+            status_desc = f"⏳ **Durum:** `Kuyruk Temiz (Tüm ilanlar güncel, yeni resmi ilan bekleniyor)`"
+
         st.success(
             f"🟢 **OTOPİLOT AKTİF:** Doğrulanmış (.gov.tr) kaynaklı ilanlar **{ch_text}** kanallarına otomatik yayınlanmaktadır. "
-            f"| ⏱️ **Tempo:** `{ap_stat['pace_name']}` | ⏳ **Sonraki İlan Kalan Süre:** `{ap_stat['countdown_str']}`"
+            f"| ⏱️ **Tempo:** `{ap_stat['pace_short']}` | {status_desc}"
         )
     else:
         st.info("🛡️ **MANUEL ONAY AKTİF:** Yeni gelen ilanlar sosyal kanallara dağıtılmadan önce bu onay havuzunda insan denetiminden geçer.")
@@ -473,12 +479,13 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                     with get_db() as db:
                         from sqlalchemy import or_
                         now = datetime.now()
+                        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
                         target_jobs = db.query(JobAnnouncement).filter(
                             JobAnnouncement.image_path == None,
                             JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED]),
                             or_(
                                 JobAnnouncement.application_end_date == None,
-                                JobAnnouncement.application_end_date >= now
+                                JobAnnouncement.application_end_date >= today_start
                             )
                         ).limit(5).all()
                         for tj in target_jobs:
@@ -534,11 +541,12 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
                     with get_db() as db:
                         from sqlalchemy import or_
                         now = datetime.now()
+                        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
                         target_batch = db.query(JobAnnouncement).filter(
                             JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED]),
                             or_(
                                 JobAnnouncement.application_end_date == None,
-                                JobAnnouncement.application_end_date >= now
+                                JobAnnouncement.application_end_date >= today_start
                             )
                         ).order_by(JobAnnouncement.id.asc()).limit(5).all()
                         batch_ids = [b.id for b in target_batch]

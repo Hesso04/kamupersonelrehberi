@@ -20,6 +20,7 @@ class ScrapedJob:
     pdf_path: Optional[str] = None
     raw_content: Optional[str] = None
     publish_date: Optional[datetime] = None
+    application_end_date: Optional[datetime] = None
     is_verified: bool = False
 
 

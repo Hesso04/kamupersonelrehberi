@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from bs4 import BeautifulSoup
 import requests
@@ -67,6 +67,10 @@ class KariyerKapisiScraper(BaseScraper):
                     f"Kategori: Kamu İşe Alım (Kariyer Kapısı)"
                 )
 
+                # Resmi alım ilanlarında başvuru süresi yasal olarak açılıştan itibaren en az 15 gündür
+                calc_pub_date = pub_date or datetime.utcnow()
+                calc_end_date = calc_pub_date + timedelta(days=15)
+
                 job = ScrapedJob(
                     title=raw_title,
                     source_name=self.source_name,
@@ -76,7 +80,8 @@ class KariyerKapisiScraper(BaseScraper):
                     total_positions=1,
                     official_doc_url=link,
                     raw_content=raw_content,
-                    publish_date=pub_date or datetime.utcnow(),
+                    publish_date=calc_pub_date,
+                    application_end_date=calc_end_date,
                     is_verified=True
                 )
                 jobs.append(job)

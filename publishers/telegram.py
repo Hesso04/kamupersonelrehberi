@@ -165,8 +165,35 @@ class TelegramPublisher(BasePublisher):
                 f"📌 <b>Resmi Gazete Onaylı İlanlar:</b> @{channel_handle}"
             )
 
+        # Kurum ve Kadro Temizleyici (Kurum: Kamu Kurumu hatasını ve yapışık başlıkları otomatik düzelt)
+        inst_clean = job.institution or "Kamu Kurumu"
+        pos_clean = job.position or "Personel Alımı"
+
+        # Eğer kurum "Kamu Kurumu" kalmışsa veya pozisyonda kurum adı geçiyorsa akıllıca ayıkla
+        if inst_clean in ["Kamu Kurumu", "", "T.C. Kamu Kurumu", None]:
+            for kw in ["BELEDİYE BAŞKANLIĞI", "BELEDİYESİ", "ÜNİVERSİTESİ", "BAKANLIĞI", "GENEL MÜDÜRLÜĞÜ", "BAŞKANLIĞI", "KALKINMA AJANSI", "MÜDÜRLÜĞÜ", "VALİLİĞİ", "KAYMAKAMLIĞI"]:
+                for src_text in [pos_clean, job.title or ""]:
+                    if kw in src_text.upper():
+                        idx = src_text.upper().find(kw) + len(kw)
+                        inst_clean = src_text[:idx].strip(" -:,")
+                        remaining = src_text[idx:].strip(" -:,")
+                        if remaining:
+                            pos_clean = re.sub(r"^\d+\s*", "", remaining)
+                            pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır).*$", "", pos_clean, flags=re.IGNORECASE).strip(" -:,")
+                        break
+                if inst_clean not in ["Kamu Kurumu", "", "T.C. Kamu Kurumu", None]:
+                    break
+
+        if not pos_clean:
+            pos_clean = "Personel Alımı"
+
+        # Metin içindeki kurum ve pozisyonu düzelt
+        if inst_clean and inst_clean != "Kamu Kurumu":
+            caption_text = re.sub(r"Kurum:</b>\s*Kamu Kurumu", f"Kurum:</b> {inst_clean}", caption_text)
+            caption_text = re.sub(r"Kadro / Pozisyon:</b>\s*([^\n]+)", f"Kadro / Pozisyon:</b> {pos_clean}", caption_text)
+
         # Güvenlik: Metin içindeki literal "None" kalıntılarını temizle
-        caption_text = caption_text.replace("<b>Pozisyon:</b> None", f"<b>Pozisyon:</b> {job.position or 'Resmi Kılavuzda'}")
+        caption_text = caption_text.replace("<b>Pozisyon:</b> None", f"<b>Pozisyon:</b> {pos_clean}")
         caption_text = caption_text.replace("None Kişi", "1 Kişi").replace(": None", ": Belirtilmedi")
 
         # Metin içindeki tüm eski SBB veya harici link kalıntılarını kendi resmi sitemize yönlendir
@@ -175,11 +202,11 @@ class TelegramPublisher(BasePublisher):
         # 2026 Viral İletme ve Hızlı Başvuru Butonları
         import urllib.parse
         if is_cancellation:
-            share_summary = f"🚨 DİKKAT: {job.institution or 'Kamu'} {job.position or 'Personel Alımı'} İptal Edildi!\nDetaylar: {portal_job_url}"
+            share_summary = f"🚨 DİKKAT: {inst_clean} {pos_clean} İptal Edildi!\nDetaylar: {portal_job_url}"
             btn1_text = "🚨 İptal Detayları (Web)"
             btn2_text = "📲 Adayları Bilgilendir"
         else:
-            share_summary = f"📢 {job.institution or 'Kamu'} {job.position or 'Personel Alımı'}\nDetaylar & Başvuru İçin: {portal_job_url}"
+            share_summary = f"📢 {inst_clean} {pos_clean}\nDetaylar & Başvuru İçin: {portal_job_url}"
             btn1_text = "🌐 Resmi Başvuru & İlan Detayı"
             btn2_text = "📲 Arkadaşına İlet"
 
@@ -198,7 +225,29 @@ class TelegramPublisher(BasePublisher):
         }
 
         try:
+            # Görsel yoksa veya diskte bulunamıyorsa anında Modern Afiş üret (Asla resimsiz kalmasın)
             image_file = Path(job.image_path) if job.image_path else None
+            if not image_file or not image_file.exists():
+                try:
+                    from graphics.modern_generator import ModernCardGenerator
+                    card_gen = ModernCardGenerator()
+                    website_domain = getattr(settings, "WEBSITE_URL", "kamupersonelrehberiniz.me").replace("https://", "").replace("http://", "").strip("/")
+                    new_img = card_gen.generate_modern_card(
+                        job_id=job.id,
+                        institution=inst_clean,
+                        position=pos_clean,
+                        title=job.title or "",
+                        total_positions=job.total_positions,
+                        kpss_requirement=job.kpss_requirement,
+                        education_level=job.education_level,
+                        deadline=job.application_end_date,
+                        website_url=website_domain
+                    )
+                    if new_img and Path(new_img).exists():
+                        job.image_path = str(new_img)
+                        image_file = Path(new_img)
+                except Exception as gen_err:
+                    logger.warning(f"Telegram için anlık afiş üretilemedi: {gen_err}")
 
             # 1. Görsel varsa Fotoğraf Olarak Gönder (sendPhoto)
             if image_file and image_file.exists():

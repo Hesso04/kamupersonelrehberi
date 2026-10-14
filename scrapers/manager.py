@@ -14,6 +14,18 @@ from .iskur_kamu import IskurKamuScraper
 from .csb_yerel_yonetimler import CSBYerelYonetimlerScraper
 
 
+import re
+
+def make_title_fingerprint(text: str) -> str:
+    """Başlıktan harf/rakam özeti çıkararak küçük yazım farklarında dahi mükerrerliği yakalar."""
+    if not text:
+        return ""
+    t = text.lower().replace("İ", "i").replace("I", "i").replace("ı", "i").replace("i̇", "i")
+    t = re.sub(r"(?:alimi|alacak|alinacaktir|alacaktir|personel|sozlesmeli|sinavi|basvurulari|duyurusu)", "", t)
+    t = re.sub(r"[^a-z0-9]", "", t)
+    return t
+
+
 class ScraperManager:
     """
     Tüm resmi kazıyıcıları yöneten, mükerrer kayıtları (deduplication)
@@ -55,14 +67,43 @@ class ScraperManager:
                             logger.warning(f"Resmi olmayan şüpheli kaynak atlandı: {job.source_url}")
                             continue
 
-                        # 2. Mükerrer kontrolü: Benzersiz resmi belge linki veya tam başlık kontrolü
-                        query_filter = (JobAnnouncement.title == job.title)
+                        # 2. Mükerrer kontrolü: Çok Katmanlı Güçlü Deduplication
+                        existing = None
                         if job.official_doc_url:
-                            query_filter = query_filter | (JobAnnouncement.official_doc_url == job.official_doc_url)
-                        elif job.source_url:
-                            query_filter = query_filter | (JobAnnouncement.source_url == job.source_url)
+                            existing = db.query(JobAnnouncement).filter(JobAnnouncement.official_doc_url == job.official_doc_url).first()
 
-                        existing = db.query(JobAnnouncement).filter(query_filter).first()
+                        if not existing:
+                            existing = db.query(JobAnnouncement).filter(JobAnnouncement.title == job.title).first()
+
+                        # Akıllı Parmak İzi & Kurum Kontrolü (Başlıktaki küçük yazım farklarına rağmen aynı ilanı yakalar)
+                        if not existing:
+                            fp_new = make_title_fingerprint(job.title)
+                            from sqlalchemy import or_
+                            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+                            
+                            # Son başvuru tarihi dolmamış güncel ilanları tara
+                            active_candidates = db.query(JobAnnouncement).filter(
+                                or_(
+                                    JobAnnouncement.application_end_date.is_(None),
+                                    JobAnnouncement.application_end_date >= today_start
+                                )
+                            ).all()
+
+                            for cand in active_candidates:
+                                # Aynı kurum ve aynı parmak izi eşleşmesi
+                                if make_title_fingerprint(cand.title) == fp_new and len(fp_new) >= 8:
+                                    existing = cand
+                                    break
+                                # Veya aynı kurum ve aynı pozisyon eşleşmesi
+                                if (
+                                    job.institution and job.institution != "Kamu Kurumu" and
+                                    cand.institution and cand.institution != "Kamu Kurumu" and
+                                    cand.institution.strip().upper() == job.institution.strip().upper() and
+                                    job.position and cand.position and
+                                    cand.position.strip().upper() == job.position.strip().upper()
+                                ):
+                                    existing = cand
+                                    break
 
                         if existing:
                             duplicates += 1
@@ -80,7 +121,7 @@ class ScraperManager:
                             pdf_path=job.pdf_path,
                             is_verified=job.is_verified,
                             raw_content=job.raw_content,
-                            application_end_date=job.publish_date if job.publish_date else None,
+                            application_end_date=job.application_end_date if getattr(job, "application_end_date", None) else (job.publish_date if job.publish_date else None),
                             status=JobStatus.PENDING_APPROVAL,
                             created_at=datetime.utcnow()
                         )

@@ -377,7 +377,21 @@ def sync_and_push(auto_push: bool = True) -> bool:
     if not auto_push:
         return True
 
+    # Streamlit Cloud ortamı koruması: Konteyner içinde git index.lock çakışmalarını önle
+    is_streamlit_cloud = Path("/mount/src").exists() or bool(os.environ.get("STREAMLIT_SHARING_HOST") or os.environ.get("STREAMLIT_SERVER_BASE_URL"))
+    if is_streamlit_cloud:
+        # Cloud üzerinde JSON ve sitemap güncellenmesi yeterlidir, shell git push denemesi yapılmaz
+        return True
+
     try:
+        # Askıda kalmış stale git lock dosyasını temizle
+        lock_file = ROOT_DIR / ".git" / "index.lock"
+        if lock_file.exists():
+            try:
+                lock_file.unlink()
+            except Exception:
+                pass
+
         # Değişiklikleri stage'e al (Veri JSON'ları + Sitemap + Robots + Belgeler)
         subprocess.run([
             "git", "add",

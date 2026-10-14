@@ -771,6 +771,12 @@ Kural: Konuları dengeli dağıt ({', '.join(selected_subjects)}). Her sorunun d
         3) Instagram akışında paylaşır (doğru cevap gizli, Telegram kanalına yönlendirici açıklama ile).
         Dönüş: (Başarılı mı, Mesaj, Soru Sözlüğü, Kart Dosya Yolu)
         """
+        # Güvenlik Kontrolü: Kullanıcı soru paylaşımını kapattıysa asla otomatik soru gönderme
+        from core.database import get_system_setting
+        if not channel_id and get_system_setting("AUTO_KPSS_QUIZ_ENABLED", "false").strip().lower() != "true":
+            logger.info("[QUIZ ENGELLENDİ] AUTO_KPSS_QUIZ_ENABLED kapalı olduğu için otomatik soru paylaşımı durduruldu.")
+            return False, "Soru otopilotu kullanıcı tarafından kapatılmıştır.", None, None
+
         fresh_questions = self.generate_ai_questions(count=1)
         if not fresh_questions:
             return False, "Soru üretilemedi.", None, None

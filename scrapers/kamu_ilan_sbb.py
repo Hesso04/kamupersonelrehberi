@@ -86,6 +86,20 @@ class SBBKamuIlanScraper(BaseScraper):
 
     def __init__(self):
         super().__init__(source_name="SBB Kamu İlan", timeout=25)
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://kamuilan.sbb.gov.tr/",
+            "Sec-Ch-Ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1"
+        })
         self.doc_dir = Path("data/documents")
         self.doc_dir.mkdir(parents=True, exist_ok=True)
 
@@ -186,15 +200,30 @@ class SBBKamuIlanScraper(BaseScraper):
 
                 # 3. Kurum adı, pozisyon ve kontenjanı ayrıştır
                 parts = [p.strip() for p in title_part.split(" - ") if p.strip()]
-                if len(parts) >= 2 and parts[0].upper() == parts[1].upper():
-                    institution = parts[0]
-                    remaining = " - ".join(parts[2:]) if len(parts) > 2 else parts[1]
-                elif len(parts) >= 2:
-                    institution = parts[0]
-                    remaining = " - ".join(parts[1:])
+                institution = ""
+                remaining = ""
+
+                if len(parts) >= 2:
+                    if parts[0].upper() == parts[1].upper():
+                        institution = parts[0]
+                        remaining = " - ".join(parts[2:]) if len(parts) > 2 else parts[1]
+                    else:
+                        institution = parts[0]
+                        remaining = " - ".join(parts[1:])
                 else:
-                    institution = parts[0] if parts else "Kamu Kurumu"
-                    remaining = parts[0] if parts else ""
+                    # Tire bulunamadıysa resmi kurum anahtar kelimelerine göre akıllıca böl
+                    t_upper = title_part.upper()
+                    split_done = False
+                    for kw in self.INSTITUTION_KEYWORDS:
+                        if kw in t_upper:
+                            idx = t_upper.find(kw) + len(kw)
+                            institution = title_part[:idx].strip()
+                            remaining = title_part[idx:].strip(" -:,")
+                            split_done = True
+                            break
+                    if not split_done:
+                        institution = parts[0] if parts else "Kamu Kurumu"
+                        remaining = ""
 
                 if remaining.upper().startswith(institution.upper()):
                     remaining = remaining[len(institution):].strip(" -:")
@@ -205,7 +234,7 @@ class SBBKamuIlanScraper(BaseScraper):
 
                 # Temiz kadro / pozisyon adı
                 pos_clean = re.sub(r"^\d+\s*", "", remaining)
-                pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır).*$", "", pos_clean, flags=re.IGNORECASE)
+                pos_clean = re.sub(r"\s*(?:alacak|alımı|temin edilecek|alınacaktır|sınavı).*$", "", pos_clean, flags=re.IGNORECASE)
                 pos_clean = pos_clean.strip(" -:,")
                 if not pos_clean or len(pos_clean) < 3:
                     pos_clean = remaining or "Kamu Personeli"
