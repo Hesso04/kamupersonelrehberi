@@ -85,6 +85,7 @@ class ResmiGazeteScraper(BaseScraper):
                             official_doc_url=full_url,
                             raw_content=f"Resmi Gazete Tarihi: {target_date.strftime('%d.%m.%Y')}\nİlan: {text}\nBağlantı: {full_url}",
                             publish_date=target_date,
+                            application_end_date=target_date + timedelta(days=15),
                             is_verified=True
                         )
                         jobs.append(job)

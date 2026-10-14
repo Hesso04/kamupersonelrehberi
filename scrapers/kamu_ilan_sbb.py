@@ -268,6 +268,7 @@ class SBBKamuIlanScraper(BaseScraper):
                     pdf_path=str(pdf_path) if pdf_path else None,
                     raw_content=raw_summary,
                     publish_date=end_dt or datetime.utcnow(),
+                    application_end_date=end_dt,
                     is_verified=True  # kamuilan.sbb.gov.tr resmi devlet portalıdır
                 )
                 jobs.append(job)

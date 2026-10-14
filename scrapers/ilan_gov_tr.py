@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from loguru import logger
 
@@ -85,6 +85,9 @@ class IlanGovTrScraper(BaseScraper):
                     f"Resmi Bağlantı: {ad_url}"
                 )
 
+                # Son başvuru tarihi: Resmi İlanlarda genel kural 15 günlük başvuru süresidir
+                app_end = (pub_date.replace(tzinfo=None) if pub_date else datetime.now()) + timedelta(days=15)
+
                 job = ScrapedJob(
                     title=title,
                     source_name=self.source_name,
@@ -95,6 +98,7 @@ class IlanGovTrScraper(BaseScraper):
                     official_doc_url=ad_url,
                     raw_content=raw_content,
                     publish_date=pub_date,
+                    application_end_date=app_end,
                     is_verified=True
                 )
                 jobs.append(job)

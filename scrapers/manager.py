@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from loguru import logger
 from sqlalchemy.orm import Session
 
@@ -121,7 +121,9 @@ class ScraperManager:
                             pdf_path=job.pdf_path,
                             is_verified=job.is_verified,
                             raw_content=job.raw_content,
-                            application_end_date=job.application_end_date if getattr(job, "application_end_date", None) else (job.publish_date if job.publish_date else None),
+                            application_end_date=job.application_end_date if getattr(job, "application_end_date", None) else (
+                                (job.publish_date.replace(tzinfo=None) if job.publish_date else datetime.utcnow()) + timedelta(days=15)
+                            ),
                             status=JobStatus.PENDING_APPROVAL,
                             created_at=datetime.utcnow()
                         )
