@@ -103,25 +103,38 @@ class SBBKamuIlanScraper(BaseScraper):
         self.doc_dir = Path("data/documents")
         self.doc_dir.mkdir(parents=True, exist_ok=True)
 
+    def get_cached_pdf(self, detail_url: str) -> Optional[Path]:
+        """Önbellekte zaten indirilmiş bir PDF varsa anında döner, ağ isteği atmaz."""
+        try:
+            url_hash = hashlib.md5(detail_url.encode()).hexdigest()[:12]
+            pdf_filename = f"sbb_doc_{url_hash}.pdf"
+            pdf_file_path = self.doc_dir / pdf_filename
+            if pdf_file_path.exists() and pdf_file_path.stat().st_size > 500:
+                return pdf_file_path
+        except Exception:
+            pass
+        return None
+
     def download_pdf(self, detail_url: str) -> Tuple[Optional[Path], Optional[str]]:
         """
         SBB ilanDetay.aspx adresinden Referer başlığıyla resmi PDF'i indirir,
         dosyayı yerel önbelleğe kaydeder ve metnini pypdf ile ayrıştırır.
         """
         try:
-            url_hash = hashlib.md5(detail_url.encode()).hexdigest()[:12]
-            pdf_filename = f"sbb_doc_{url_hash}.pdf"
-            pdf_file_path = self.doc_dir / pdf_filename
-            if pdf_file_path.exists() and pdf_file_path.stat().st_size > 500:
-                return pdf_file_path, ""
+            cached = self.get_cached_pdf(detail_url)
+            if cached:
+                return cached, ""
 
             r = self.session.get(
                 detail_url,
                 verify=False,
                 headers={"Referer": self.BASE_URL},
-                timeout=20
+                timeout=12
             )
             if r.status_code == 200 and r.content.startswith(b"%PDF"):
+                url_hash = hashlib.md5(detail_url.encode()).hexdigest()[:12]
+                pdf_filename = f"sbb_doc_{url_hash}.pdf"
+                pdf_file_path = self.doc_dir / pdf_filename
                 pdf_file_path.write_bytes(r.content)
 
                 # PDF metin çıkarımı
@@ -239,8 +252,8 @@ class SBBKamuIlanScraper(BaseScraper):
                 if not pos_clean or len(pos_clean) < 3:
                     pos_clean = remaining or "Kamu Personeli"
 
-                # Resmi PDF dosyasını önbellekten kontrol et veya indir
-                pdf_path, _ = self.download_pdf(detail_url)
+                # Resmi PDF dosyasını önbellekten hızlıca kontrol et (Ağ isteği atmaz)
+                pdf_path = self.get_cached_pdf(detail_url)
 
                 # Temiz başlık
                 clean_title = f"{institution} - {remaining}" if remaining else institution

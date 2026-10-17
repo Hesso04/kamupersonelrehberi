@@ -61,6 +61,15 @@ class ScraperManager:
                 total_found += len(jobs)
 
                 with get_db() as db:
+                    from sqlalchemy import or_
+                    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+                    active_candidates = db.query(JobAnnouncement).filter(
+                        or_(
+                            JobAnnouncement.application_end_date.is_(None),
+                            JobAnnouncement.application_end_date >= today_start
+                        )
+                    ).all()
+
                     for job in jobs:
                         # 1. URL'nin resmi kurum alan adı olup olmadığını doğrula
                         if not scraper.is_official_source(job.source_url):
@@ -78,16 +87,6 @@ class ScraperManager:
                         # Akıllı Parmak İzi & Kurum Kontrolü (Başlıktaki küçük yazım farklarına rağmen aynı ilanı yakalar)
                         if not existing:
                             fp_new = make_title_fingerprint(job.title)
-                            from sqlalchemy import or_
-                            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-                            
-                            # Son başvuru tarihi dolmamış güncel ilanları tara
-                            active_candidates = db.query(JobAnnouncement).filter(
-                                or_(
-                                    JobAnnouncement.application_end_date.is_(None),
-                                    JobAnnouncement.application_end_date >= today_start
-                                )
-                            ).all()
 
                             for cand in active_candidates:
                                 # Aynı kurum ve aynı parmak izi eşleşmesi
@@ -109,6 +108,16 @@ class ScraperManager:
                             duplicates += 1
                             continue
 
+                        # SBB ilanı ise ve PDF henüz yoksa sadece bu yeni ilan için lazy indir
+                        pdf_path = job.pdf_path
+                        if not pdf_path and hasattr(scraper, "download_pdf") and job.official_doc_url:
+                            try:
+                                dl_path, _ = scraper.download_pdf(job.official_doc_url)
+                                if dl_path:
+                                    pdf_path = str(dl_path)
+                            except Exception:
+                                pass
+
                         # 3. Yeni ilanı veritabanına ekle (Onay Bekliyor statüsünde)
                         new_announcement = JobAnnouncement(
                             title=job.title[:340],
@@ -118,7 +127,7 @@ class ScraperManager:
                             source_name=job.source_name,
                             source_url=job.source_url,
                             official_doc_url=job.official_doc_url,
-                            pdf_path=job.pdf_path,
+                            pdf_path=pdf_path,
                             is_verified=job.is_verified,
                             raw_content=job.raw_content,
                             application_end_date=job.application_end_date if getattr(job, "application_end_date", None) else (
@@ -128,6 +137,7 @@ class ScraperManager:
                             created_at=datetime.utcnow()
                         )
                         db.add(new_announcement)
+                        active_candidates.append(new_announcement)
                         new_added += 1
 
             except Exception as e:

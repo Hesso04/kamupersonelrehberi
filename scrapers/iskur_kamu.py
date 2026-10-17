@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from loguru import logger
@@ -13,7 +13,6 @@ class IskurKamuScraper(BaseScraper):
     Kamu Memur ve Personel Alım İlanları Kazıyıcısı.
     
     Yalnızca resmi ve doğrulanmış kamu ilanlarını çeker.
-    Takipçilere kurumsal 'T.C. Resmi Kurum Duyurusu' kimliği ile sunulur.
     """
 
     BASE_URL = "https://www.iskur.gov.tr"
@@ -22,11 +21,18 @@ class IskurKamuScraper(BaseScraper):
         (34, "Istanbul"),
         (35, "Izmir"),
         (16, "Bursa"),
-        (7, "Antalya")
+        (7, "Antalya"),
+        (1, "Adana"),
+        (42, "Konya"),
+        (27, "Gaziantep"),
+        (41, "Kocaeli"),
+        (21, "Diyarbakir"),
+        (55, "Samsun"),
+        (38, "Kayseri")
     ]
 
     def __init__(self):
-        super().__init__(source_name="T.C. Resmi Kurum Duyurusu", timeout=15)
+        super().__init__(source_name="İŞKUR Kamu", timeout=15)
         self.session.headers.update({
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -38,6 +44,7 @@ class IskurKamuScraper(BaseScraper):
 
     def fetch_jobs(self) -> List[ScrapedJob]:
         jobs: List[ScrapedJob] = []
+        seen_urls = set()
 
         try:
             # 1. Oturum çerezlerini başlatmak için ana sayfayı ziyaret et
@@ -45,8 +52,11 @@ class IskurKamuScraper(BaseScraper):
 
             for city_id, city_name in self.TARGET_CITIES:
                 target_url = f"{self.BASE_URL}/ilanlar/kamu-memur-alim-ilanlari/?idId={city_id}&il={city_name}"
-                r = self.session.get(target_url, verify=False, timeout=self.timeout)
-                if r.status_code != 200:
+                try:
+                    r = self.session.get(target_url, verify=False, timeout=self.timeout)
+                    if r.status_code != 200:
+                        continue
+                except Exception:
                     continue
 
                 soup = BeautifulSoup(r.text, "html.parser")
@@ -67,6 +77,9 @@ class IskurKamuScraper(BaseScraper):
 
                     # Resmi PDF veya İlan Bağlantısı
                     full_doc_url = urljoin(self.BASE_URL, file_url) if file_url else target_url
+                    if full_doc_url in seen_urls:
+                        continue
+                    seen_urls.add(full_doc_url)
 
                     # Tarih ayrıştırma (Örn: "19.10.2026 17:00")
                     deadline_dt = None
@@ -93,15 +106,16 @@ class IskurKamuScraper(BaseScraper):
                     )
 
                     job = ScrapedJob(
-                        title=title,
+                        title=title[:340],
                         source_name=self.source_name,
-                        source_url=target_url,
-                        institution=institution,
-                        position=title,
+                        source_url=full_doc_url,
+                        institution=institution[:240],
+                        position=title[:290],
                         total_positions=1,
                         official_doc_url=full_doc_url,
                         raw_content=raw_content,
-                        publish_date=deadline_dt or datetime.utcnow(),
+                        publish_date=datetime.utcnow(),
+                        application_end_date=deadline_dt if deadline_dt else (datetime.utcnow() + timedelta(days=15)),
                         is_verified=True
                     )
                     jobs.append(job)

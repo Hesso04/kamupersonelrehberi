@@ -1929,3 +1929,264 @@ html.dark .cookie-banner {
 .cookie-banner.show {
   display: flex;
 }
+
+/* ==========================================================================
+   11. GELİŞMİŞ ETKİLEŞİM, AKTİF FİLTRE VE STATÜ BİLEŞENLERİ (v2.1)
+   ========================================================================== */
+
+/* Statü Noktaları */
+.status-dot-green {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--emerald-status);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
+}
+
+.status-dot-amber {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F59E0B;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.45);
+}
+
+.status-dot-expired {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  opacity: 0.7;
+}
+
+/* Süresi Dolan İlan Kartı Ayrımı */
+.job-stacked-row.is-expired {
+  opacity: 0.82;
+  border-color: var(--glass-border-subtle);
+}
+
+.job-stacked-row.is-expired:hover {
+  opacity: 1;
+  border-color: var(--glass-border);
+}
+
+/* Durum Rozetleri */
+.job-status-pill.green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+html.dark .job-status-pill.green {
+  background: rgba(52, 211, 153, 0.16);
+  color: #34D399;
+  border-color: rgba(52, 211, 153, 0.32);
+}
+
+.job-status-pill.gray {
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  border: 1px solid var(--glass-border);
+}
+
+/* Spotlight Arama Temizleme Butonu */
+.spotlight-search-clear {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.spotlight-search-clear:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transform: scale(1.08);
+}
+
+/* Kategori Sekmesi Sayı Rozetleri (Tab Badges) */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  margin-left: 6px;
+  transition: all var(--transition-fast);
+}
+
+.category-tab-btn.active .tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+html:not(.dark) .category-tab-btn.active .tab-badge {
+  background: rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+}
+
+/* Aktif Filtre Çipleri Şeridi */
+.active-filter-tags-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--primary-accent-subtle);
+  border: 1px solid var(--primary-accent-border);
+  animation: fadeInDown 200ms ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.active-filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-accent);
+  margin-right: 4px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.filter-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 0.65rem;
+  line-height: 1;
+  border: none;
+}
+
+.filter-chip-remove:hover {
+  background: var(--primary-accent);
+  color: #FFFFFF;
+}
+
+.filter-clear-all-btn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-accent);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 2px 6px;
+  background: none;
+  border: none;
+}
+
+.filter-clear-all-btn:hover {
+  color: var(--primary-accent-hover);
+}
+
+/* Modal İçi Durum Bildirimleri */
+.modal-status-banner {
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.modal-status-banner.open {
+  background: rgba(16, 185, 129, 0.10);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #065F46;
+}
+
+html.dark .modal-status-banner.open {
+  background: rgba(16, 185, 129, 0.15);
+  color: #A7F3D0;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.modal-status-banner.expired {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.modal-status-banner.cancel {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+}
+
+/* Yüzen Başa Dön (Scroll to Top) Butonu */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 950;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.scroll-to-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-to-top-btn:hover {
+  background: var(--primary-accent);
+  color: #FFFFFF;
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1023px) {
+  .scroll-to-top-btn {
+    bottom: 78px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -63,7 +63,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Ana Tasarım Sistemi (Editorial Apple Glass) -->
-  <link rel="stylesheet" href="assets/css/style.css?v=2.0.1">
+  <link rel="stylesheet" href="assets/css/style.css?v=6.2.0">
 
   <!-- =========================================================================
        GELİŞMİŞ YAPILANDIRILMIŞ VERİ ŞEMASI (JSON-LD SCHEMA.ORG)
@@ -280,6 +280,12 @@
             </svg>
           </span>
           <input type="text" id="search-input" class="spotlight-search-input" placeholder="Kurum, unvan, pozisyon veya şehir ara (örn: Savunma Sanayii, BDDK, Ankara)..." autocomplete="off" spellcheck="false" aria-label="İlan Arama">
+          <button type="button" class="spotlight-search-clear" id="search-clear-btn" aria-label="Aramayı Temizle" style="display:none;" title="Temizle">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
           <button class="spotlight-search-btn" id="search-btn-trigger">ARA</button>
         </div>
       </div>
@@ -293,6 +299,10 @@
         <button class="quick-pill-item" data-pill="kpss_sartsiz" onclick="selectQuickPill('kpss_sartsiz')">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span>KPSS Şartsız</span>
+        </button>
+        <button class="quick-pill-item" data-pill="memur" onclick="selectQuickPill('memur')">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Memur Alımları</span>
         </button>
         <button class="quick-pill-item" data-pill="akademik" onclick="selectQuickPill('akademik')">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -332,7 +342,7 @@
               <svg class="mini-meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
               YAYINDAKİ İLAN
             </span>
-            <div class="summary-stat-value" id="stat-total-jobs">683</div>
+            <div class="summary-stat-value" id="stat-total-jobs">906</div>
             <span class="summary-stat-sub">Resmi İlan Duyurusu</span>
           </div>
           <div class="summary-stat-col">
@@ -366,11 +376,50 @@
     <div class="jobs-control-bar apple-glass tilt-surface">
       <!-- Sol Kategori Sekmeleri -->
       <div class="jobs-category-tabs no-scrollbar" id="category-tabs-container">
-        <button class="category-tab-btn active" data-cat="all" onclick="filterByCategory('all')">Tüm İlanlar</button>
-        <button class="category-tab-btn" data-cat="open" onclick="toggleQuickFilter('open')">Başvuruya Açık</button>
-        <button class="category-tab-btn" data-cat="kpss_sartsiz" onclick="toggleQuickFilter('kpss_sartsiz')">KPSS Şartsız</button>
-        <button class="category-tab-btn" data-cat="pdf" onclick="toggleQuickFilter('pdf')">Resmi Kılavuz PDF</button>
-        <button class="category-tab-btn" data-cat="canc" onclick="toggleQuickFilter('canc')">İptal / Düzeltme</button>
+        <button class="category-tab-btn active" data-cat="all" onclick="filterByCategory('all')">
+          <span>Tüm İlanlar</span>
+          <span class="tab-badge" id="tab-count-all">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="open" onclick="toggleQuickFilter('open')">
+          <span>🟢 Başvuruya Açık</span>
+          <span class="tab-badge" id="tab-count-open">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="memur" onclick="filterByCategory('memur')">
+          <span>Memur Alımı</span>
+          <span class="tab-badge" id="tab-count-memur">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="akademik" onclick="filterByCategory('akademik')">
+          <span>Akademik Kadro</span>
+          <span class="tab-badge" id="tab-count-akademik">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="belediye" onclick="filterByCategory('belediye')">
+          <span>Belediye & Mahalli</span>
+          <span class="tab-badge" id="tab-count-belediye">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="sozlesmeli" onclick="filterByCategory('sozlesmeli')">
+          <span>Sözleşmeli Personel</span>
+          <span class="tab-badge" id="tab-count-sozlesmeli">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="bilisim" onclick="filterByCategory('bilisim')">
+          <span>Bilişim Personeli</span>
+          <span class="tab-badge" id="tab-count-bilisim">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="isci" onclick="filterByCategory('isci')">
+          <span>İşçi Alımı</span>
+          <span class="tab-badge" id="tab-count-isci">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="kpss_sartsiz" onclick="toggleQuickFilter('kpss_sartsiz')">
+          <span>KPSS Şartsız</span>
+          <span class="tab-badge" id="tab-count-kpss_sartsiz">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="pdf" onclick="toggleQuickFilter('pdf')">
+          <span>Resmi Kılavuz PDF</span>
+          <span class="tab-badge" id="tab-count-pdf">0</span>
+        </button>
+        <button class="category-tab-btn" data-cat="canc" onclick="toggleQuickFilter('canc')">
+          <span>İptal / Düzeltme</span>
+          <span class="tab-badge" id="tab-count-canc">0</span>
+        </button>
       </div>
 
       <!-- Sağ Seçimler: Öğrenim & Sıralama -->
@@ -394,6 +443,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Aktif Filtre Etiketleri (Hızlı Temizleme Çipleri) -->
+    <div class="active-filter-tags-strip" id="active-filter-tags-strip" style="display:none;" aria-live="polite"></div>
 
     <!-- Alt Alta Sıralanmış İlan Satırları Konteyneri -->
     <div class="jobs-stacked-list" id="jobs-feed">
@@ -603,6 +655,7 @@
       <!-- Body -->
       <div class="modal-scroll-body">
         
+        <div id="modal-status-banner" class="modal-status-banner" style="display:none;"></div>
         <div id="modal-cancel-alert" style="display:none;"></div>
 
         <!-- Şartlar Izgarası (Specs Grid) -->
@@ -747,7 +800,7 @@
        9. iOS MOBİL ALT ERİŞİM BARI (THUMB-ZONE FLOATING DOCK)
        ========================================================================= -->
   <nav class="ios-bottom-dock apple-glass" aria-label="Mobil Hızlı Menü">
-    <button class="dock-item-btn active" onclick="scrollToSection('ilanlar')">
+    <button class="dock-item-btn active" onclick="scrollToSection('ilanlar'); setDockActive(0);">
       <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
@@ -756,20 +809,20 @@
       </svg>
       <span>İlanlar</span>
     </button>
-    <button class="dock-item-btn" onclick="focusSpotlightSearch()">
+    <button class="dock-item-btn" onclick="focusSpotlightSearch(); setDockActive(1);">
       <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="8"/>
         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <span>Filtrele</span>
     </button>
-    <button class="dock-item-btn" onclick="selectQuickPill('kpss_sartsiz')">
+    <button class="dock-item-btn" onclick="selectQuickPill('kpss_sartsiz'); setDockActive(2);">
       <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
       </svg>
       <span>Şartsız</span>
     </button>
-    <button class="dock-item-btn" onclick="scrollToSection('rehber')">
+    <button class="dock-item-btn" onclick="scrollToSection('rehber'); setDockActive(3);">
       <svg class="dock-icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
@@ -818,13 +871,20 @@
           © 2026 Kamu Personel Rehberi (kamupersonelrehberiniz.me) - Tüm Hakları Saklıdır.
         </div>
         <div>
-          Aktif Ziyaretçi: <strong id="stat-active-visitors-footer">2.071</strong> &nbsp;|&nbsp; Toplam İlan: <strong id="stat-total-jobs-footer">683</strong>
+          Aktif Ziyaretçi: <strong id="stat-active-visitors-footer">2.071</strong> &nbsp;|&nbsp; Toplam İlan: <strong id="stat-total-jobs-footer">906</strong>
         </div>
       </div>
 
     </div>
   </footer>
 
-  <script src="assets/js/app.js?v=2.0.1"></script>
+  <!-- Yüzen Başa Dön Butonu -->
+  <button id="scroll-to-top-btn" class="scroll-to-top-btn apple-glass" aria-label="Yukarı Çık" title="Yukarı Çık" onclick="scrollToTop()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
+  <script src="assets/js/app.js?v=6.2.0"></script>
 </body>
 </html>

@@ -18,7 +18,7 @@ class IlanGovTrScraper(BaseScraper):
     API_ENDPOINT = "https://www.ilan.gov.tr/api/api/services/app/Ad/AdsByFilter"
 
     def __init__(self):
-        super().__init__(source_name="Resmi Kamu İlan Portalı", timeout=15)
+        super().__init__(source_name="ilan.gov.tr (BİK)", timeout=15)
         self.session.headers.update({
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

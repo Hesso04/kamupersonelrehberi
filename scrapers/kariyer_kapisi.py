@@ -14,13 +14,13 @@ class KariyerKapisiScraper(BaseScraper):
     Kamu İşe Alım İlanları Kazıyıcısı.
     
     Yalnızca resmi ve doğrulanmış kamu ilanlarını çeker.
-    Takipçilere kurumsal 'T.C. Resmi Kurum Duyurusu' kimliği ile sunulur.
+    Dışarıdan başvurulamaz kurum içi 'Görevde Yükselme' ilanlarını eler.
     """
 
     RSS_ENDPOINT = "https://kariyerkapisi.gov.tr/RSS/RssLinkiAl.t3kh3062ko.js"
 
     def __init__(self):
-        super().__init__(source_name="T.C. Resmi Kurum Duyurusu", timeout=15)
+        super().__init__(source_name="Kariyer Kapısı (CBİKO)", timeout=15)
 
     def fetch_jobs(self) -> List[ScrapedJob]:
         jobs: List[ScrapedJob] = []
@@ -33,15 +33,20 @@ class KariyerKapisiScraper(BaseScraper):
 
             soup = BeautifulSoup(r.content, "xml")
             items = soup.find_all("item")
-            logger.info(f"Kariyer Kapısı üzerinden {len(items)} adet resmi kamu ilanı çekildi.")
+            logger.info(f"Kariyer Kapısı üzerinden toplam {len(items)} adet ham kayıt okundu.")
 
             for it in items:
                 raw_title = it.find("title").text.strip() if it.find("title") else ""
                 link = it.find("link").text.strip() if it.find("link") else ""
                 desc = it.find("description").text.strip() if it.find("description") else ""
                 pub_date_str = it.find("pubDate").text.strip() if it.find("pubDate") else ""
+                category = it.find("category").text.strip() if it.find("category") else ""
 
                 if not raw_title or not link:
+                    continue
+
+                # Kurum içi 'Görevde Yükselme ve Unvan Değişikliği' ilanlarını ele (Adayları yanıltmamak için)
+                if "görevde yükselme" in category.lower() or "unvan değişikliği" in category.lower():
                     continue
 
                 # Kurum ve pozisyon ayrıştırma (genellikle "KURUM ADI - KADRO DETAYI" şeklinde)
@@ -63,8 +68,9 @@ class KariyerKapisiScraper(BaseScraper):
                     f"Kurum: {institution}\n"
                     f"Başlık: {raw_title}\n"
                     f"Açıklama: {desc}\n"
+                    f"Kategori: {category}\n"
                     f"Resmi Bağlantı: {link}\n"
-                    f"Kategori: Kamu İşe Alım (Kariyer Kapısı)"
+                    f"Portal: Kariyer Kapısı (CBİKO)"
                 )
 
                 # Resmi alım ilanlarında başvuru süresi yasal olarak açılıştan itibaren en az 15 gündür
@@ -72,11 +78,11 @@ class KariyerKapisiScraper(BaseScraper):
                 calc_end_date = calc_pub_date + timedelta(days=15)
 
                 job = ScrapedJob(
-                    title=raw_title,
+                    title=raw_title[:340],
                     source_name=self.source_name,
                     source_url=link,
-                    institution=institution,
-                    position=position,
+                    institution=institution[:240],
+                    position=position[:290],
                     total_positions=1,
                     official_doc_url=link,
                     raw_content=raw_content,
@@ -85,6 +91,8 @@ class KariyerKapisiScraper(BaseScraper):
                     is_verified=True
                 )
                 jobs.append(job)
+
+            logger.info(f"Kariyer Kapısı üzerinden {len(jobs)} adet aday başvurusuna açık kamu ilanı filtrelendi.")
 
         except Exception as e:
             logger.error(f"Kariyer Kapısı kazıma hatası: {e}")
