@@ -34,16 +34,19 @@ from core.database import (
     set_system_setting,
     get_system_setting,
 )
-from core.models import JobAnnouncement, JobStatus, Platform
+from core.models import JobAnnouncement, JobStatus, Platform, OfficialNews
 from core.scheduler import scheduler, AUTOPILOT_PACE_PRESETS
 from scrapers.manager import ScraperManager
+from scrapers.official_news import run_news_scraper, OfficialNewsScraper
 from ai.processor import AIProcessor
 from ai.groq_client import GroqClient
 from ai.llm_client import LLMClient
 from ai.search_assistant import AISearchAssistant
 from graphics.generator import JobCardGenerator, CARD_THEMES
 from graphics.modern_generator import ModernCardGenerator
+from graphics.news_card_generator import NewsCardGenerator
 from publishers.manager import PublisherManager
+from publishers.news_publisher import NewsPublisherManager, toggle_news_autopilot
 from publishers.telegram import TelegramPublisher
 from publishers.whatsapp import WhatsAppPublisher
 from publishers.instagram import InstagramPublisher
@@ -209,6 +212,7 @@ menu = st.sidebar.radio(
     "Modüller",
     [
         "📋 Onay Havuzu (Human-in-the-Loop)",
+        "📰 Kamu Haberleri & Doğrulama Merkezi",
         "🤖 AI Doğrulanmış İlan Danışmanı & Arama",
         "📊 Gösterge Paneli (Dashboard)",
         "📈 Web Sitesi Analitiği & Ziyaretçi Takibi",
@@ -219,6 +223,23 @@ menu = st.sidebar.radio(
     ],
     index=0,
 )
+
+# =============================================================================
+# SIDEBAR: KAMU HABERLERİ OTOPİLOTU HIZLI KONTROLÜ
+# =============================================================================
+st.sidebar.markdown("---")
+st.sidebar.subheader("📰 Kamu Haberleri Otopilotu")
+news_autopilot_active = NewsPublisherManager.is_automation_enabled()
+if news_autopilot_active:
+    st.sidebar.success("🟢 Haber Otopilotu AÇIK")
+    if st.sidebar.button("⏹️ Haber Otopilotunu Kapat", use_container_width=True, key="side_stop_news_auto"):
+        toggle_news_autopilot(False)
+        st.rerun()
+else:
+    st.sidebar.info("⚪ Haber Otopilotu PASİF (Standby)")
+    if st.sidebar.button("▶️ Haber Otopilotunu Aç", use_container_width=True, key="side_start_news_auto"):
+        toggle_news_autopilot(True)
+        st.rerun()
 
 st.sidebar.markdown("---")
 # Arka Plan Zamanlayıcı Kontrolü
@@ -913,8 +934,200 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
 
 
 # =============================================================================
-# MODÜL: AI DOĞRULANMIŞ İLAN DANIŞMANI & AKILLI ARAMA
+# MODÜL: RESMİ KAMU HABERLERİ & DEZENFORMASYON DOĞRULAMA MERKEZİ
 # =============================================================================
+elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
+    st.markdown('<div class="main-header">📰 T.C. Resmi Kamu Haberleri & Dezenformasyon Doğrulama Merkezi</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sub-header">T.C. Cumhurbaşkanlığı İletişim Başkanlığı, Dezenformasyonla Mücadele Merkezi (DMM), '
+        'ÇSGB, Hazine ve Maliye Bakanlığı ve Mevzuat Bilgi Sistemi teyitli, reklamsız kamu haberleri ve bültenleri.</div>',
+        unsafe_allow_html=True,
+    )
+
+    # 1. Canlı Durum Kartları
+    is_auto = NewsPublisherManager.is_automation_enabled()
+    target_channels = get_system_setting("AUTO_PUBLISH_NEWS_CHANNELS", "TELEGRAM,INSTAGRAM")
+
+    with get_db() as db:
+        total_news = db.query(OfficialNews).count()
+        pub_news = db.query(OfficialNews).filter(OfficialNews.is_social_published == True).count()
+        pending_news_cnt = db.query(OfficialNews).filter(OfficialNews.is_social_published == False).count()
+        dmm_cnt = db.query(OfficialNews).filter(OfficialNews.category == "DEZENFORMASYON").count()
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric("Toplam Resmi Haber", total_news)
+    with c2:
+        st.metric("Bekleyen / Yeni", pending_news_cnt)
+    with c3:
+        st.metric("🛡️ DMM Doğrulama", dmm_cnt)
+    with c4:
+        st.metric("Otomatik Pilot", "🟢 AÇIK" if is_auto else "🔴 PASİF (Standby)")
+
+    st.markdown("---")
+
+    # 2. Hızlı Kontrol ve Aksiyon Barı
+    st.subheader("⚡ Otopilot ve Veri Yönetimi")
+    action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+
+    with action_col1:
+        if is_auto:
+            if st.button("⏹️ Otopilotu Kapat (Standby)", use_container_width=True, type="secondary"):
+                toggle_news_autopilot(False)
+                st.success("Otopilot PASİFE alındı! Paylaşım yapılmayacak.")
+                st.rerun()
+        else:
+            if st.button("▶️ Otopilotu Aç (Tek Tıkla)", use_container_width=True, type="primary"):
+                toggle_news_autopilot(True)
+                st.success("Otopilot AKTİF edildi! Yeni haberler otomatik paylaşılacak.")
+                st.rerun()
+
+    with action_col2:
+        if st.button("🔄 Resmi Kaynakları Şimdi Tara", use_container_width=True, help="İletişim Bşk., DMM, ÇSGB, HMB ve Mevzuat portallarını tarar."):
+            with st.spinner("Resmi devlet portalları taranıyor..."):
+                added = run_news_scraper()
+                st.success(f"Tarama tamamlandı! {added} adet yeni haber eklendi.")
+                # Web sitesi JSON'ını da otomatik tazele
+                from scripts.export_website_data import export_news_data
+                export_news_data([
+                    ROOT_DIR / "website" / "data" / "news.json",
+                    ROOT_DIR / "docs" / "data" / "news.json"
+                ])
+                st.rerun()
+
+    with action_col3:
+        if st.button("🚀 Bekleyen Haberleri Şimdi Paylaş", use_container_width=True, help="Otopilot beklemede olsa dahi bekleyen haberleri Telegram ve Instagram'a gönderir."):
+            with st.spinner("Haberler hazırlanıyor ve kanallara aktarılıyor..."):
+                pub = NewsPublisherManager()
+                res = pub.publish_pending_news(limit=5, force=True)
+                st.info(f"Yayınlama Sonucu: {res.get('published', 0)} haber paylaşıldı.")
+                if res.get("errors"):
+                    st.warning("Uyarılar: " + " | ".join(res["errors"]))
+                st.rerun()
+
+    with action_col4:
+        if st.button("🌐 Web Sitesi news.json Güncelle", use_container_width=True):
+            from scripts.export_website_data import export_news_data
+            export_news_data([
+                ROOT_DIR / "website" / "data" / "news.json",
+                ROOT_DIR / "docs" / "data" / "news.json"
+            ])
+            st.success("website ve docs altındaki news.json güncellendi!")
+
+    st.markdown("---")
+
+    # 3. Haber Önizleme ve Tekil Gönderim Alanı
+    st.subheader("🎨 Editoryal Haber Kartı & Sosyal Medya Önizlemesi")
+
+    with get_db() as db:
+        all_news_items = db.query(OfficialNews).order_by(OfficialNews.publish_date.desc()).all()
+
+    if not all_news_items:
+        st.info("Henüz veritabanında kayıtlı haber bulunmuyor. 'Resmi Kaynakları Şimdi Tara' butonuna basarak ilk haberleri çekebilirsiniz.")
+    else:
+        news_options = {f"#{n.id} - [{n.category}] {n.institution} | {n.title[:60]}...": n.id for n in all_news_items}
+        selected_news_label = st.selectbox("İncelemek veya Paylaşmak İstediğiniz Haberi Seçiniz:", list(news_options.keys()))
+        selected_news_id = news_options[selected_news_label]
+
+        with get_db() as db:
+            cur_news = db.query(OfficialNews).filter(OfficialNews.id == selected_news_id).first()
+
+        if cur_news:
+            p_col1, p_col2 = st.columns([1.2, 1])
+
+            with p_col1:
+                st.markdown("##### 🖼️ İlanlardan Farklı Editoryal Görsel Kart (1080x1350)")
+                # Görseli üret veya varsa göster
+                card_gen = NewsCardGenerator()
+                try:
+                    gen_card_path = card_gen.generate(
+                        news_id=cur_news.id,
+                        title=cur_news.title,
+                        institution=cur_news.institution,
+                        category=cur_news.category or "RESMI_HABER",
+                        summary=cur_news.summary or "",
+                        source_url=cur_news.source_url or "https://kamupersonelrehberiniz.me",
+                        publish_date=cur_news.publish_date
+                    )
+                    st.image(gen_card_path, caption=f"Haber #{cur_news.id} Editoryal Kartı", use_container_width=True)
+                except Exception as g_err:
+                    st.error(f"Görsel kart üretilemedi: {g_err}")
+
+            with p_col2:
+                st.markdown("##### 📢 Haber Ağzıyla Hazırlanan Sosyal Medya Metni")
+                st.code(cur_news.social_post_text or cur_news.summary, language="html")
+
+                st.markdown("##### 📋 Haber Detayları")
+                st.write(f"**Kurum:** {cur_news.institution}")
+                st.write(f"**Kategori:** {cur_news.category}")
+                st.write(f"**Yayın Tarihi:** {cur_news.publish_date.strftime('%d.%m.%Y %H:%M') if cur_news.publish_date else '-'}")
+                st.write(f"**Kaynak Linki:** [{cur_news.source_url}]({cur_news.source_url})")
+                st.write(f"**Sosyal Medya Durumu:** {'✅ Paylaşıldı (' + str(cur_news.published_channels) + ')' if cur_news.is_social_published else '⏳ Henüz Paylaşılmadı'}")
+
+                st.markdown("---")
+                send_tg, send_ig = st.columns(2)
+                with send_tg:
+                    if st.button("📢 Bu Haberi Telegram'a Gönder", use_container_width=True):
+                        with st.spinner("Telegram'a aktarılıyor..."):
+                            tg_pub = TelegramPublisher()
+                            t_ok, t_msg = tg_pub.publish(text=cur_news.social_post_text, image_path=gen_card_path)
+                            if t_ok:
+                                with get_db() as udb:
+                                    n_obj = udb.query(OfficialNews).filter(OfficialNews.id == cur_news.id).first()
+                                    if n_obj:
+                                        n_obj.is_social_published = True
+                                        n_obj.published_channels = "TELEGRAM"
+                                        udb.commit()
+                                st.success("Telegram kanalına başarıyla gönderildi!")
+                                st.rerun()
+                            else:
+                                st.error(f"Telegram hatası: {t_msg}")
+
+                with send_ig:
+                    if st.button("📸 Bu Haberi Instagram'a Gönder", use_container_width=True):
+                        with st.spinner("Instagram'a aktarılıyor..."):
+                            ig_pub = InstagramPublisher()
+                            i_ok, i_msg = ig_pub.publish(text=cur_news.social_post_text, image_path=gen_card_path)
+                            if i_ok:
+                                with get_db() as udb:
+                                    n_obj = udb.query(OfficialNews).filter(OfficialNews.id == cur_news.id).first()
+                                    if n_obj:
+                                        n_obj.is_social_published = True
+                                        n_obj.published_channels = "INSTAGRAM"
+                                        udb.commit()
+                                st.success("Instagram hesabına başarıyla gönderildi!")
+                                st.rerun()
+                            else:
+                                st.error(f"Instagram hatası: {i_msg}")
+
+    st.markdown("---")
+
+    # 4. Tüm Haberler Tablosu
+    st.subheader("📑 Veritabanındaki Tüm Resmi Kamu Haberleri")
+    filter_cat = st.selectbox("Kategoriye Göre Filtrele:", ["Tümü", "DEZENFORMASYON", "RESMI_HABER", "OZLUK_MAAS", "MEVZUAT"])
+
+    with get_db() as db:
+        q = db.query(OfficialNews)
+        if filter_cat != "Tümü":
+            q = q.filter(OfficialNews.category == filter_cat)
+        news_table_items = q.order_by(OfficialNews.publish_date.desc()).all()
+
+    if news_table_items:
+        table_data = []
+        for n in news_table_items:
+            table_data.append({
+                "ID": n.id,
+                "Kategori": n.category,
+                "Kurum": n.institution,
+                "Başlık": n.title,
+                "Yayın Tarihi": n.publish_date.strftime("%d.%m.%Y") if n.publish_date else "",
+                "Paylaşıldı mı?": "✅ Evet" if n.is_social_published else "⏳ Hayır",
+                "Kanallar": n.published_channels or "-",
+                "Kaynak": n.source_name
+            })
+        st.dataframe(pd.DataFrame(table_data), use_container_width=True)
+    else:
+        st.write("Gösterilecek haber bulunmuyor.")
 elif menu == "🤖 AI Doğrulanmış İlan Danışmanı & Arama":
     st.markdown('<div class="main-header">🤖 AI Doğrulanmış İlan Danışmanı & Akıllı Arama</div>', unsafe_allow_html=True)
     st.markdown(
