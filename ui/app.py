@@ -1063,7 +1063,15 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                         source_url=cur_news.source_url or "https://kamupersonelrehberiniz.me",
                         publish_date=cur_news.publish_date
                     )
-                    st.image(gen_card_path, caption=f"Haber #{cur_news.id} Editoryal Kartı", use_container_width=True)
+                    st.image(gen_card_path, caption=f"Haber #{cur_news.id} Editoryal Kartı (1080x1350)", use_container_width=True)
+                    with open(gen_card_path, "rb") as img_file:
+                        st.download_button(
+                            label="📥 Görsel Kartı İndir (Ultra HD PNG)",
+                            data=img_file,
+                            file_name=f"kamu_haber_{cur_news.id}.png",
+                            mime="image/png",
+                            use_container_width=True
+                        )
                 except Exception as g_err:
                     st.error(f"Görsel kart üretilemedi: {g_err}")
 
