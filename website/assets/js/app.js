@@ -6,12 +6,15 @@
 const CONFIG = {
   PAGE_SIZE: 15,
   DATA_URL: 'data/jobs.json',
+  NEWS_URL: 'data/news.json',
 };
 
 // Uygulama Durumu (State)
 const state = {
   allJobs: [],
   filteredJobs: [],
+  allNews: [],
+  activeNewsCategory: 'all',
   meta: {},
   activeCategory: 'all',
   quickPill: 'all',
@@ -115,6 +118,9 @@ async function initApp() {
 
     // 6. Deep Link İlan Kontrolü (?ilan=123)
     checkAndOpenDeepLinkedJob();
+
+    // 7. Kamu Haberleri ve Doğrulama Akışını Çek & Çiz
+    fetchNewsData();
   } catch (err) {
     console.error('İlan verisi yüklenirken hata:', err);
     const feed = document.getElementById('jobs-feed');
@@ -846,6 +852,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeJobDetailModal();
+    closeNewsDetailModal();
     closeLegalModal('modal-kvkk');
     closeLegalModal('modal-legal-warning');
   }
@@ -1576,4 +1583,178 @@ window.addEventListener('scroll', () => {
     }
   }
 }, { passive: true });
+
+// =============================================================================
+// 13. RESMİ KAMU HABERLERİ VE DEZENFORMASYON DOĞRULAMA AKIŞI
+// =============================================================================
+async function fetchNewsData() {
+  try {
+    const res = await fetch(CONFIG.NEWS_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    state.allNews = data.news || [];
+    renderNewsFeed();
+  } catch (err) {
+    console.debug('Haber verileri yüklenemedi:', err);
+    const container = document.getElementById('news-grid-container');
+    if (container) {
+      container.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:30px 20px;color:var(--text-secondary);">
+          Resmi kamu haber akışı şu anda güncelleniyor. Lütfen daha sonra tekrar deneyiniz.
+        </div>
+      `;
+    }
+  }
+}
+
+function renderNewsFeed() {
+  const container = document.getElementById('news-grid-container');
+  if (!container) return;
+
+  const filteredNews = state.allNews.filter(n => {
+    if (state.activeNewsCategory === 'all') return true;
+    return n.category === state.activeNewsCategory;
+  });
+
+  if (filteredNews.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);">
+        Bu kategoride henüz yayımlanmış resmi bir duyuru bulunmamaktadır.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filteredNews.map(news => {
+    let badgeClass = 'resmi';
+    let badgeLabel = '🏛️ Resmi Duyuru';
+
+    if (news.category === 'DEZENFORMASYON') {
+      badgeClass = 'dezenformasyon';
+      badgeLabel = '🛡️ DMM Doğrulama';
+    } else if (news.category === 'OZLUK_MAAS') {
+      badgeClass = 'ozluk';
+      badgeLabel = '📊 Özlük & Maaş';
+    } else if (news.category === 'MEVZUAT') {
+      badgeClass = 'mevzuat';
+      badgeLabel = '📜 Mevzuat';
+    }
+
+    const safeTitle = escapeHtml(news.title);
+    const safeInst = escapeHtml(news.institution || 'T.C. Kamu Kurumu');
+    const safeSummary = escapeHtml(news.summary || '');
+    const dateFormatted = escapeHtml(news.publish_date_formatted || 'Güncel');
+
+    return `
+      <article class="news-card-item tilt-surface" onclick="openNewsDetailModal(${news.id})" role="button" tabindex="0" aria-label="${safeTitle}">
+        <div class="news-card-top">
+          <span class="news-badge ${badgeClass}">${badgeLabel}</span>
+          <span class="news-verified-pill">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Teyitli
+          </span>
+        </div>
+
+        <div>
+          <div class="news-card-inst">${safeInst}</div>
+          <h3 class="news-card-title">${safeTitle}</h3>
+          <p class="news-card-summary">${safeSummary}</p>
+        </div>
+
+        <div class="news-card-bottom">
+          <span class="news-date">${dateFormatted}</span>
+          <span class="news-read-btn">
+            Haberi Oku
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </span>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  rebindTiltSurfaces();
+}
+
+function filterNewsByCategory(catSlug) {
+  state.activeNewsCategory = catSlug;
+  document.querySelectorAll('#news-filter-tabs .news-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-newscat') === catSlug);
+  });
+  renderNewsFeed();
+}
+
+function openNewsDetailModal(newsId) {
+  const news = state.allNews.find(n => n.id === newsId);
+  if (!news) return;
+
+  const modal = document.getElementById('news-detail-modal');
+  if (!modal) return;
+
+  document.getElementById('modal-news-title').textContent = news.title;
+  document.getElementById('modal-news-inst').textContent = news.institution || 'T.C. Kamu Kurumu';
+  document.getElementById('modal-news-date').textContent = `Resmi Yayın Tarihi: ${news.publish_date_formatted || 'Güncel'}`;
+  document.getElementById('modal-news-summary').textContent = news.summary || '';
+  document.getElementById('modal-news-content').textContent = news.content || news.summary || '';
+
+  const badgeEl = document.getElementById('modal-news-badge');
+  if (badgeEl) {
+    let bClass = 'news-badge resmi';
+    let bText = '🏛️ T.C. Resmi Duyuru';
+    if (news.category === 'DEZENFORMASYON') {
+      bClass = 'news-badge dezenformasyon';
+      bText = '🛡️ DMM Doğrulama Bülteni';
+    } else if (news.category === 'OZLUK_MAAS') {
+      bClass = 'news-badge ozluk';
+      bText = '📊 Özlük & Mali Haklar';
+    } else if (news.category === 'MEVZUAT') {
+      bClass = 'news-badge mevzuat';
+      bText = '📜 Mevzuat Değişikliği';
+    }
+    badgeEl.className = bClass;
+    badgeEl.textContent = bText;
+  }
+
+  const sourceBtn = document.getElementById('modal-news-source-btn');
+  if (sourceBtn) {
+    sourceBtn.href = news.source_url || 'https://www.iletisim.gov.tr';
+  }
+
+  const shareBtn = document.getElementById('modal-news-share-btn');
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      const shareUrl = news.source_url || 'https://kamupersonelrehberiniz.me/#haberler';
+      const shareText = `📢 [T.C. Resmi Kamu Haberi]:\n${news.title}\n\nDetaylar: ${shareUrl}`;
+      if (navigator.share) {
+        navigator.share({ title: news.title, text: shareText, url: shareUrl }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => alert('✅ Resmi haber bağlantısı kopyalandı!'));
+      }
+    };
+  }
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  trackAnalytics('NEWS_VIEW', { jobId: news.id, jobTitle: news.title, category: news.category });
+}
+
+function closeNewsDetailModal() {
+  const modal = document.getElementById('news-detail-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// Haber Modalı dışına tıklandığında veya ESC basıldığında kapat
+document.addEventListener('click', e => {
+  const newsModal = document.getElementById('news-detail-modal');
+  if (newsModal && newsModal.classList.contains('active') && e.target === newsModal) {
+    closeNewsDetailModal();
+  }
+});
+
 

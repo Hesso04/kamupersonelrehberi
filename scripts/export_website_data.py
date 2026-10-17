@@ -24,7 +24,7 @@ except Exception:
     pass
 
 from core.database import get_db
-from core.models import JobAnnouncement, JobStatus
+from core.models import JobAnnouncement, JobStatus, OfficialNews
 
 TR_MONTHS = {
     1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
@@ -353,6 +353,62 @@ def export_data(output_paths: List[Path]) -> None:
             ROOT_DIR / "docs" / "sitemap.xml"
         ]
         generate_sitemap(exported_jobs, sitemap_paths)
+
+        # Kamu Haberleri & Doğrulama Akışını İhraç Et
+        news_paths = [
+            ROOT_DIR / "website" / "data" / "news.json",
+            ROOT_DIR / "docs" / "data" / "news.json"
+        ]
+        export_news_data(news_paths)
+
+
+def export_news_data(news_paths: List[Path]) -> None:
+    """
+    OfficialNews tablosundaki resmi kamu haberlerini web sitesi için optimize
+    news.json formatında kaydeder.
+    """
+    category_labels = {
+        "RESMI_HABER": "🏛️ T.C. Resmi Duyurusu",
+        "DEZENFORMASYON": "🛡️ DMM Doğrulama Bülteni",
+        "OZLUK_MAAS": "📊 Özlük & Mali Haklar",
+        "MEVZUAT": "📜 Mevzuat Değişikliği"
+    }
+
+    with get_db() as db:
+        news_list = db.query(OfficialNews).order_by(OfficialNews.publish_date.desc()).all()
+        exported_news = []
+
+        for item in news_list:
+            cat_label = category_labels.get(item.category, "📢 Resmi Açıklama")
+            pub_date_str = format_tr_date(item.publish_date)
+            exported_news.append({
+                "id": item.id,
+                "title": item.title,
+                "institution": item.institution,
+                "category": item.category or "RESMI_HABER",
+                "category_label": cat_label,
+                "summary": item.summary or "",
+                "content": item.content or item.summary or "",
+                "source_name": item.source_name,
+                "source_url": item.source_url,
+                "publish_date": item.publish_date.isoformat() if item.publish_date else "",
+                "publish_date_formatted": pub_date_str,
+                "is_verified": item.is_verified,
+            })
+
+        payload = {
+            "meta": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "total_news": len(exported_news)
+            },
+            "news": exported_news
+        }
+
+        for p in news_paths:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            print(f"📰 Haber JSON başarıyla kaydedildi: {p} ({len(exported_news)} resmi haber)")
 
 
 def generate_sitemap(jobs: List[Dict[str, Any]], sitemap_paths: List[Path]):

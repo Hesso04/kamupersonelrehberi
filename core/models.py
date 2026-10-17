@@ -128,3 +128,34 @@ class SiteAnalyticsEvent(Base):
 
     def __repr__(self) -> str:
         return f"<SiteAnalyticsEvent(id={self.id}, type='{self.event_type}', job_id={self.job_id})>"
+
+
+class OfficialNews(Base):
+    """
+    Kamu Haberleri, Resmi Duyurular ve Dezenformasyon Doğrulama Akışı Tablosu:
+    İletişim Başkanlığı, DMM, ÇSGB, HMB ve Mevzuat Bilgi Sistemi gibi
+    birincil resmi devlet kaynaklarından toplanan reklamsız kamu haberleri.
+    """
+    __tablename__ = "official_news"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(400), nullable=False, index=True, doc="Haber veya resmi duyuru başlığı")
+    institution = Column(String(200), nullable=False, index=True, doc="Resmi kaynak kurum (İletişim Bşk., ÇSGB vb.)")
+    category = Column(String(100), default="RESMI_HABER", index=True, doc="Kategori: RESMI_HABER, DEZENFORMASYON, OZLUK_MAAS, MEVZUAT")
+    summary = Column(Text, nullable=True, doc="Editoryal spot metin / haber özeti")
+    content = Column(Text, nullable=True, doc="Resmi açıklamanın tam metni")
+    source_name = Column(String(150), nullable=False, doc="Kaynak portal adı")
+    source_url = Column(Text, nullable=False, doc="Resmi orijinal haber/bülten bağlantısı")
+    image_url = Column(Text, nullable=True, doc="Varsa kurum basın fotoğrafı / görsel linki")
+    image_card_path = Column(Text, nullable=True, doc="Pillow ile üretilen editoryal haber kartı görseli")
+    social_post_text = Column(Text, nullable=True, doc="Haber diliyle üretilen Telegram/Instagram paylaşım metni")
+    publish_date = Column(DateTime, default=datetime.utcnow, nullable=False, index=True, doc="Yayınlanma tarihi")
+    is_verified = Column(Boolean, default=True, doc="Resmi gov.tr / kamu kaynağı teyitli mi?")
+    is_social_published = Column(Boolean, default=False, index=True, doc="Sosyal medya otopilotu tarafından paylaşıldı mı?")
+    published_channels = Column(Text, nullable=True, doc="Paylaşılan kanallar (virgülle ayrılmış)")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<OfficialNews(id={self.id}, institution='{self.institution}', title='{self.title[:30]}...')>"
+

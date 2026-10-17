@@ -1,7 +1,7 @@
 """
 Kamu Personel Rehberi - Çekirdek Veri Modelleri ve Veritabanı Modülü
 """
-from .models import SystemSetting, JobAnnouncement, JobStatus, Platform
+from .models import SystemSetting, JobAnnouncement, JobStatus, Platform, OfficialNews
 from .database import (
     Base,
     engine,
@@ -21,6 +21,7 @@ __all__ = [
     "init_db",
     "SystemSetting",
     "JobAnnouncement",
+    "OfficialNews",
     "JobStatus",
     "Platform",
     "get_system_setting",
