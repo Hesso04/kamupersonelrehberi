@@ -11,9 +11,9 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-# Streamlit Cloud Hot-Reload: UI ve grafik modüllerini belleğe yenile (core ve config thread & DB bütünlüğü için hariç tutulur)
+# Streamlit Cloud Hot-Reload: UI, core, grafik ve kazıyıcı modüllerini belleğe yenile
 import importlib
-for mod_prefix in ["publishers", "graphics", "ai", "modules"]:
+for mod_prefix in ["core.models", "core", "publishers", "graphics", "ai", "modules", "scrapers"]:
     for mod_name in list(sys.modules.keys()):
         if mod_name == mod_prefix or mod_name.startswith(mod_prefix + "."):
             try:
@@ -34,10 +34,24 @@ from core.database import (
     set_system_setting,
     get_system_setting,
 )
-from core.models import JobAnnouncement, JobStatus, Platform, OfficialNews
+
+try:
+    from core.models import JobAnnouncement, JobStatus, Platform, OfficialNews
+except ImportError:
+    # Streamlit Cloud belleğinde eski core modülü kaldıysa zorla yenile
+    if "core.models" in sys.modules:
+        importlib.reload(sys.modules["core.models"])
+    if "core" in sys.modules:
+        importlib.reload(sys.modules["core"])
+    from core.models import JobAnnouncement, JobStatus, Platform, OfficialNews
+
 from core.scheduler import scheduler, AUTOPILOT_PACE_PRESETS
 from scrapers.manager import ScraperManager
-from scrapers.official_news import run_news_scraper, OfficialNewsScraper
+try:
+    from scrapers.official_news import run_news_scraper, OfficialNewsScraper
+except Exception:
+    run_news_scraper = None
+    OfficialNewsScraper = None
 from ai.processor import AIProcessor
 from ai.groq_client import GroqClient
 from ai.llm_client import LLMClient
