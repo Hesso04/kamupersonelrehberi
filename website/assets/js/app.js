@@ -876,13 +876,19 @@ function bindSearchAndFilters() {
       state.searchQuery = e.target.value.trim();
       updateClearBtnVisibility();
       applyFiltersAndPaginate(1);
-    }, 250));
+      if (state.searchQuery.length >= 3) {
+        trackAnalytics('SEARCH', { jobTitle: state.searchQuery });
+      }
+    }, 400));
 
     sInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         state.searchQuery = sInput.value.trim();
         updateClearBtnVisibility();
         applyFiltersAndPaginate(1);
+        if (state.searchQuery.length >= 2) {
+          trackAnalytics('SEARCH', { jobTitle: state.searchQuery });
+        }
       }
     });
   }
