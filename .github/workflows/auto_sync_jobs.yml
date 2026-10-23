@@ -1,0 +1,55 @@
+name: Kamu Personel Rehberi - 2 Saatlik Otomatik Tarama ve Canlı Güncelleme
+
+on:
+  schedule:
+    # Türkiye Saatiyle gün boyu her 2 saatte bir çalışır (UTC 0,2,4,6,8,10,12,14,16,18,20,22)
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Elle tetiklemeye izin verir
+
+permissions:
+  contents: write
+
+jobs:
+  scrape-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu Çek
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python Kurulumu
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Bağımlılıkları Yükle
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install beautifulsoup4 requests lxml feedparser Pillow pytz
+
+      - name: Kaynak Siteleri Tara (İlanlar & Resmi Haberler)
+        run: |
+          echo "=== 1. Resmi Haberleri Tarama ==="
+          python scrapers/official_news.py || true
+          echo "=== 2. Kamu İlanlarını Tarama ==="
+          python scrapers/manager.py || true
+          echo "=== 3. Web Sitesi Verilerini & Sitemap'i Dışa Aktarma ==="
+          python scripts/export_website_data.py || true
+          echo "=== 4. Docs ve Website Senkronizasyonu ==="
+          cp -rf website/data/* docs/data/ || true
+          cp -f website/sitemap.xml docs/sitemap.xml || true
+
+      - name: Değişiklikleri GitHub Pages & Repoya Pushla
+        run: |
+          git config --global user.name "KamuBot AutoSync"
+          git config --global user.email "bot@kamupersonelrehberi.com"
+          git add website/data/ docs/data/ website/sitemap.xml docs/sitemap.xml data/
+          if git diff --staged --quiet; then
+            echo "Yeni ilan veya haber bulunamadı, değişiklik yok."
+          else
+            git commit -m "bot: 2 saatlik otomatik kaynak taraması ve canlı veri güncellemesi [skip ci]"
+            git push origin main
+          fi

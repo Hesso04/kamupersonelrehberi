@@ -1,9 +1,37 @@
 {
   "meta": {
-    "generated_at": "2026-10-17T22:32:47.760741+00:00",
-    "total_news": 7
+    "generated_at": "2026-10-23T17:55:52.063055+00:00",
+    "total_news": 9
   },
   "news": [
+    {
+      "id": 9,
+      "title": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "content": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdoganin-kanada-basbakani-carney-ile-gorusmesine-iliskin-aciklama-22-10-26",
+      "publish_date": "2026-10-22T17:32:27.351216",
+      "publish_date_formatted": "22 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 8,
+      "title": "Cumhurbaşkanı Erdoğan, Kanada Başbakanı Carney ile ortak basın toplantısında konuştu",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Kanada Başbakanı Carney ile ortak basın toplantısında konuştu",
+      "content": "Cumhurbaşkanı Erdoğan, Kanada Başbakanı Carney ile ortak basın toplantısında konuştu",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-kanada-basbakani-carney-ile-ortak-basin-toplantisinda-konustu",
+      "publish_date": "2026-10-22T17:32:27.351216",
+      "publish_date_formatted": "22 Ekim 2026",
+      "is_verified": true
+    },
     {
       "id": 7,
       "title": "📜 Kamu Görevlileri ve Sözleşmeli Personel Mevzuatında Güncel Değişiklikler",
@@ -19,20 +47,6 @@
       "is_verified": true
     },
     {
-      "id": 4,
-      "title": "📊 04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
-      "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
-      "category": "OZLUK_MAAS",
-      "category_label": "📊 Özlük & Mali Haklar",
-      "summary": "Çalışma hayatı, kamu çalışanları, sendikal haklar ve sosyal güvenlik mevzuatına ilişkin bakanlık resmi duyurusu: 04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
-      "content": "04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
-      "source_name": "ÇSGB Resmi Duyurular",
-      "source_url": "https://www.csgb.gov.tr/duyurular/sozlesmeli-bilisim-personeli-alim-ilani/",
-      "publish_date": "2026-10-17T22:29:35.229660",
-      "publish_date_formatted": "17 Ekim 2026",
-      "is_verified": true
-    },
-    {
       "id": 5,
       "title": "📊 04 Eylül 2026 Sözleşmeli Bilişim Personeli Sınavı Sonucuna Göre Atanmaya Hak Kazanan Adaylara İlişkin Duyuru Duyuru detayı için tıklayın.",
       "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
@@ -42,6 +56,20 @@
       "content": "04 Eylül 2026 Sözleşmeli Bilişim Personeli Sınavı Sonucuna Göre Atanmaya Hak Kazanan Adaylara İlişkin Duyuru Duyuru detayı için tıklayın.",
       "source_name": "ÇSGB Resmi Duyurular",
       "source_url": "https://www.csgb.gov.tr/duyurular/sozlesmeli-bilisim-personeli-sinavi-sonucuna-gore-atanmaya-hak-kazanan-adaylara-iliskin-duyuru/",
+      "publish_date": "2026-10-17T22:29:35.229660",
+      "publish_date_formatted": "17 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 4,
+      "title": "📊 04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
+      "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "category": "OZLUK_MAAS",
+      "category_label": "📊 Özlük & Mali Haklar",
+      "summary": "Çalışma hayatı, kamu çalışanları, sendikal haklar ve sosyal güvenlik mevzuatına ilişkin bakanlık resmi duyurusu: 04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
+      "content": "04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
+      "source_name": "ÇSGB Resmi Duyurular",
+      "source_url": "https://www.csgb.gov.tr/duyurular/sozlesmeli-bilisim-personeli-alim-ilani/",
       "publish_date": "2026-10-17T22:29:35.229660",
       "publish_date_formatted": "17 Ekim 2026",
       "is_verified": true
@@ -75,20 +103,6 @@
       "is_verified": true
     },
     {
-      "id": 2,
-      "title": "Ara Güler’i anma mesajları",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Ara Güler’i anma mesajları",
-      "content": "Ara Güler’i anma mesajları",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/ara-guleri-anma-mesajlari",
-      "publish_date": "2026-10-17T22:29:33.364268",
-      "publish_date_formatted": "17 Ekim 2026",
-      "is_verified": true
-    },
-    {
       "id": 1,
       "title": "Cumhurbaşkanı Erdoğan, İstanbul Üniversitesi Hastanesindeki toplu temel atma ve açılış töreninde konuştu",
       "institution": "T.C. İletişim Başkanlığı",
@@ -98,6 +112,20 @@
       "content": "Cumhurbaşkanı Erdoğan, İstanbul Üniversitesi Hastanesindeki toplu temel atma ve açılış töreninde konuştu",
       "source_name": "İletişim Başkanlığı Haber Portalı",
       "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-istanbul-universitesi-hastanesindeki-toplu-temel-atma-ve-acilis-toreninde-konustu",
+      "publish_date": "2026-10-17T22:29:33.364268",
+      "publish_date_formatted": "17 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 2,
+      "title": "Ara Güler’i anma mesajları",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Ara Güler’i anma mesajları",
+      "content": "Ara Güler’i anma mesajları",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/ara-guleri-anma-mesajlari",
       "publish_date": "2026-10-17T22:29:33.364268",
       "publish_date_formatted": "17 Ekim 2026",
       "is_verified": true
