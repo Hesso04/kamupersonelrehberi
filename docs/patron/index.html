@@ -415,9 +415,10 @@
       <div class="login-logo">K</div>
       <h1 class="login-title">Patron Paneli</h1>
       <p class="login-subtitle">kamupersonelrehberiniz.me gizli yönetim ve canlı analitik konsolu.</p>
-      <input type="password" id="patron-password" class="login-input" placeholder="Yönetici Şifrenizi Girin..." autofocus>
+      <input type="text" id="patron-username" class="login-input" placeholder="Yönetici Kullanıcı Adı" autofocus autocomplete="off">
+      <input type="password" id="patron-password" class="login-input" placeholder="Yönetici Şifresi" autocomplete="off">
       <button class="login-btn" onclick="checkAuth()">Konsola Giriş Yap</button>
-      <div id="login-error" class="login-error">Hatalı şifre girdiniz. Lütfen tekrar deneyin.</div>
+      <div id="login-error" class="login-error">Yetkisiz erişim: Kullanıcı adı veya şifre hatalı.</div>
     </div>
   </div>
 
@@ -560,23 +561,42 @@
   <script>
     const SUPABASE_URL = 'https://lxffirosgbrfptnbjvdg.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
-    const PATRON_SECRET = 'kamu2026'; // Varsayılan Patron Şifresi
+
+    // Kriptografik Karma Değerler (SHA-256 Maskelenmiş)
+    const _AUTH_U = 'd9bf4c8f7292dd3faa9a1c0da0f9ca8116f0eca051ac775332692c70922f97b5';
+    const _AUTH_K = 'e7c85779263d48cdad9fcc3704a218e156056b013fe8ab5d3c6f3c9ebe932315';
 
     let trendChartInstance = null;
     let pieChartInstance = null;
 
+    async function _digest(text) {
+      const msgBuffer = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     // Şifre Doğrulama
-    function checkAuth() {
-      const input = document.getElementById('patron-password').value;
-      if (input === PATRON_SECRET || input === 'admin' || input === 'kamupersonel') {
-        sessionStorage.setItem('kpr_patron_auth', 'true');
+    async function checkAuth() {
+      const uInput = document.getElementById('patron-username').value.trim();
+      const pInput = document.getElementById('patron-password').value.trim();
+
+      const uHash = await _digest(uInput);
+      const pHash = await _digest(pInput);
+
+      if (uHash === _AUTH_U && pHash === _AUTH_K) {
+        sessionStorage.setItem('kpr_patron_auth', 'token_' + pHash.slice(0, 16));
         document.getElementById('login-overlay').style.display = 'none';
         fetchLiveAnalytics();
       } else {
         document.getElementById('login-error').style.display = 'block';
+        document.getElementById('patron-password').value = '';
       }
     }
 
+    document.getElementById('patron-username').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('patron-password').focus();
+    });
     document.getElementById('patron-password').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') checkAuth();
     });
@@ -588,7 +608,8 @@
 
     // Sayfa Açılışında Oturum Kontrolü
     window.addEventListener('DOMContentLoaded', () => {
-      if (sessionStorage.getItem('kpr_patron_auth') === 'true') {
+      const auth = sessionStorage.getItem('kpr_patron_auth');
+      if (auth && auth.startsWith('token_')) {
         document.getElementById('login-overlay').style.display = 'none';
         fetchLiveAnalytics();
       }
