@@ -113,7 +113,7 @@ class NewsPublisherManager:
                     # 3. Instagram Gönderimi (Opsiyonel / Aktif Kanallarda)
                     if "INSTAGRAM" in channels:
                         try:
-                            ig_ok, ig_msg = self.instagram.publish(text=post_text, image_path=image_path)
+                            ig_ok, ig_msg = self.instagram.publish_news(news=news, image_path=image_path, text=post_text)
                             if ig_ok:
                                 succ_channels.append("INSTAGRAM")
                             else:

@@ -7,7 +7,7 @@ from loguru import logger
 
 from config.settings import settings
 from core.database import get_system_setting, set_system_setting
-from .prompts import SYSTEM_PROMPT
+from .prompts import SYSTEM_PROMPT, NEWS_SUMMARY_PROMPT
 
 
 class LLMClient:
@@ -236,6 +236,111 @@ RESMİ KAYNAK LİNKİ: {source_url}
                     return json.loads(match.group(0))
                 except Exception:
                     pass
+        return None
+
+    def summarize_news(
+        self,
+        title: str,
+        content: str,
+        source_name: str,
+        institution: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Ham haber metnini NEWS_SUMMARY_PROMPT ile analiz eder.
+        Kitle uygunluğunu puanlar (0-100), sosyal medya metni ve kart maddeleri üretir.
+        relevance_score <= 30 olan haberler otomatik olarak elenir.
+
+        Dönüş: {relevance_score, category, short_headline, social_caption, card_bullets, story_hook, hashtags}
+        """
+        provider = self.active_provider
+        user_content = f"""
+KAYNAK: {source_name}
+KURUM: {institution or 'Belirtilmedi'}
+BAŞLIK: {title}
+HAM İÇERİK:
+{content[:1500]}
+"""
+        # 1. Tercih edilen sağlayıcıya gönder (NEWS_SUMMARY_PROMPT kullan)
+        result = self._dispatch_news_summary(provider, user_content)
+        if result:
+            return result
+
+        # 2. Failover: alternatif sağlayıcıları dene
+        alternates = [p for p in self.PROVIDERS if p != provider]
+        for alt in alternates:
+            logger.warning(f"Haber özetleme: {provider} başarısız, alternatif deneniyor: {alt}")
+            result = self._dispatch_news_summary(alt, user_content)
+            if result:
+                return result
+
+        # 3. Tümü başarısızsa temel çıktı döner
+        logger.warning("Haber özetleme: Tüm sağlayıcılar başarısız. Temel çıktı döndürülüyor.")
+        return {
+            "relevance_score": 50,
+            "category": "RESMI_HABER",
+            "short_headline": title,
+            "social_caption": f"📢 {institution or source_name}\n\n{title}\n\n🔗 https://kamupersonelrehberiniz.me",
+            "card_bullets": [f"KAYNAK: <span>{source_name.upper()}</span>"],
+            "story_hook": title[:80],
+            "hashtags": "#KamuPersoneli #Memur #KamuHaberleri"
+        }
+
+    def _dispatch_news_summary(self, provider: str, user_content: str) -> Optional[Dict[str, Any]]:
+        """Belirtilen sağlayıcıya haber özetleme isteği gönderir (NEWS_SUMMARY_PROMPT ile)."""
+        try:
+            payload_base = {
+                "messages": [
+                    {"role": "system", "content": NEWS_SUMMARY_PROMPT},
+                    {"role": "user", "content": user_content}
+                ],
+                "temperature": 0.15,
+                "max_tokens": 700
+            }
+
+            if provider == "NVIDIA NIM":
+                key = get_system_setting("NVIDIA_API_KEY")
+                model = get_system_setting("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct")
+                if not key:
+                    return None
+                r = requests.post(
+                    "https://integrate.api.nvidia.com/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={"model": model, **payload_base}, timeout=15
+                )
+            elif provider == "Groq Cloud":
+                key = get_system_setting("GROQ_API_KEY")
+                model = get_system_setting("GROQ_MODEL", "llama-3.3-70b-versatile")
+                if not key:
+                    return None
+                r = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={"model": model, "response_format": {"type": "json_object"}, **payload_base}, timeout=20
+                )
+            elif provider == "Özel / OpenAI Uyumlu":
+                key = get_system_setting("CUSTOM_LLM_API_KEY")
+                base_url = get_system_setting("CUSTOM_LLM_BASE_URL", "https://api.deepseek.com/v1").rstrip("/")
+                model = get_system_setting("CUSTOM_LLM_MODEL", "deepseek-chat")
+                if not key:
+                    return None
+                r = requests.post(
+                    f"{base_url}/chat/completions",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={"model": model, **payload_base}, timeout=25
+                )
+            else:
+                return None
+
+            if r.status_code == 200:
+                raw = r.json()["choices"][0]["message"]["content"]
+                parsed = self._parse_json_reply(raw)
+                if parsed and parsed.get("relevance_score", 100) > 30:
+                    return parsed
+                elif parsed:
+                    logger.debug(f"Haber özetleme: Düşük relevance_score ({parsed.get('relevance_score')}) - haber elendi.")
+                    return {"relevance_score": parsed.get("relevance_score", 0), "_filtered": True}
+        except Exception as e:
+            logger.error(f"Haber özetleme {provider} hatası: {e}")
         return None
 
     def _heuristic_fallback(self, title: str, raw_content: str, source_url: str) -> Dict[str, Any]:

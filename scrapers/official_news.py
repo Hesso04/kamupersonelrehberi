@@ -25,9 +25,10 @@ if project_root not in sys.path:
 
 from core.database import get_db
 from core.models import OfficialNews
+from scrapers.content_filter import ContentFilterEngine, check_audience_relevance
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (KamuPersonelRehberi-OfficialNewsBot/1.0)",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (KamuPersonelRehberi-OfficialNewsBot/2.0)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
 }
@@ -45,6 +46,7 @@ def clean_text(text: Optional[str]) -> str:
 class OfficialNewsScraper:
     """
     Resmi devlet portallarından reklamsız, teyitli kamu haberleri toplayan servis.
+    Akıllı filtreleme kalkanı ile protokol/tören haberlerini eler, kitle odaklı haberleri önceler.
     """
 
     def __init__(self):
@@ -55,7 +57,31 @@ class OfficialNewsScraper:
         """Tüm resmi kaynakları sırayla tarar ve haber listesi döner."""
         news_items: List[Dict[str, Any]] = []
 
-        # 1. İletişim Başkanlığı Haberleri
+        # 1. ÖSYM Duyuruları (KPSS, Yerleştirme, Sınav Kılavuzları)
+        try:
+            items = self.fetch_osym_duyurular()
+            news_items.extend(items)
+            logger.info(f"ÖSYM Portalı: {len(items)} duyuru çekildi.")
+        except Exception as e:
+            logger.warning(f"ÖSYM tarama hatası: {e}")
+
+        # 2. TOKİ Haberleri & Sosyal Konut Kuraları
+        try:
+            items = self.fetch_toki_haberler()
+            news_items.extend(items)
+            logger.info(f"TOKİ Portalı: {len(items)} haber/sosyal konut duyurusu çekildi.")
+        except Exception as e:
+            logger.warning(f"TOKİ tarama hatası: {e}")
+
+        # 3. MEB Duyuruları & Öğretmen Atama / Sınav Haberleri
+        try:
+            items = self.fetch_meb_duyurular()
+            news_items.extend(items)
+            logger.info(f"MEB Portalı: {len(items)} haber/duyuru çekildi.")
+        except Exception as e:
+            logger.warning(f"MEB tarama hatası: {e}")
+
+        # 4. İletişim Başkanlığı Haberleri (Filtre kalkanı ile elenerek)
         try:
             items = self.fetch_iletisim_baskanligi()
             news_items.extend(items)
@@ -63,7 +89,7 @@ class OfficialNewsScraper:
         except Exception as e:
             logger.warning(f"İletişim Başkanlığı tarama hatası: {e}")
 
-        # 2. Dezenformasyonla Mücadele Merkezi (DMM)
+        # 5. Dezenformasyonla Mücadele Merkezi (DMM)
         try:
             items = self.fetch_dmm_dezenformasyon()
             news_items.extend(items)
@@ -71,7 +97,7 @@ class OfficialNewsScraper:
         except Exception as e:
             logger.warning(f"DMM tarama hatası: {e}")
 
-        # 3. ÇSGB Duyuruları
+        # 6. ÇSGB Duyuruları (Özlük ve Çalışma Hayatı)
         try:
             items = self.fetch_csgb_duyurular()
             news_items.extend(items)
@@ -79,7 +105,7 @@ class OfficialNewsScraper:
         except Exception as e:
             logger.warning(f"ÇSGB tarama hatası: {e}")
 
-        # 4. Hazine ve Maliye Bakanlığı Duyuruları
+        # 7. Hazine ve Maliye Bakanlığı Duyuruları
         try:
             items = self.fetch_hmb_duyurular()
             news_items.extend(items)
@@ -87,7 +113,7 @@ class OfficialNewsScraper:
         except Exception as e:
             logger.warning(f"HMB tarama hatası: {e}")
 
-        # 5. Mevzuat Bilgi Sistemi Güncellemeleri
+        # 8. Mevzuat Bilgi Sistemi Güncellemeleri
         try:
             items = self.fetch_mevzuat_updates()
             news_items.extend(items)
@@ -95,7 +121,143 @@ class OfficialNewsScraper:
         except Exception as e:
             logger.warning(f"Mevzuat tarama hatası: {e}")
 
+        # 9. memurlar.net RSS (Türkiye'nin en büyük kamu haberleri portalı)
+        try:
+            items = self.fetch_memurlernet_rss()
+            news_items.extend(items)
+            logger.info(f"memurlar.net RSS: {len(items)} haber çekildi.")
+        except Exception as e:
+            logger.warning(f"memurlar.net tarama hatası: {e}")
+
+        # 10. Anadolu Ajansı - Eğitim & Kariyer Haberleri
+        try:
+            items = self.fetch_aa_egitim_kariyer()
+            news_items.extend(items)
+            logger.info(f"Anadolu Ajansı: {len(items)} eğitim/kariyer haberi çekildi.")
+        except Exception as e:
+            logger.warning(f"Anadolu Ajansı tarama hatası: {e}")
+
+        # 11. SGK - Sosyal Güvenlik Kurumu Duyuruları
+        try:
+            items = self.fetch_sgk_duyurular()
+            news_items.extend(items)
+            logger.info(f"SGK Duyuruları: {len(items)} haber çekildi.")
+        except Exception as e:
+            logger.warning(f"SGK tarama hatası: {e}")
+
+        # 12. DPB - Devlet Personel Başkanlığı Mevzuat/Görüş/Duyuruları
+        try:
+            items = self.fetch_dpb_duyurular()
+            news_items.extend(items)
+            logger.info(f"DPB Başkanlığı: {len(items)} haber çekildi.")
+        except Exception as e:
+            logger.warning(f"DPB tarama hatası: {e}")
+
         return news_items
+
+    def fetch_osym_duyurular(self) -> List[Dict[str, Any]]:
+        """ÖSYM Başkanlığı güncel sınav, kılavuz ve yerleştirme duyurularını çeker."""
+        results = []
+        url = "https://www.osym.gov.tr/"
+        try:
+            resp = self.session.get(url, timeout=12)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                seen_titles = set()
+                # Ana sayfadaki tüm linkleri tara
+                for a in soup.find_all("a", href=True):
+                    title = clean_text(a.get_text())
+                    href = a.get("href", "").strip()
+                    # KPSS, Kılavuz, Başvuru veya Sınav içeren duyurular
+                    lower_t = title.lower()
+                    if len(title) > 15 and title not in seen_titles:
+                        if any(k in lower_t for k in ["kpss", "başvuru kılavuzu", "kılavuz", "yerleştirme", "atama", "sınav takvimi", "sonuçları"]):
+                            seen_titles.add(title)
+                            full_url = href if href.startswith("http") else f"https://www.osym.gov.tr{href}"
+                            results.append({
+                                "title": f"🎯 {title}",
+                                "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+                                "category": "ATAMA_KADRO",
+                                "summary": f"ÖSYM Başkanlığı resmi duyurusu yayımlandı: {title}. Kılavuz ve başvuru ekranı erişime açılmıştır.",
+                                "content": f"Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: {title}. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+                                "source_name": "ÖSYM Resmi Duyurular",
+                                "source_url": full_url,
+                                "publish_date": datetime.utcnow()
+                            })
+                            if len(results) >= 8:
+                                break
+        except Exception as e:
+            logger.warning(f"ÖSYM kazıma istisnası: {e}")
+        return results
+
+    def fetch_toki_haberler(self) -> List[Dict[str, Any]]:
+        """TOKİ Sosyal Konut, Kura Çekimi ve İndirim Kampanyası haberlerini çeker."""
+        results = []
+        url = "https://www.toki.gov.tr/haberler"
+        try:
+            # SSL doğrulaması bazı kurum sunucularında hata verebiliyor
+            resp = self.session.get(url, timeout=12, verify=False)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                seen = set()
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    if "/haber/" in href:
+                        raw_title = clean_text(a.get_text())
+                        # 'Devamı' kelimesini temizle
+                        title = re.sub(r"(?i)\s*devamı\s*", "", raw_title).strip()
+                        # Tarih önekini (örn: 26 Ekim 2026) ayıkla veya temizle
+                        clean_title = re.sub(r"^\d{1,2}\s+[A-Za-zÇĞİÖŞÜçğıöşü]+\s+\d{4}", "", title).strip()
+                        if len(clean_title) > 20 and clean_title not in seen:
+                            seen.add(clean_title)
+                            full_url = href if href.startswith("http") else f"https://www.toki.gov.tr{href}"
+                            results.append({
+                                "title": f"🏠 {clean_title}",
+                                "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+                                "category": "SOSYAL_HAK_TOKI",
+                                "summary": f"TOKİ resmi duyurusu: {clean_title}. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+                                "content": f"Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: {clean_title}. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+                                "source_name": "TOKİ Haber Portalı",
+                                "source_url": full_url,
+                                "publish_date": datetime.utcnow()
+                            })
+                            if len(results) >= 8:
+                                break
+        except Exception as e:
+            logger.warning(f"TOKİ kazıma istisnası: {e}")
+        return results
+
+    def fetch_meb_duyurular(self) -> List[Dict[str, Any]]:
+        """Milli Eğitim Bakanlığı öğretmen atama, sınav rehberi ve norm kadro haberlerini çeker."""
+        results = []
+        url = "https://www.meb.gov.tr/"
+        try:
+            resp = self.session.get(url, timeout=12)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                seen = set()
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    if any(k in href for k in ["/haber/", "/duyuru/"]):
+                        title = clean_text(a.get_text())
+                        if len(title) > 25 and title not in seen:
+                            seen.add(title)
+                            full_url = href if href.startswith("http") else f"https://www.meb.gov.tr{href}"
+                            results.append({
+                                "title": f"📚 {title}",
+                                "institution": "T.C. Millî Eğitim Bakanlığı",
+                                "category": "ATAMA_KADRO",
+                                "summary": f"Millî Eğitim Bakanlığı resmi duyurusu: {title}",
+                                "content": f"T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: {title}",
+                                "source_name": "MEB Haber Portalı",
+                                "source_url": full_url,
+                                "publish_date": datetime.utcnow()
+                            })
+                            if len(results) >= 8:
+                                break
+        except Exception as e:
+            logger.warning(f"MEB kazıma istisnası: {e}")
+        return results
 
     def fetch_iletisim_baskanligi(self) -> List[Dict[str, Any]]:
         """İletişim Başkanlığı RSS akışını veya haber portalını çeker."""
@@ -264,6 +426,15 @@ class OfficialNewsScraper:
         elif category == "OZLUK_MAAS":
             cat_tag = "#MemurMaaşları #ÖzlükHakları"
             cat_badge = "📊 ÖZLÜK & MALİ HAKLAR BÜLTENİ"
+        elif category == "ATAMA_KADRO":
+            cat_tag = "#KPSS #ÖSYM #Atama"
+            cat_badge = "🎯 SINAV, KILAVUZ & ATAMA BÜLTENİ"
+        elif category == "SOSYAL_HAK_TOKI":
+            cat_tag = "#TOKİ #SosyalKonut #Kura"
+            cat_badge = "🏠 TOKİ SOSYAL KONUT & KURA GELİŞMESİ"
+        elif category == "ISCI_SOZLESMELI":
+            cat_tag = "#Sürekliİşçi #4B #Kadro"
+            cat_badge = "👷 SÜREKLİ İŞÇİ & SÖZLEŞMELİ PERSONEL"
         elif category == "MEVZUAT":
             cat_tag = "#Mevzuat #ResmiGazete"
             cat_badge = "📜 YASAL MEVZUAT DEĞİŞİKLİĞİ"
@@ -286,11 +457,28 @@ class OfficialNewsScraper:
         return "\n".join(lines)
 
     def save_to_db(self, items: List[Dict[str, Any]]) -> int:
-        """Mükerrer olmayan haberleri veritabanına kaydeder."""
+        """Akıllı filtre kalkanından geçen ve mükerrer olmayan haberleri veritabanına kaydeder."""
         saved_count = 0
+        filtered_out_count = 0
         with get_db() as db:
             for item in items:
-                # Başlık veya kaynak URL kontrolü
+                # 1. Akıllı Editoryal Filtre Kalkanı Kontrolü (Kara Liste ve Kitle Uygunluğu)
+                filter_res = ContentFilterEngine.filter_item(
+                    title=item["title"],
+                    content=item.get("content", ""),
+                    summary=item.get("summary", ""),
+                    institution=item.get("institution", "")
+                )
+                if not filter_res.is_allowed:
+                    filtered_out_count += 1
+                    logger.info(f"🚫 [FİLTRE ELENDİ] '{item['title'][:55]}' -> {filter_res.reject_reason}")
+                    continue
+
+                # Filtre kategorisi daha spesifikse kullan
+                if filter_res.category and filter_res.category != "RESMI_HABER":
+                    item["category"] = filter_res.category
+
+                # 2. Başlık veya kaynak URL kontrolü
                 existing = db.query(OfficialNews).filter(
                     (OfficialNews.title == item["title"]) |
                     (OfficialNews.source_url == item["source_url"])
@@ -315,7 +503,155 @@ class OfficialNewsScraper:
                     db.add(news_entry)
                     saved_count += 1
             db.commit()
+        if filtered_out_count > 0:
+            logger.info(f"🛡️ Filtre Kalkanı Raporu: {filtered_out_count} protokol/bürokratik haber kitle ilgisi taşımadığı için elendi.")
         return saved_count
+
+
+    def fetch_memurlernet_rss(self) -> List[Dict[str, Any]]:
+        """
+        memurlar.net — Türkiye'nin en büyük kamu haberleri ve kamu çalışanları portalı.
+        RSS akışı üzerinden güncel maaş, atama, mevzuat ve kamu haberleri çeker.
+        Filtre Motoru ile protokol haberleri elenir, yüksek ilgili haberler önceliklendirilir.
+        """
+        results = []
+        rss_urls = [
+            ("https://www.memurlar.net/haber/rss.xml", "memurlar.net Genel Haberler"),
+            ("https://www.memurlar.net/haber/ekonomi/rss.xml", "memurlar.net Ekonomi & Maaş"),
+        ]
+        for rss_url, source_label in rss_urls:
+            try:
+                resp = self.session.get(rss_url, timeout=15)
+                if resp.status_code != 200:
+                    continue
+                root = ET.fromstring(resp.content)
+                for item in root.findall(".//item")[:15]:
+                    title = clean_text(item.findtext("title"))
+                    link = clean_text(item.findtext("link"))
+                    desc = clean_text(item.findtext("description"))
+                    if not title or not link:
+                        continue
+                    # Özet metni temizle (HTML etiketleri kaldır)
+                    summary = BeautifulSoup(desc, "html.parser").get_text(separator=" ", strip=True)[:400]
+
+                    results.append({
+                        "title": title,
+                        "institution": "memurlar.net",
+                        "category": "RESMI_HABER",
+                        "summary": summary or f"memurlar.net haberi: {title}",
+                        "content": summary,
+                        "source_name": source_label,
+                        "source_url": link,
+                        "publish_date": datetime.utcnow()
+                    })
+            except Exception as e:
+                logger.warning(f"memurlar.net RSS ({rss_url}) hatası: {e}")
+        return results
+
+    def fetch_aa_egitim_kariyer(self) -> List[Dict[str, Any]]:
+        """
+        Anadolu Ajansı — Eğitim ve kariyer haberleri RSS akışı.
+        KPSS, öğretmen ataması, üniversite sınavları ve kamu istihdam haberleri içerir.
+        """
+        results = []
+        # AA eğitim kategorisi RSS
+        rss_url = "https://www.aa.com.tr/tr/rss/default?cat=egitim"
+        try:
+            resp = self.session.get(rss_url, timeout=15)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                for item in root.findall(".//item")[:12]:
+                    title = clean_text(item.findtext("title"))
+                    link = clean_text(item.findtext("link"))
+                    desc = clean_text(item.findtext("description"))
+                    if not title or not link:
+                        continue
+                    summary = BeautifulSoup(desc, "html.parser").get_text(separator=" ", strip=True)[:350] if desc else ""
+                    results.append({
+                        "title": f"📰 {title}",
+                        "institution": "Anadolu Ajansı",
+                        "category": "RESMI_HABER",
+                        "summary": summary or f"Anadolu Ajansı aktarımı: {title}",
+                        "content": summary,
+                        "source_name": "Anadolu Ajansı — Eğitim & Kariyer",
+                        "source_url": link,
+                        "publish_date": datetime.utcnow()
+                    })
+        except Exception as e:
+            logger.warning(f"Anadolu Ajansı RSS hatası: {e}")
+        return results
+
+    def fetch_sgk_duyurular(self) -> List[Dict[str, Any]]:
+        """
+        SGK — Sosyal Güvenlik Kurumu Başkanlığı.
+        Emeklilik, prim, bağkur, sağlık aktivasyonu ve istihdam teşviki duyurularını çeker.
+        """
+        results = []
+        url = "https://www.sgk.gov.tr/duyurular"
+        try:
+            resp = self.session.get(url, timeout=12, verify=False)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                seen = set()
+                # Genel link taraması (farklı kurumsal şablon yapılarını kapsıyor)
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    if "duyuru" not in href.lower() and "haber" not in href.lower():
+                        continue
+                    title = clean_text(a.get_text())
+                    if len(title) > 25 and title not in seen:
+                        seen.add(title)
+                        full_url = href if href.startswith("http") else f"https://www.sgk.gov.tr{href}"
+                        results.append({
+                            "title": f"🏦 {title}",
+                            "institution": "T.C. Sosyal Güvenlik Kurumu Başkanlığı (SGK)",
+                            "category": "OZLUK_MAAS",
+                            "summary": f"SGK resmi duyurusu: {title}. Emeklilik, sigortalılık ve sosyal güvence hakları hakkında.",
+                            "content": title,
+                            "source_name": "SGK Resmi Duyurular",
+                            "source_url": full_url,
+                            "publish_date": datetime.utcnow()
+                        })
+                        if len(results) >= 8:
+                            break
+        except Exception as e:
+            logger.warning(f"SGK kazıma istisnası: {e}")
+        return results
+
+    def fetch_dpb_duyurular(self) -> List[Dict[str, Any]]:
+        """
+        DPB — Devlet Personel Başkanlığı.
+        Kamu personel mevzuatı görüşleri, yönetmelik değişiklikleri, sınav ve atama duyurularını çeker.
+        657 sayılı DMK uygulaması ve yorumları açısından kamu çalışanlarının birincil başvuru kaynağıdır.
+        """
+        results = []
+        url = "https://www.dpb.gov.tr/tr-TR/bilgi-bankasi/duyurular"
+        try:
+            resp = self.session.get(url, timeout=12, verify=False)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                seen = set()
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    title = clean_text(a.get_text())
+                    if len(title) > 20 and title not in seen and ("/duyuru" in href or "/bilgi" in href or "/haber" in href):
+                        seen.add(title)
+                        full_url = href if href.startswith("http") else f"https://www.dpb.gov.tr{href}"
+                        results.append({
+                            "title": f"📋 {title}",
+                            "institution": "T.C. Devlet Personel Başkanlığı (DPB)",
+                            "category": "MEVZUAT",
+                            "summary": f"DPB resmi görüş veya mevzuat duyurusu: {title}. Kamu personel kanunu uygulamaları ve güncel yorumlar.",
+                            "content": title,
+                            "source_name": "Devlet Personel Başkanlığı",
+                            "source_url": full_url,
+                            "publish_date": datetime.utcnow()
+                        })
+                        if len(results) >= 8:
+                            break
+        except Exception as e:
+            logger.warning(f"DPB kazıma istisnası: {e}")
+        return results
 
 
 def run_news_scraper() -> int:

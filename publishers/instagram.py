@@ -609,5 +609,147 @@ class InstagramPublisher(BasePublisher):
                     logger.warning(f"Story çapraz yayınlama hatası: {s_m}")
         except Exception as e:
             logger.warning(f"Otomatik Story üretme/yayınlama istisnası: {e}")
-        return ""
+    def post_news_comment(self, media_id: str, news: Any) -> Tuple[bool, str]:
+        """
+        Paylaşılan resmi haber gönderisinin altına ilk sabit yorum olarak sitemize yönlendiren
+        ve etkileşim toplayan otomatik ilk yorumu ekler.
+        """
+        if not self.access_token or not media_id:
+            return False, "Eksik parametre"
+
+        try:
+            portal_url = "https://kamupersonelrehberiniz.me/haberler"
+            inst = getattr(news, "institution", "T.C. Resmi Kurum")
+            title = getattr(news, "title", "Resmi Kamu Duyurusu")
+
+            comment_msg = (
+                f"📌 {inst} Resmi Kamu Duyurusu Tam Metni & Kılavuz Bağlantısı:\n"
+                f"👉 {portal_url}\n\n"
+                f"💬 Yoruma 'LİNK' veya 'KILAVUZ' yazarsanız, ilgili resmi kararın doğrudan bağlantısı anında DM kutunuza da iletilir! 🇹🇷\n"
+                f"Reklamsız ve birinci elden devlet teyitli bilgi için bizi takipte kalın."
+            )
+
+            url = f"https://graph.facebook.com/v19.0/{media_id}/comments"
+            res = requests.post(
+                url,
+                data={
+                    "message": comment_msg,
+                    "access_token": self.access_token
+                },
+                timeout=20
+            )
+            if res.status_code in [200, 201]:
+                cid = res.json().get("id")
+                logger.info(f"Haber ilk yorumu başarıyla eklendi (Media ID: {media_id}, Comment ID: {cid})")
+                return True, f"İlk yorum eklendi: {cid}"
+            else:
+                logger.warning(f"Haber ilk yorumu eklenemedi ({res.status_code}): {res.text}")
+                return False, res.text
+        except Exception as e:
+            logger.warning(f"Haber ilk yorum gönderim istisnası: {e}")
+            return False, str(e)
+
+    def publish_news(
+        self,
+        news: Any,
+        image_path: Optional[str] = None,
+        text: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        """
+        Resmi kamu haberlerini Instagram akışında (Feed) yayınlar,
+        otomatik ilk yorumu ekler ve aktifse 1080x1920 Story olarak çapraz paylaşır.
+        """
+        if not self.access_token or not self.account_id:
+            return False, "Instagram ayarları (Token / Account ID) eksik."
+
+        diag = MetaHelper.diagnose_token(self.access_token)
+        if not diag["is_valid"]:
+            return False, diag["message"]
+
+        # Görsel kontrolü
+        final_img_path = image_path or getattr(news, "image_card_path", None)
+        if not final_img_path or not Path(final_img_path).exists():
+            from graphics.news_card_generator import NewsCardGenerator
+            ngen = NewsCardGenerator()
+            final_img_path = ngen.generate(
+                news_id=getattr(news, "id", 0),
+                title=getattr(news, "title", "Resmi Duyuru"),
+                institution=getattr(news, "institution", "T.C. Kamu Kurumu"),
+                category=getattr(news, "category", "RESMI_HABER"),
+                summary=getattr(news, "summary", "")
+            )
+
+        image_url, provider_info = self._get_public_image_url(final_img_path)
+        if not image_url:
+            return False, f"Haber görseli CDN'e yüklenemedi: {provider_info}"
+
+        # Caption (Açıklama Metni)
+        inst = getattr(news, "institution", "Kamu Kurumu")
+        inst_tag = re.sub(r"[^\w]", "", inst)
+        title = getattr(news, "title", "Resmi Kamu Duyurusu")
+        summary = getattr(news, "summary", "")
+        
+        caption = (
+            f"🏛️ [T.C. RESMİ KAMU BÜLTENİ] 📢\n\n"
+            f"📍 Kurum: {inst}\n"
+            f"📌 {title}\n\n"
+            f"📝 Resmi Açıklama Özeti:\n{summary}\n\n"
+            f"👇 RESMİ BAĞLANTI & KILAVUZ İÇİN:\n"
+            f"Bu gönderinin altına \"LİNK\" yazın; resmi karar ve başvuru ekranı linki doğrudan mesaj kutunuza gelsin!\n\n"
+            f"🌐 Tüm Kamu Haberleri & İlanlar:\n"
+            f"👉 https://kamupersonelrehberiniz.me/haberler\n\n"
+            f"🇹🇷 Reklamsız, teyitli ve aracısız birinci elden resmi kamu haberidir.\n\n"
+            f"#KamuPersoneli #MemurHaberleri #ResmiGazete #ÖSYM #TOKİ #Maaş #{inst_tag}"
+        ) if not text else text
+
+        try:
+            container_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media"
+            payload = {
+                "image_url": image_url,
+                "caption": caption,
+                "access_token": self.access_token
+            }
+            r_c = requests.post(container_url, data=payload, timeout=30)
+            if r_c.status_code not in [200, 201]:
+                return False, f"Haber konteyner hatası ({r_c.status_code}): {r_c.text}"
+
+            creation_id = r_c.json().get("id")
+            if not creation_id:
+                return False, f"Haber creation_id alınamadı: {r_c.text}"
+
+            self._wait_for_media_processing(creation_id, max_attempts=15)
+
+            pub_url = f"https://graph.facebook.com/v19.0/{self.account_id}/media_publish"
+            r_p = requests.post(pub_url, data={"creation_id": creation_id, "access_token": self.access_token}, timeout=25)
+            if r_p.status_code in [200, 201]:
+                post_id = r_p.json().get("id")
+                # İlk Sabit Yorumu Ekle
+                self.post_news_comment(post_id, news)
+                logger.info(f"Haber başarıyla Instagram'da paylaşıldı (Post ID: {post_id})")
+
+                # Story Çapraz Paylaşımı
+                story_note = ""
+                if get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") == "true":
+                    try:
+                        from graphics.news_card_generator import NewsCardGenerator
+                        ngen = NewsCardGenerator()
+                        story_file = ngen.generate_story(
+                            news_id=getattr(news, "id", 0),
+                            title=getattr(news, "title", ""),
+                            institution=getattr(news, "institution", ""),
+                            category=getattr(news, "category", "RESMI_HABER"),
+                            summary=getattr(news, "summary", "")
+                        )
+                        if story_file and Path(story_file).exists():
+                            s_ok, s_m = self.publish_story(story_file)
+                            if s_ok:
+                                story_note = " [9:16 Dikey Story olarak da paylaşıldı]"
+                    except Exception as se:
+                        logger.warning(f"Haber Story çapraz paylaşım istisnası: {se}")
+
+                return True, f"Haber başarıyla Instagram'da yayınlandı! (Post ID: {post_id}){story_note}"
+            else:
+                return False, f"Instagram Haber Yayınlama Hatası: {r_p.text}"
+        except Exception as e:
+            return False, f"Instagram Haber Gönderim Hatası: {str(e)}"
 

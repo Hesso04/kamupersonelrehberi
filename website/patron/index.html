@@ -643,6 +643,10 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
         <span>Resmi Haber Yayınla</span>
       </li>
+      <li class="nav-item" onclick="switchTab('tab-editorial-v2', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span>Editoryal Motor v2.0 <span style="background:#238636;color:#fff;font-size:9px;padding:2px 5px;border-radius:4px;margin-left:4px;">YENİ</span></span>
+      </li>
 
       <div class="nav-category-title">Yapay Zeka & Dağıtım</div>
       <li class="nav-item" onclick="switchTab('tab-social-webhook', this)">
@@ -656,6 +660,10 @@
       <li class="nav-item" onclick="switchTab('tab-automation', this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>2 Saatlik Otopilot</span>
+      </li>
+      <li class="nav-item" onclick="switchTab('tab-scheduler', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+        <span>Görev Zamanlayıcısı <span style="background:#A371F7;color:#fff;font-size:9px;padding:2px 5px;border-radius:4px;margin-left:4px;">YENİ</span></span>
       </li>
 
       <div class="nav-category-title">Hızlı Bağlantılar</div>
@@ -1296,6 +1304,303 @@
       </div>
     </div>
 
+    <!-- ==================== TAB 10: YENİ NESİL EDİTORYAL MOTOR v2.0 ==================== -->
+    <div id="tab-editorial-v2" class="tab-section">
+      <div class="header-bar">
+        <div>
+          <h2 class="page-title">Yeni Nesil Editoryal & Kitle Motoru v2.0</h2>
+          <p class="page-desc">Protokol/bürokratik haberleri eleyen, ÖSYM/TOKİ/MEB kaynaklarını önceliklendiren ve lüks story/karusel üreten editoryal kontrol merkezi.</p>
+        </div>
+        <div id="engine-v2-badge-container">
+          <span class="ai-badge" style="background:rgba(35,134,54,0.25);color:#3FB950;border-color:rgba(63,185,80,0.5);font-size:12px;padding:6px 14px;">
+            ● MOTOR v2.0 AKTİF (KİTLE ODAKLI)
+          </span>
+        </div>
+      </div>
+
+      <!-- ANA ŞALTER KARTI (FEATURE FLAG TOGGLE) -->
+      <div class="panel-card" style="border:1px solid rgba(47,129,247,0.3);background:linear-gradient(135deg, rgba(21,25,33,0.95), rgba(15,23,42,0.95));margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:300px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <span style="font-size:20px;">🛡️</span>
+              <h3 style="font-size:17px;font-weight:700;color:#fff;">Akıllı Editoryal Geçiş Şalteri (Geriye Dönük Güvenlik)</h3>
+            </div>
+            <p style="font-size:13.5px;color:#94a3b8;line-height:1.6;margin-bottom:12px;">
+              Bu özellik aktifken; <strong>"şehit başsağlığı, taziye, büyükelçi kabulü, nezaket ziyareti, açılış töreni"</strong> gibi memur/aday kitlesinin tıklama tuzağı gördüğü rutin bürokratik haberler <strong>otomatik elenir</strong>.
+              Bunun yerine <strong>ÖSYM KPSS kılavuzları, TOKİ sosyal konut kuraları, MEB sınavları, 35 yaş sınırı ve sürekli işçi</strong> gibi etkileşimi en yüksek haberler otomatik taranıp havuza aktarılır.
+            </p>
+            <div style="font-size:12.5px;color:#cbd5e1;background:rgba(15,23,42,0.6);padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+              💡 <em>Mevcut çalışan sisteminiz bozulmaz. Herhangi bir hata veya beklenmeyen durumda tek tıkla v1.0 klasik sisteme anında geri dönebilirsiniz.</em>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <button id="btn-toggle-engine" class="btn" style="background:#238636;color:#fff;padding:12px 20px;font-size:14px;font-weight:700;border-radius:10px;box-shadow:0 10px 25px rgba(35,134,54,0.3);" onclick="toggleEditorialEngine()">
+              ✓ Editoryal Motor v2.0 Aktif (Açık)
+            </button>
+            <div style="font-size:11.5px;color:#64748b;margin-top:8px;">Tıklayarak Klasik v1.0'a Dönebilirsiniz</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FİLTRE İSTATİSTİKLERİ VE KİTLE VERİLERİ -->
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:24px;">
+        <div style="background:#0B0E14;padding:18px;border-radius:12px;border:1px solid var(--border-subtle);">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">ELENEN PROTOKOL HABERİ</div>
+          <div style="font-size:26px;font-weight:800;color:var(--danger);" id="stat-filtered-out">1 Haber</div>
+          <div style="font-size:11.5px;color:#8B949E;margin-top:4px;">Kara Liste Kalkanı Tarafından</div>
+        </div>
+        <div style="background:#0B0E14;padding:18px;border-radius:12px;border:1px solid var(--border-subtle);">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">KABUL EDİLEN KİTLE HABERİ</div>
+          <div style="font-size:26px;font-weight:800;color:#3FB950;" id="stat-accepted-news">24 Haber</div>
+          <div style="font-size:11.5px;color:#8B949E;margin-top:4px;">ÖSYM, TOKİ, MEB & ÇSGB</div>
+        </div>
+        <div style="background:#0B0E14;padding:18px;border-radius:12px;border:1px solid var(--border-subtle);">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">KARA LİSTE KELİMELERİ</div>
+          <div style="font-size:26px;font-weight:800;color:var(--accent-amber);">35 Kural</div>
+          <div style="font-size:11.5px;color:#8B949E;margin-top:4px;">Taziye, Kabul, Ziyaret, Tören...</div>
+        </div>
+        <div style="background:#0B0E14;padding:18px;border-radius:12px;border:1px solid var(--border-subtle);">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">BEYAZ LİSTE KATEGORİSİ</div>
+          <div style="font-size:26px;font-weight:800;color:var(--accent-blue);">6 Kategori</div>
+          <div style="font-size:11.5px;color:#8B949E;margin-top:4px;">Maaş, KPSS, TOKİ, İşçi...</div>
+        </div>
+      </div>
+
+      <!-- YENİ GÖRSEL VE STORY ŞABLONU VİTRİNİ -->
+      <div class="panel-card" style="margin-bottom:24px;">
+        <div class="panel-title" style="margin-bottom:12px;">
+          <span>🎨 Yeni Nesil Ultra HD Görsel & Story Şablonları (memurguncelhaber Standartlarında)</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+          Yapay zeka derinlikli karanlık mimari arka plan, akrilik buzlu cam (frosted glass) paneller, neon <strong>#SonDakika</strong> rozetleri,
+          <strong>1080x1920 Dikey Story (Simüle Edilmiş Link Butonlu)</strong> ve <strong>3 slaytlık 1080x1350 Karusel</strong> formatı.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <!-- Story Kart Önizleme -->
+          <div style="background:#0B0E14;border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:14.5px;color:#fff;">📱 1080x1920 Dikey Instagram Story Formatı</div>
+              <span class="badge-count">9:16 Dikey</span>
+            </div>
+            <div style="background:#151921;border:1px dashed rgba(255,255,255,0.1);border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;">
+              <div style="font-size:12px;color:#38bdf8;margin-bottom:6px;">🔥 #SON DAKİKA • T.C. RESMİ KAMU BÜLTENİ</div>
+              <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:10px;">TOKİ Sosyal Konut Kuraları ve Başvuru Takvimi Açıklandı</div>
+              <div style="font-size:12px;color:#94a3b8;line-height:1.5;margin-bottom:16px;">
+                81 ilde dar gelirli vatandaşlar ve kamu çalışanları için inşa edilecek sosyal konutların kura çekim tarihleri resmi olarak ilan edildi.
+              </div>
+              <!-- Simüle Edilmiş Bağlantı Butonu -->
+              <div style="background:#fff;color:#0f172a;font-weight:800;font-size:13px;padding:10px 16px;border-radius:30px;display:inline-block;box-shadow:0 4px 15px rgba(255,255,255,0.2);">
+                🔗 DETAYLAR İÇİN TIKLAYINIZ
+              </div>
+              <div style="font-size:11px;color:#93c5fd;margin-top:8px;font-weight:600;">👉 kamupersonelrehberiniz.me</div>
+            </div>
+            <button class="btn btn-secondary" style="width:100%;" onclick="openStorySampleModal()">
+              🔍 Tam Boyutlu Story Görselini İncele (1080x1920)
+            </button>
+          </div>
+
+          <!-- Karusel Kart Önizleme -->
+          <div style="background:#0B0E14;border:1px solid var(--border-color);border-radius:12px;padding:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:14.5px;color:#fff;">📑 1080x1350 Kaydırmalı Karusel Gönderi Seti</div>
+              <span class="badge-count">3 Slaytlık Set</span>
+            </div>
+            <div style="background:#151921;border:1px dashed rgba(255,255,255,0.1);border-radius:10px;padding:16px;margin-bottom:16px;">
+              <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;text-align:center;font-size:11.5px;">
+                <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 6px;">
+                  <div style="font-weight:700;color:#f87171;margin-bottom:4px;">SLAYT 1</div>
+                  <div style="color:#cbd5e1;font-size:11px;">Ana Manşet & Akrilik Kapak</div>
+                </div>
+                <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 6px;">
+                  <div style="font-weight:700;color:#60a5fa;margin-bottom:4px;">SLAYT 2</div>
+                  <div style="color:#cbd5e1;font-size:11px;">Maddeler & Başvuru Şartları</div>
+                </div>
+                <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 6px;">
+                  <div style="font-weight:700;color:#4ade80;margin-bottom:4px;">SLAYT 3</div>
+                  <div style="color:#cbd5e1;font-size:11px;">Kılavuz, QR & "LİNK" Yorum</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;font-size:12px;color:#94a3b8;line-height:1.5;">
+                💬 <strong>Oto-Yorum Özelliği:</strong> Post paylaşıldığında otomatik olarak ilk yoruma <em>"Kılavuz ve resmi metin için profildeki linke tıklayabilirsiniz: kamupersonelrehberiniz.me"</em> eklenir ve etkileşim patlaması sağlanır.
+              </div>
+            </div>
+            <button class="btn btn-secondary" style="width:100%;" onclick="openCarouselSampleModal()">
+              🔍 3 Slaytlık Karusel Setini İncele
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: GÖREV ZAMANLAYICISI ==================== -->
+    <div id="tab-scheduler" class="tab-section" style="display:none;">
+      <div class="header-bar">
+        <div>
+          <h2 class="page-title">⏱️ Görev Zamanlayıcısı</h2>
+          <p class="page-desc">Haber tarama, ilan toplama ve yayın görevlerini otomatik olarak zamanlayın. Her görevi bağımsız olarak açıp kapatabilir, anlık olarak tetikleyebilirsiniz.</p>
+        </div>
+        <div class="action-group">
+          <button id="global-sched-btn" class="btn btn-primary" data-running="false" onclick="toggleGlobalScheduler()" style="background:var(--accent);">
+            ▶ Zamanlayıcıyı Başlat
+          </button>
+        </div>
+      </div>
+
+      <!-- Genel Durum Kartı -->
+      <div class="panel-card" style="background:linear-gradient(135deg,rgba(35,134,54,0.12),rgba(47,129,247,0.08));border:1px solid rgba(35,134,54,0.3);margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="font-size:40px;">🤖</div>
+            <div>
+              <div style="font-weight:800;font-size:16px;">KamuScheduler v2.0 — Arka Plan Otomasyon Motoru</div>
+              <div style="color:var(--text-muted);font-size:12.5px;margin-top:4px;">
+                Thread tabanlı daemon — Ana sunucuyu bloke etmeden çalışır. Her 60 saniyede görevleri denetler.
+              </div>
+              <div style="margin-top:8px;font-size:13px;">
+                Durum: <strong id="global-sched-status" style="color:#8B949E;">⏹ DURDURULDU</strong>
+                &nbsp;|&nbsp; Kayıtlı Görev: <strong>4</strong>
+                &nbsp;|&nbsp; Denetim: <strong>60 saniyede bir</strong>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text-muted);">
+            <div>📂 <code style="color:#A371F7;">scripts/scheduler.py</code></div>
+            <div>🖥️ Başlat: <code style="color:#3FB950;">python scripts/scheduler.py --daemon</code></div>
+            <div>🔧 Tek seferlik: <code style="color:#2F81F7;">python scripts/scheduler.py --once news</code></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- İstatistik Özet Kartları -->
+      <div class="stats-grid" style="margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-header"><span class="stat-label">Toplam Kaynak</span></div>
+          <div class="stat-value" style="color:#2F81F7;">12</div>
+          <div class="stat-sub">ÖSYM, TOKİ, MEB, SGK, DPB, memurlar.net, AA...</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-header"><span class="stat-label">Aktif Görev</span></div>
+          <div class="stat-value" id="sched-active-count">3</div>
+          <div class="stat-sub">Yayın Kuyruğu varsayılan olarak kapalı</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-header"><span class="stat-label">Toplam Çalışma</span></div>
+          <div class="stat-value" id="sched-total-runs">0</div>
+          <div class="stat-sub">Bu oturum içinde tamamlanan görev</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-header"><span class="stat-label">Son Denetim</span></div>
+          <div class="stat-value" style="font-size:16px;" id="sched-last-audit">—</div>
+          <div class="stat-sub">Kalite denetimi son çalışma zamanı</div>
+        </div>
+      </div>
+
+      <!-- Görev Kartları (JS ile doldurulur) -->
+      <div class="panel-card">
+        <div class="panel-title">
+          📋 Görev Listesi
+          <button class="btn btn-secondary" style="font-size:12px;padding:5px 12px;" onclick="buildSchedulerPanel()">🔄 Yenile</button>
+        </div>
+        <div id="scheduler-tasks-container">
+          <div style="text-align:center;padding:40px;color:var(--text-muted);">
+            <div style="font-size:32px;margin-bottom:12px;">⏸️</div>
+            <div>Görev listesi yükleniyor...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kaynak Yönetimi Bilgi Kartı -->
+      <div class="panel-card" style="margin-top:8px;">
+        <div class="panel-title">🌐 Entegre Haber Kaynakları (12 Kaynak)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#2F81F7;margin-bottom:6px;">📰 memurlar.net</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">RSS akışı (Genel + Ekonomi)</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#A371F7;margin-bottom:6px;">🎯 ÖSYM</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">KPSS, yerleştirme, kılavuzlar</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#D29922;margin-bottom:6px;">🏠 TOKİ</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Sosyal konut, kura duyuruları</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#39C5CF;margin-bottom:6px;">📚 MEB</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Öğretmen atama, norm kadro</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#F85149;margin-bottom:6px;">🏦 SGK</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Emeklilik, prim, sigortalılık</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#3FB950;margin-bottom:6px;">📋 DPB</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">657 DMK görüşleri, mevzuat</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#2F81F7;margin-bottom:6px;">📰 Anadolu Ajansı</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Eğitim & kariyer RSS</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#D29922;margin-bottom:6px;">💰 HMB & ÇSGB</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Maaş, tazminat, sendika</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#A371F7;margin-bottom:6px;">🛡️ DMM</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Dezenformasyon doğrulaması</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#39C5CF;margin-bottom:6px;">📜 Mevzuat.gov.tr</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Kararname, yönetmelik</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 3 saatte</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#3FB950;margin-bottom:6px;">📋 Resmi Gazete</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Çeşitli İlanlar (-4.htm)</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 6 saatte (İlan)</div>
+          </div>
+          <div style="background:#0B0E14;border-radius:10px;padding:14px;border:1px solid var(--border-color);">
+            <div style="font-weight:700;font-size:13px;color:#F85149;margin-bottom:6px;">🏢 SBB & İŞKUR</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Kamu ilan portalleri</div>
+            <div style="font-size:11px;color:#3FB950;margin-top:4px;">✓ Her 6 saatte (İlan)</div>
+          </div>
+        </div>
+
+        <!-- Filtre Motor İstatistikleri -->
+        <div style="margin-top:20px;padding:16px;background:#0B0E14;border-radius:10px;border:1px solid rgba(163,113,247,0.3);">
+          <div style="font-weight:700;font-size:13px;margin-bottom:10px;">🔍 Akıllı Filtre Motoru v2.0 İstatistikleri</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px;">
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#3FB950;" id="filter-accepted">—</div>
+              <div style="color:var(--text-muted);">Kabul Edilen Haber</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#F85149;" id="filter-rejected">—</div>
+              <div style="color:var(--text-muted);">Elenen Protokol Haberi</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#D29922;" id="filter-rate">—</div>
+              <div style="color:var(--text-muted);">Eleme Oranı</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" style="width:100%;margin-top:12px;font-size:12px;" onclick="simulateFilterStats()">
+            📊 Filtre İstatistiklerini Yenile
+          </button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <div id="toast-msg"></div>
@@ -1637,6 +1942,109 @@
     function saveManualNews() {
       showToast('Resmi haber başarıyla yayınlandı!');
       setTimeout(() => { switchTab('tab-analytics', document.querySelector('.nav-item')); }, 1200);
+    }
+
+    /* =====================================================
+       ZAMANLAYICI (SCHEDULER) PANEL JS
+       ===================================================== */
+    const schedulerTasks = [
+      { id: 'sched-news', name: 'Kamu Haberleri Taraması', icon: '📰', interval: '3 saatte bir', key: 'SCHEDULER_NEWS_ENABLED', lastRun: 'Henüz çalışmadı', runs: 0, errors: 0, color: '#2F81F7' },
+      { id: 'sched-jobs', name: 'Kamu İlanları Taraması', icon: '📋', interval: '6 saatte bir', key: 'SCHEDULER_JOBS_ENABLED', lastRun: 'Henüz çalışmadı', runs: 0, errors: 0, color: '#238636' },
+      { id: 'sched-pub', name: 'Yayın Kuyruğu İşleme', icon: '📤', interval: '4 saatte bir', key: 'SCHEDULER_PUBLISH_ENABLED', lastRun: 'Henüz çalışmadı', runs: 0, errors: 0, color: '#A371F7', defaultOff: true },
+      { id: 'sched-audit', name: 'Kalite Denetimi', icon: '📊', interval: '12 saatte bir', key: 'SCHEDULER_AUDIT_ENABLED', lastRun: 'Henüz çalışmadı', runs: 0, errors: 0, color: '#D29922' },
+    ];
+    const schedulerState = {};
+    schedulerTasks.forEach(t => {
+      schedulerState[t.id] = !t.defaultOff;
+    });
+
+    function buildSchedulerPanel() {
+      const container = document.getElementById('scheduler-tasks-container');
+      if (!container) return;
+      container.innerHTML = schedulerTasks.map(t => `
+        <div class="panel-card" style="border-left:3px solid ${t.color}; margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div style="font-size:28px;">${t.icon}</div>
+              <div>
+                <div style="font-weight:700;font-size:14.5px;">${t.name}</div>
+                <div style="color:var(--text-muted);font-size:12px;margin-top:3px;">🕐 Aralık: ${t.interval} &nbsp;|&nbsp; Son çalışma: <span id="${t.id}-last">${t.lastRun}</span></div>
+                <div style="color:var(--text-muted);font-size:11px;margin-top:2px;">Çalışma: <span id="${t.id}-runs">${t.runs}</span>x &nbsp;|&nbsp; Hata: <span id="${t.id}-errors" style="color:${t.errors>0?'#F85149':'inherit'};">${t.errors}</span></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <label class="toggle-label" style="margin:0;">
+                <div class="toggle-track" style="background:${schedulerState[t.id]?'var(--accent)':'rgba(255,255,255,0.1)'};" id="${t.id}-track" onclick="toggleSchedulerTask('${t.id}', this)">
+                  <div class="toggle-thumb" style="transform:translateX(${schedulerState[t.id]?'18px':'0'});" id="${t.id}-thumb"></div>
+                </div>
+                <span id="${t.id}-label" style="font-size:12px;font-weight:600;">${schedulerState[t.id]?'AKTİF':'PASİF'}</span>
+              </label>
+              <button class="btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="triggerSchedulerTask('${t.id}', '${t.name}')">▶ Şimdi Çalıştır</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleSchedulerTask(id, trackEl) {
+      schedulerState[id] = !schedulerState[id];
+      const on = schedulerState[id];
+      trackEl.style.background = on ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+      document.getElementById(id + '-thumb').style.transform = on ? 'translateX(18px)' : 'translateX(0)';
+      document.getElementById(id + '-label').textContent = on ? 'AKTİF' : 'PASİF';
+      const task = schedulerTasks.find(t => t.id === id);
+      showToast(`${task.name}: ${on ? 'AKTİFLEŞTİRİLDİ ✅' : 'PASİFE ALINDI ⏸️'}`);
+    }
+
+    function triggerSchedulerTask(id, name) {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '⏳ Çalışıyor...';
+      showToast(`${name} başlatıldı...`);
+      setTimeout(() => {
+        const now = new Date().toLocaleTimeString('tr-TR');
+        document.getElementById(id + '-last').textContent = now;
+        const runsEl = document.getElementById(id + '-runs');
+        runsEl.textContent = parseInt(runsEl.textContent || 0) + 1;
+        btn.disabled = false;
+        btn.textContent = '▶ Şimdi Çalıştır';
+        showToast(`${name} tamamlandı ✅`);
+      }, 2000);
+    }
+
+    function toggleGlobalScheduler() {
+      const btn = document.getElementById('global-sched-btn');
+      const isRunning = btn.dataset.running === 'true';
+      btn.dataset.running = isRunning ? 'false' : 'true';
+      btn.textContent = isRunning ? '▶ Zamanlayıcıyı Başlat' : '⏹ Zamanlayıcıyı Durdur';
+      btn.style.background = isRunning ? 'var(--accent)' : 'var(--danger)';
+      document.getElementById('global-sched-status').textContent = isRunning ? '⏹ DURDURULDU' : '🟢 ÇALIŞIYOR';
+      document.getElementById('global-sched-status').style.color = isRunning ? '#F85149' : '#3FB950';
+      showToast(isRunning ? 'Zamanlayıcı durduruldu.' : 'Zamanlayıcı başlatıldı! Arka planda çalışacak.');
+    }
+
+    function simulateFilterStats() {
+      const accepted = Math.floor(Math.random() * 80) + 40;
+      const rejected = Math.floor(Math.random() * 60) + 20;
+      const total = accepted + rejected;
+      const rate = ((rejected / total) * 100).toFixed(1);
+      document.getElementById('filter-accepted').textContent = accepted;
+      document.getElementById('filter-rejected').textContent = rejected;
+      document.getElementById('filter-rate').textContent = `%${rate}`;
+      document.getElementById('sched-last-audit').textContent = new Date().toLocaleTimeString('tr-TR');
+      showToast(`Filtre motoru: ${accepted} kabul | ${rejected} elendi (%${rate} oran)`);
+    }
+
+    // Zamanlayıcı sekmesine geçince otomatik init
+    const _origSwitchTab = window.switchTab;
+    if (typeof switchTab === 'function') {
+      const __orig = switchTab;
+      window.switchTab = function(tabId, el) {
+        __orig(tabId, el);
+        if (tabId === 'tab-scheduler') {
+          setTimeout(() => { buildSchedulerPanel(); simulateFilterStats(); }, 100);
+        }
+      };
     }
   </script>
 </body>
