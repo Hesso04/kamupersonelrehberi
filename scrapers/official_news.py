@@ -15,6 +15,14 @@ import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
+import os
+import sys
+
+# Proje kök dizinini sys.path'e ekle
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from core.database import get_db
 from core.models import OfficialNews
 

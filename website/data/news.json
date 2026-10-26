@@ -1,21 +1,91 @@
 {
   "meta": {
-    "generated_at": "2026-10-23T17:55:52.063055+00:00",
-    "total_news": 9
+    "generated_at": "2026-10-26T22:05:09.699873+00:00",
+    "total_news": 15
   },
   "news": [
     {
-      "id": 9,
-      "title": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "id": 15,
+      "title": "📊 26 Ekim 2026 Sözleşmeli Bilişim Personeli Sözlü/Uygulamalı Sınav Tarihlerine İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "category": "OZLUK_MAAS",
+      "category_label": "📊 Özlük & Mali Haklar",
+      "summary": "Çalışma hayatı, kamu çalışanları, sendikal haklar ve sosyal güvenlik mevzuatına ilişkin bakanlık resmi duyurusu: 26 Ekim 2026 Sözleşmeli Bilişim Personeli Sözlü/Uygulamalı Sınav Tarihlerine İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "content": "26 Ekim 2026 Sözleşmeli Bilişim Personeli Sözlü/Uygulamalı Sınav Tarihlerine İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "source_name": "ÇSGB Resmi Duyurular",
+      "source_url": "https://www.csgb.gov.tr/duyurular/sozlesmeli-bilisim-personeli-sozluuygulamali-sinav-tarihlerine-iliskin-duyuru-2/",
+      "publish_date": "2026-10-26T22:04:33.811186",
+      "publish_date_formatted": "26 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 14,
+      "title": "Cumhurbaşkanı Erdoğan, Prof. Dr. Sancar’ı kabul etti",
       "institution": "T.C. İletişim Başkanlığı",
       "category": "RESMI_HABER",
       "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
-      "content": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Prof. Dr. Sancar’ı kabul etti",
+      "content": "Cumhurbaşkanı Erdoğan, Prof. Dr. Sancar’ı kabul etti",
       "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdoganin-kanada-basbakani-carney-ile-gorusmesine-iliskin-aciklama-22-10-26",
-      "publish_date": "2026-10-22T17:32:27.351216",
-      "publish_date_formatted": "22 Ekim 2026",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-prof-dr-sancari-kabul-etti",
+      "publish_date": "2026-10-26T22:04:31.118965",
+      "publish_date_formatted": "26 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 13,
+      "title": "Cumhurbaşkanı Erdoğan, Kabine Toplantısı‘nın ardından millete seslendi",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Kabine Toplantısı‘nın ardından millete seslendi",
+      "content": "Cumhurbaşkanı Erdoğan, Kabine Toplantısı‘nın ardından millete seslendi",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskanligi-kabinesi-toplandi-26-10-26",
+      "publish_date": "2026-10-26T22:04:31.118965",
+      "publish_date_formatted": "26 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 12,
+      "title": "İletişim Başkanı Duran’dan şehit İstihbarat Albay Gökgöz için başsağlığı mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan şehit İstihbarat Albay Gökgöz için başsağlığı mesajı",
+      "content": "İletişim Başkanı Duran’dan şehit İstihbarat Albay Gökgöz için başsağlığı mesajı",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-sehit-istihbarat-albay-sayit-gokgoz-icin-bassagligi-mesaji",
+      "publish_date": "2026-10-25T17:30:22.201315",
+      "publish_date_formatted": "25 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 11,
+      "title": "İletişim Başkanı Duran’dan Birleşmiş Milletler Günü ve BM Teşkilatının kuruluşunun 81. yıl dönümü mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan Birleşmiş Milletler Günü ve BM Teşkilatının kuruluşunun 81. yıl dönümü mesajı",
+      "content": "İletişim Başkanı Duran’dan Birleşmiş Milletler Günü ve BM Teşkilatının kuruluşunun 81. yıl dönümü mesajı",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-birlesmis-milletler-gunu-ve-bm-teskilatinin-kurulusunun-81-yil-donumu-mesaji",
+      "publish_date": "2026-10-24T22:01:28.482659",
+      "publish_date_formatted": "24 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 10,
+      "title": "Cumhurbaşkanı Erdoğan, Topkapı Sarayı Darphane-i Amire Müzeleri Açılış Töreni’nde konuştu",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Topkapı Sarayı Darphane-i Amire Müzeleri Açılış Töreni’nde konuştu",
+      "content": "Cumhurbaşkanı Erdoğan, Topkapı Sarayı Darphane-i Amire Müzeleri Açılış Töreni’nde konuştu",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-topkapi-sarayi-darphane-i-amire-muzeleri-acilis-toreninde-konustu",
+      "publish_date": "2026-10-24T22:01:28.481658",
+      "publish_date_formatted": "24 Ekim 2026",
       "is_verified": true
     },
     {
@@ -33,6 +103,20 @@
       "is_verified": true
     },
     {
+      "id": 9,
+      "title": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "content": "Cumhurbaşkanı Erdoğan’ın Kanada Başbakanı Carney ile görüşmesine ilişkin açıklama",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdoganin-kanada-basbakani-carney-ile-gorusmesine-iliskin-aciklama-22-10-26",
+      "publish_date": "2026-10-22T17:32:27.351216",
+      "publish_date_formatted": "22 Ekim 2026",
+      "is_verified": true
+    },
+    {
       "id": 7,
       "title": "📜 Kamu Görevlileri ve Sözleşmeli Personel Mevzuatında Güncel Değişiklikler",
       "institution": "Mevzuat Bilgi Sistemi",
@@ -43,6 +127,20 @@
       "source_name": "Mevzuat Bilgi Sistemi (mevzuat.gov.tr)",
       "source_url": "https://www.mevzuat.gov.tr",
       "publish_date": "2026-10-17T22:29:35.542218",
+      "publish_date_formatted": "17 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 6,
+      "title": "📊 11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
+      "category": "OZLUK_MAAS",
+      "category_label": "📊 Özlük & Mali Haklar",
+      "summary": "Çalışma hayatı, kamu çalışanları, sendikal haklar ve sosyal güvenlik mevzuatına ilişkin bakanlık resmi duyurusu: 11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "content": "11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
+      "source_name": "ÇSGB Resmi Duyurular",
+      "source_url": "https://www.csgb.gov.tr/duyurular/11082026/",
+      "publish_date": "2026-10-17T22:29:35.229660",
       "publish_date_formatted": "17 Ekim 2026",
       "is_verified": true
     },
@@ -70,20 +168,6 @@
       "content": "04 Ekim 2026 SÖZLEŞMELİ BİLİŞİM PERSONELİ ALIM İLANI Duyuru detayı için tıklayın.",
       "source_name": "ÇSGB Resmi Duyurular",
       "source_url": "https://www.csgb.gov.tr/duyurular/sozlesmeli-bilisim-personeli-alim-ilani/",
-      "publish_date": "2026-10-17T22:29:35.229660",
-      "publish_date_formatted": "17 Ekim 2026",
-      "is_verified": true
-    },
-    {
-      "id": 6,
-      "title": "📊 11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
-      "institution": "T.C. Çalışma ve Sosyal Güvenlik Bakanlığı",
-      "category": "OZLUK_MAAS",
-      "category_label": "📊 Özlük & Mali Haklar",
-      "summary": "Çalışma hayatı, kamu çalışanları, sendikal haklar ve sosyal güvenlik mevzuatına ilişkin bakanlık resmi duyurusu: 11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
-      "content": "11 Ağustos 2026 29 Mart 2026 Tarihinde Yazılı Aşaması, 20-31 Temmuz 2026 Tarihleri Arasında Sözlü Aşaması Yapılan İş Müfettişi Yardımcılığı Giriş Sınavını Kazananlara İlişkin Duyuru Duyuru detayı için tıklayın.",
-      "source_name": "ÇSGB Resmi Duyurular",
-      "source_url": "https://www.csgb.gov.tr/duyurular/11082026/",
       "publish_date": "2026-10-17T22:29:35.229660",
       "publish_date_formatted": "17 Ekim 2026",
       "is_verified": true
