@@ -65,6 +65,14 @@ BLACKLIST_KEYWORDS = [
     "heyeti kabul etti",
     "basın toplantısı düzenledi",
     "açıklamalarda bulundu",
+    "buluştu",
+    "bir araya geldi",
+    "ziyaret",
+    "katıldı",
+    "ziyareti",
+    "toplantısına katıldı",
+    "incelemede bulundu",
+    "açılışını yaptı",
 ]
 
 # 2. BEYAZ LİSTE / YÜKSEK İLGİ ANAHTARLARI (Kitlenin en çok etkileşim verdiği konular)

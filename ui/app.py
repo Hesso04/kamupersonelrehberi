@@ -1051,7 +1051,6 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
 
             with p_col1:
                 st.markdown("##### 🖼️ İlanlardan Farklı Editoryal Görsel Kart (1080x1350)")
-                # Görseli üret veya varsa göster
                 card_gen = NewsCardGenerator()
                 try:
                     gen_card_path = card_gen.generate(
@@ -1063,8 +1062,8 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                         source_url=cur_news.source_url or "https://kamupersonelrehberiniz.me",
                         publish_date=cur_news.publish_date
                     )
-                    st.image(gen_card_path, caption=f"Haber #{cur_news.id} Editoryal Kartı (1080x1350)", use_container_width=True)
                     
+                    # HIZLI AKSİYON BUTONLARI (GÖRSELİN ÜSTÜNDE)
                     c_dl1, c_dl2, c_dl3 = st.columns(3)
                     with c_dl1:
                         with open(gen_card_path, "rb") as img_file:
@@ -1076,7 +1075,7 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                                 use_container_width=True
                             )
                     with c_dl2:
-                        if st.button("📱 9:16 Story Üret", key=f"btn_story_{cur_news.id}", use_container_width=True):
+                        if st.button("📱 9:16 Story Üret", key=f"btn_story_{cur_news.id}", use_container_width=True, type="primary"):
                             try:
                                 s_path = card_gen.generate_story(
                                     news_id=cur_news.id,
@@ -1087,12 +1086,12 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                                     publish_date=cur_news.publish_date
                                 )
                                 st.session_state[f"story_view_{cur_news.id}"] = s_path
-                                st.success("Story kartı üretildi!")
+                                st.success("9:16 Story Kartı Hazırlandı!")
                                 st.rerun()
                             except Exception as se:
                                 st.error(f"Story hatası: {se}")
                     with c_dl3:
-                        if st.button("📑 3'lü Carousel Üret", key=f"btn_carousel_{cur_news.id}", use_container_width=True):
+                        if st.button("📑 3'lü Carousel Üret", key=f"btn_carousel_{cur_news.id}", use_container_width=True, type="primary"):
                             try:
                                 c_slides = card_gen.generate_carousel_slides(
                                     news_id=cur_news.id,
@@ -1104,23 +1103,25 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                                     source_url=cur_news.source_url or "https://kamupersonelrehberiniz.me"
                                 )
                                 st.session_state[f"carousel_view_{cur_news.id}"] = c_slides
-                                st.success(f"{len(c_slides)} slaytlık Carousel hazır!")
+                                st.success(f"{len(c_slides)} slaytlık Instagram Carousel hazır!")
                                 st.rerun()
                             except Exception as ce:
                                 st.error(f"Carousel hatası: {ce}")
 
-                    # Eğer üretilmişse Story'yi göster
+                    # Eğer Story veya Carousel üretilmişse önce onları göster
                     if st.session_state.get(f"story_view_{cur_news.id}"):
                         st.markdown("###### 📱 Üretilen 1080x1920 Story (Bağlantı Butonlu):")
                         st.image(st.session_state[f"story_view_{cur_news.id}"], use_container_width=True)
 
-                    # Eğer üretilmişse Carousel slaytlarını göster
                     if st.session_state.get(f"carousel_view_{cur_news.id}"):
                         st.markdown("###### 📑 Üretilen 3 Slaytlık Instagram Carousel:")
                         c_tabs = st.tabs(["Slayt 1 (Kapak)", "Slayt 2 (Maddeler)", "Slayt 3 (Yönlendirme & QR)"])
                         for idx, sl_path in enumerate(st.session_state[f"carousel_view_{cur_news.id}"]):
                             with c_tabs[idx]:
                                 st.image(sl_path, use_container_width=True)
+
+                    st.markdown("###### 🖼️ 1. Slayt / Akış Kartı Önizlemesi:")
+                    st.image(gen_card_path, caption=f"Haber #{cur_news.id} Editoryal Kartı (1080x1350)", use_container_width=True)
                 except Exception as g_err:
                     st.error(f"Görsel kart üretilemedi: {g_err}")
 

@@ -234,6 +234,7 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12)
             if resp.status_code == 200:
+                resp.encoding = "utf-8"
                 soup = BeautifulSoup(resp.text, "html.parser")
                 seen = set()
                 for a in soup.find_all("a", href=True):
