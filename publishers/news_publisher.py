@@ -102,7 +102,12 @@ class NewsPublisherManager:
                     if "TELEGRAM" in channels:
                         try:
                             # Markdown / HTML haber paylaşımı
-                            tg_ok, tg_msg = self.telegram.publish(text=post_text, image_path=image_path)
+                            tg_ok, tg_msg = self.telegram.publish_custom_message(
+                                text=post_text,
+                                image_path=image_path,
+                                button_url="https://kamupersonelrehberiniz.me",
+                                button_text="🌐 Haberi İncele"
+                            )
                             if tg_ok:
                                 succ_channels.append("TELEGRAM")
                             else:

@@ -314,3 +314,82 @@ class TelegramPublisher(BasePublisher):
         except Exception as e:
             logger.error(f"Telegram yayını istisna hatası: {e}")
             return False, f"Bağlantı Hatası: {str(e)}"
+
+    def publish_custom_message(
+        self,
+        text: str,
+        image_path: Optional[str] = None,
+        button_url: Optional[str] = None,
+        button_text: str = "🌐 Haberi İncele"
+    ) -> Tuple[bool, str]:
+        """
+        Resmi haberler veya özel duyurular için Telegram kanalına metin ve opsiyonel görsel gönderir.
+        """
+        if not self.token or not self.channel_id:
+            return False, "Telegram Bot Token veya Kanal ID girilmemiş."
+
+        reply_markup = None
+        if button_url:
+            channel_handle = (self.channel_id or "kamupersonelrehberi").replace("@", "").strip()
+            channel_link = f"https://t.me/{channel_handle}"
+            reply_markup = {
+                "inline_keyboard": [
+                    [
+                        {"text": button_text, "url": button_url}
+                    ],
+                    [
+                        {"text": "📢 Kanalımıza Katıl & Takip Et", "url": channel_link}
+                    ]
+                ]
+            }
+
+        try:
+            image_file = Path(image_path) if image_path else None
+            if image_file and image_file.exists():
+                safe_caption = text
+                if len(safe_caption) > 1020:
+                    safe_caption = safe_caption[:1015] + "..."
+
+                with open(image_file, "rb") as photo:
+                    payload = {
+                        "chat_id": self.channel_id,
+                        "caption": safe_caption,
+                        "parse_mode": "HTML"
+                    }
+                    if reply_markup:
+                        payload["reply_markup"] = json.dumps(reply_markup)
+
+                    files = {"photo": photo}
+                    response = requests.post(
+                        f"{self.api_base}/sendPhoto",
+                        data=payload,
+                        files=files,
+                        timeout=25
+                    )
+            else:
+                payload = {
+                    "chat_id": self.channel_id,
+                    "text": text,
+                    "parse_mode": "HTML"
+                }
+                if reply_markup:
+                    payload["reply_markup"] = reply_markup
+
+                response = requests.post(
+                    f"{self.api_base}/sendMessage",
+                    json=payload,
+                    timeout=15
+                )
+
+            if response.status_code == 200:
+                logger.info("Özel haber/mesaj Telegram kanalında paylaşıldı.")
+                return True, "Telegram kanalında başarıyla yayınlandı."
+            else:
+                err_text = response.text
+                logger.error(f"Telegram özel mesaj hatası (HTTP {response.status_code}): {err_text}")
+                return False, f"Telegram Hatası: {err_text}"
+
+        except Exception as e:
+            logger.error(f"Telegram özel mesaj istisnası: {e}")
+            return False, f"Bağlantı Hatası: {str(e)}"
+

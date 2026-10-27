@@ -1142,7 +1142,12 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                     if st.button("📢 Bu Haberi Telegram'a Gönder", use_container_width=True):
                         with st.spinner("Telegram'a aktarılıyor..."):
                             tg_pub = TelegramPublisher()
-                            t_ok, t_msg = tg_pub.publish(text=cur_news.social_post_text, image_path=gen_card_path)
+                            t_ok, t_msg = tg_pub.publish_custom_message(
+                                text=cur_news.social_post_text or cur_news.summary or cur_news.title,
+                                image_path=gen_card_path,
+                                button_url="https://kamupersonelrehberiniz.me",
+                                button_text="🌐 Haberi İncele"
+                            )
                             if t_ok:
                                 with get_db() as udb:
                                     n_obj = udb.query(OfficialNews).filter(OfficialNews.id == cur_news.id).first()
@@ -1159,7 +1164,11 @@ elif menu == "📰 Kamu Haberleri & Doğrulama Merkezi":
                     if st.button("📸 Bu Haberi Instagram'a Gönder", use_container_width=True):
                         with st.spinner("Instagram'a aktarılıyor..."):
                             ig_pub = InstagramPublisher()
-                            i_ok, i_msg = ig_pub.publish(text=cur_news.social_post_text, image_path=gen_card_path)
+                            i_ok, i_msg = ig_pub.publish_news(
+                                news=cur_news,
+                                image_path=gen_card_path,
+                                text=cur_news.social_post_text
+                            )
                             if i_ok:
                                 with get_db() as udb:
                                     n_obj = udb.query(OfficialNews).filter(OfficialNews.id == cur_news.id).first()
