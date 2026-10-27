@@ -471,6 +471,7 @@ class NewsCardGenerator:
         )
         slides.append(slide1_path)
 
+        bg_reuse_path = None
         # AI arka planini bul - Slayt 2 ve 3 icin yeniden kullanilacak
         try:
             from graphics.ai_background_generator import AIGeneratorService
