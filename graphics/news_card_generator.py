@@ -175,17 +175,33 @@ class NewsCardGenerator:
         # 1. Ana Tuval (Derin Gece Tonu)
         canvas = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (8, 12, 22, 255))
 
-        # 2. Mimari Arka Plan Fotoğrafı
-        bg_file = self.SECTOR_BG_MAP.get(category, "general.jpg")
-        bg_path = self.bg_dir / bg_file
-        if not bg_path.exists():
-            bg_path = self.bg_dir / "general.jpg"
+        # 2. Mimari Arka Plan Fotoğrafı (Önce Pollinations AI Flux Motoru, Yedek Olarak Yerel Arşiv)
+        bg_path = None
+        try:
+            from graphics.ai_background_generator import AIGeneratorService
+            ai_service = AIGeneratorService()
+            bg_path = ai_service.generate_background(
+                news_id=news_id,
+                title=title,
+                institution=institution,
+                category=category,
+                width=self.WIDTH,
+                height=self.HEIGHT
+            )
+        except Exception as ai_e:
+            logger.debug(f"AI arka plan üretici pas geçildi: {ai_e}")
 
-        if bg_path.exists():
+        if not bg_path or not Path(bg_path).exists():
+            bg_file = self.SECTOR_BG_MAP.get(category, "general.jpg")
+            bg_path = self.bg_dir / bg_file
+            if not bg_path.exists():
+                bg_path = self.bg_dir / "general.jpg"
+
+        if bg_path and Path(bg_path).exists():
             try:
-                bg = Image.open(bg_path).convert("RGBA")
+                bg = Image.open(str(bg_path)).convert("RGBA")
                 # Fotoğrafı 1080x1350'ye orantılı kırp
-                scale = max(self.WIDTH / bg.width, 900 / bg.height)
+                scale = max(self.WIDTH / bg.width, 950 / bg.height)
                 new_w = int(bg.width * scale)
                 new_h = int(bg.height * scale)
                 bg = bg.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -413,17 +429,39 @@ class NewsCardGenerator:
             accent_bg = (76, 29, 149)
             accent_light = (221, 214, 254)
 
-        # 1. 1080x1920 Dikey Zemin (Lüks Karanlık Mimari Degrade)
+        # 1. 1080x1920 Dikey Zemin (AI Mimari Arka Plan + Lüks Karanlık Degrade)
         canvas = Image.new("RGBA", (sw, sh), (8, 12, 22, 255))
-        draw = ImageDraw.Draw(canvas)
 
-        # Üst ve alt ambient ışımalar
+        # AI Arka Plan Yükleme
+        try:
+            from graphics.ai_background_generator import AIGeneratorService
+            ai_service = AIGeneratorService()
+            s_bg_path = ai_service.generate_background(
+                news_id=news_id,
+                title=title,
+                institution=institution,
+                category=category,
+                width=sw,
+                height=sh
+            )
+            if s_bg_path and Path(s_bg_path).exists():
+                s_bg = Image.open(str(s_bg_path)).convert("RGBA")
+                scale = max(sw / s_bg.width, sh / s_bg.height)
+                new_w, new_h = int(s_bg.width * scale), int(s_bg.height * scale)
+                s_bg = s_bg.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                canvas.paste(s_bg, (0, 0))
+        except Exception as s_bg_err:
+            logger.debug(f"Story AI arka plan yüklenemedi: {s_bg_err}")
+
+        # Sinematik Karanlık Cam Katmanı
+        s_overlay = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+        d_over = ImageDraw.Draw(s_overlay)
         for i in range(sh):
             ratio = i / sh
-            r = int(10 + 12 * (1 - ratio))
-            g = int(14 + 18 * (1 - ratio))
-            b = int(26 + 28 * (1 - ratio))
-            draw.line([(0, i), (sw, i)], fill=(r, g, b, 255))
+            alpha = int(170 + 85 * ratio)
+            d_over.line([(0, i), (sw, i)], fill=(8, 12, 22, alpha))
+        canvas = Image.alpha_composite(canvas, s_overlay)
+        draw = ImageDraw.Draw(canvas)
 
         # Üst Vurgu Rozeti ve Branding Barı (Y: 120-260)
         draw.text((60, 130), "kamupersonelrehberiniz.me", fill=(148, 163, 184), font=self._get_font(22, bold=True))
