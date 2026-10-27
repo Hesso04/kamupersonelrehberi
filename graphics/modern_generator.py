@@ -482,7 +482,7 @@ class ModernCardGenerator:
         Streamlit Cloud ve sunucu ortamlarında %100 kararlı ve 0.05 saniyede çalışır.
         """
         # 1. Ana Tuval (Koyu Gece Laciverti)
-        canvas = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (6, 12, 25, 255))
+        canvas = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (8, 12, 22, 255))
 
         # 2. Mimari Arka Plan Fotoğrafı
         bg_filename = self.SECTOR_BG_MAP.get(sector, "general.jpg")
@@ -493,130 +493,147 @@ class ModernCardGenerator:
         if bg_path.exists():
             try:
                 bg = Image.open(bg_path).convert("RGBA")
-                bg = bg.resize((self.WIDTH, 960), Image.Resampling.LANCZOS)
+                scale = max(self.WIDTH / bg.width, 980 / bg.height)
+                bg = bg.resize((int(bg.width * scale), int(bg.height * scale)), Image.Resampling.LANCZOS)
                 canvas.paste(bg, (0, 0))
             except Exception as e:
                 logger.warning(f"Arka plan görseli yapıştırma uyarısı: {e}")
 
-        # 3. Pürüzsüz Karanlık Degrade Katmanı
+        # 3. Pürüzsüz Karanlık Degrade Katmanı (Haber kartıyla aynı sinematik akış)
         gradient = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (0, 0, 0, 0))
         d_grad = ImageDraw.Draw(gradient)
         for y in range(self.HEIGHT):
             if y < 350:
-                alpha = int(120 + (y / 350.0) * 80)
+                alpha = int(90 + (y / 350.0) * 80)
             elif y < 750:
-                alpha = int(200 + ((y - 350) / 400.0) * 55)
+                alpha = int(170 + ((y - 350) / 400.0) * 55)
+            elif y < 1150:
+                alpha = int(225 + ((y - 750) / 400.0) * 25)
             else:
                 alpha = 255
-            d_grad.line([(0, y), (self.WIDTH, y)], fill=(6, 12, 25, alpha))
+            d_grad.line([(0, y), (self.WIDTH, y)], fill=(8, 12, 22, alpha))
 
         canvas = Image.alpha_composite(canvas, gradient)
         draw = ImageDraw.Draw(canvas)
 
-        # 4. Üst Logo & Marka Başlığı
+        # Kurumsal Renk Paleti (Haber & Karusel ile birebir aynı)
+        COL_RED    = (220, 38, 38)     # Tok kırmızı rozet / aksiyon
+        COL_GOLD   = (250, 204, 21)    # Altın sarısı vurgu
+        COL_WHITE  = (255, 255, 255)   # Saf beyaz
+        COL_GRAY   = (203, 213, 225)   # Cool-gray gövde metni
+        COL_LGRAY  = (148, 163, 184)   # Açık kurumsal gri
+        COL_NAVY   = (15, 23, 42)      # Koyu lacivert zemin/panel
+
+        # 4. Üst Logo & Marka Başlığı Barı
         if self.logo_path.exists():
             try:
                 logo = Image.open(self.logo_path).convert("RGBA")
-                logo.thumbnail((54, 54), Image.Resampling.LANCZOS)
+                logo.thumbnail((50, 50), Image.Resampling.LANCZOS)
                 canvas.paste(logo, (56, 48), mask=logo)
             except Exception:
                 pass
 
-        draw.text((122, 50), "KAMUPERSONEL REHBERİ", fill=(255, 255, 255), font=self._get_font(22, bold=True))
-        draw.text((122, 78), "KAMUDA KARİYERİNİZ İÇİN DOĞRU ADRES", fill=(148, 163, 184), font=self._get_font(13))
+        draw.text((120, 50), "KAMU PERSONEL REHBERİ", fill=COL_WHITE, font=self._get_font(22, bold=True))
+        draw.text((120, 78), "KAMUDA KARİYERİNİZ İÇİN %100 RESMİ TEYİTLİ ADRES", fill=COL_LGRAY, font=self._get_font(13))
 
-        # 5. Sektör & Durum Rozeti
+        # 5. Sektör & Durum Rozeti (İkonlardan arındırılmış kurumsal dil)
         if is_cancellation:
-            draw.rounded_rectangle([(56, 130), (460, 172)], radius=10, fill=(220, 38, 38), outline=(254, 202, 202), width=1)
-            draw.text((74, 140), "🚨 ALIM İPTALİ / DÜZELTME DUYURUSU", fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            draw.rounded_rectangle([(56, 130), (460, 175)], radius=10, fill=COL_RED)
+            draw.text((74, 142), "ALIM İPTALİ / DÜZELTME DUYURUSU", fill=COL_WHITE, font=self._get_font(16, bold=True))
         elif tot_num >= 20:
-            draw.rounded_rectangle([(56, 130), (380, 172)], radius=10, fill=(37, 99, 235), outline=(56, 189, 248), width=1)
-            draw.text((74, 140), "🔥 YÜKSEK KONTENJAN", fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            draw.rounded_rectangle([(56, 130), (380, 175)], radius=10, fill=COL_RED)
+            draw.text((74, 142), f"YÜKSEK KONTENJAN: {tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(16, bold=True))
         else:
-            draw.rounded_rectangle([(56, 130), (380, 172)], radius=10, fill=(14, 165, 233), outline=(56, 189, 248), width=1)
-            draw.text((74, 140), "🏛 RESMİ KAMU ALIMI", fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            draw.rounded_rectangle([(56, 130), (320, 175)], radius=10, fill=COL_RED)
+            draw.text((74, 142), "RESMİ KAMU ALIMI", fill=COL_WHITE, font=self._get_font(16, bold=True))
 
-        # 6. Kurum Adı
-        inst_lines = self._wrap_text(clean_inst, self._get_font(36, bold=True), 960)
-        y_cur = 200
-        for line in inst_lines[:3]:
-            draw.text((56, y_cur), line, fill=(255, 255, 255), font=self._get_font(36, bold=True))
+        # 6. Kurum Adı (Asil Kurumsal Başlık)
+        font_inst = self._get_font(36, bold=True)
+        inst_lines = self._wrap_text(clean_inst, font_inst, 960)
+        y_cur = 205
+        for line in inst_lines[:2]:
+            draw.text((56, y_cur), line, fill=COL_WHITE, font=font_inst)
             y_cur += 48
 
-        # 7. Kadro / Pozisyon Başlığı
+        # 7. Kadro / Pozisyon Başlığı (Tok Gold Vurgu)
         pos_lines = self._wrap_text(clean_pos, self._get_font(42, bold=True), 960)
-        y_cur += 12
-        pos_color = (248, 113, 113) if is_cancellation else (250, 204, 21)
-        for line in pos_lines[:3]:
+        y_cur += 10
+        pos_color = (248, 113, 113) if is_cancellation else COL_GOLD
+        for line in pos_lines[:2]:
             draw.text((56, y_cur), line, fill=pos_color, font=self._get_font(42, bold=True))
-            y_cur += 54
+            y_cur += 52
 
-        # 8. İkili Özet Cam Kartları
+        # 8. İkili Özet Cam Kartları (Navy Zemin + İnce Hafif Kenarlık)
+        card_bg = (15, 23, 42)
+        card_border = (51, 65, 85)
+
         # Sol Kart: Kontenjan
-        draw.rounded_rectangle([(56, 620), (524, 760)], radius=18, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        draw.text((80, 642), "KONTENJAN", fill=(148, 163, 184), font=self._get_font(15, bold=True))
-        draw.text((80, 670), f"{tot_num} KİŞİ", fill=(56, 189, 248), font=self._get_font(36, bold=True))
-        draw.text((80, 722), "Resmi Kontenjan", fill=(100, 116, 139), font=self._get_font(14))
+        draw.rounded_rectangle([(56, 615), (524, 755)], radius=16, fill=card_bg, outline=card_border, width=1)
+        draw.text((80, 635), "KONTENJAN", fill=COL_LGRAY, font=self._get_font(15, bold=True))
+        draw.text((80, 665), f"{tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(36, bold=True))
+        draw.text((80, 718), "Resmi Kadro Sayısı", fill=COL_GOLD, font=self._get_font(14))
 
         # Sağ Kart: Son Başvuru
-        draw.rounded_rectangle([(556, 620), (1024, 760)], radius=18, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        draw.text((580, 642), "SON BAŞVURU", fill=(148, 163, 184), font=self._get_font(15, bold=True))
-        draw.text((580, 674), str(deadline_str).upper()[:18], fill=(255, 255, 255), font=self._get_font(28, bold=True))
-        draw.text((580, 722), "Resmi Başvuru Takvimi", fill=(100, 116, 139), font=self._get_font(14))
+        draw.rounded_rectangle([(556, 615), (1024, 755)], radius=16, fill=card_bg, outline=card_border, width=1)
+        draw.text((580, 635), "SON BAŞVURU", fill=COL_LGRAY, font=self._get_font(15, bold=True))
+        draw.text((580, 668), str(deadline_str).upper()[:18], fill=COL_WHITE, font=self._get_font(28, bold=True))
+        draw.text((580, 718), "Resmi Başvuru Takvimi", fill=COL_GOLD, font=self._get_font(14))
 
-        # 9. Şartlar Listesi
+        # 9. Şartlar Listesi (Kurumsal Sade Navy Paneller)
         bullets_data = [
             ("ÖĞRENİM ŞARTI", edu_str),
             ("KPSS ŞARTI", kpss_str),
             ("GÖREV YERİ", city_str),
             ("RESMİ KILAVUZ", "Resmi Kılavuz & Başvuru Dokümanı Yayımlandı")
         ]
-        b_y = 790
+        b_y = 780
         for tag, val in bullets_data:
-            draw.rounded_rectangle([(56, b_y), (1024, b_y + 68)], radius=14, fill=(15, 23, 42), outline=(51, 65, 85), width=1)
-            draw.text((78, b_y + 22), f"{tag}:", fill=(56, 189, 248), font=self._get_font(17, bold=True))
+            draw.rounded_rectangle([(56, b_y), (1024, b_y + 68)], radius=14, fill=card_bg, outline=card_border, width=1)
+            # Sol kenar dikey altın vurgusu
+            draw.rounded_rectangle([(58, b_y + 8), (64, b_y + 60)], radius=3, fill=COL_GOLD)
+            draw.text((82, b_y + 22), f"{tag}:", fill=COL_GOLD, font=self._get_font(17, bold=True))
             bbox = self._get_font(17, bold=True).getbbox(f"{tag}: ")
             tag_w = bbox[2] - bbox[0]
             val_display = str(val)[:58] if val else "Resmi İlanda Belirtilmiştir"
-            draw.text((78 + tag_w + 10, b_y + 22), val_display, fill=(226, 232, 240), font=self._get_font(17))
-            b_y += 82
+            draw.text((82 + tag_w + 10, b_y + 22), val_display, fill=COL_GRAY, font=self._get_font(17))
+            b_y += 80
 
-        # 10. CTA & Web Adresi Butonlari
-        cta_btn_color = (220, 38, 38) if is_cancellation else (37, 99, 235)
-        cta_text = "IPTAL DETAYLARINI INCELE" if is_cancellation else "SARTLARI INCELE & RESMI KILAVUZU INDIR"
-        draw.rounded_rectangle([(56, 1160), (1024, 1240)], radius=16, fill=cta_btn_color)
+        # 10. CTA & Web Adresi Butonları (Kırmızı Aksiyon + Beyaz/Navy URL Pill)
+        cta_btn_color = COL_RED
+        cta_text = "İPTAL DETAYLARINI İNCELE" if is_cancellation else "ŞARTLARI İNCELE & RESMİ KILAVUZU İNDİR"
+        draw.rounded_rectangle([(56, 1150), (1024, 1230)], radius=16, fill=cta_btn_color)
         cta_font = self._get_font(22, bold=True)
         bbox_cta = draw.textbbox((0, 0), cta_text, font=cta_font)
         cta_tw = bbox_cta[2] - bbox_cta[0]
-        draw.text(((1080 - cta_tw) // 2, 1193), cta_text, fill=(255, 255, 255), font=cta_font)
+        draw.text(((1080 - cta_tw) // 2, 1183), cta_text, fill=COL_WHITE, font=cta_font)
 
-        # Buyutulmus & tam merkezli web URL pill
+        # Büyütülmüş & tam merkezli web URL pill (Navy zemin, altın sarısı / beyaz tipografi)
         url_bar_w, url_bar_h = 660, 60
         url_bar_x = (1080 - url_bar_w) // 2
-        url_bar_y = 1260
-        draw.rounded_rectangle([(url_bar_x - 3, url_bar_y - 3), (url_bar_x + url_bar_w + 3, url_bar_y + url_bar_h + 3)], radius=35, fill=(0, 0, 0, 80))
-        draw.rounded_rectangle([(url_bar_x, url_bar_y), (url_bar_x + url_bar_w, url_bar_y + url_bar_h)], radius=32, fill=(15, 23, 42), outline=(56, 189, 248), width=2)
-        url_disp = website_url.replace("https://", "").replace("http://", "")
+        url_bar_y = 1255
+        draw.rounded_rectangle([(url_bar_x - 3, url_bar_y - 3), (url_bar_x + url_bar_w + 3, url_bar_y + url_bar_h + 3)], radius=32, fill=(0, 0, 0, 90))
+        draw.rounded_rectangle([(url_bar_x, url_bar_y), (url_bar_x + url_bar_w, url_bar_y + url_bar_h)], radius=30, fill=(15, 23, 42), outline=(255, 255, 255, 120), width=2)
+        url_disp = "www.kamupersonelrehberiniz.me"
         url_font = self._get_font(22, bold=True)
         bbox_url = draw.textbbox((0, 0), url_disp, font=url_font)
         url_tw = bbox_url[2] - bbox_url[0]
-        draw.text(((1080 - url_tw) // 2, url_bar_y + 18), url_disp, fill=(56, 189, 248), font=url_font)
+        draw.text(((1080 - url_tw) // 2, url_bar_y + 18), url_disp, fill=COL_WHITE, font=url_font)
 
-        # Yorum CTA satiri - tamamen merkezli
-        ilan_cta = "Ilan detaylari icin yoruma KILAVUZ veya LINK yazin"
-        ilan_cta_font = self._get_font(14)
+        # Yorum CTA satırı - tamamen merkezli
+        ilan_cta = "İlan detayları için yoruma KILAVUZ veya LİNK yazın"
+        ilan_cta_font = self._get_font(15, bold=False)
         bbox_ilan = draw.textbbox((0, 0), ilan_cta, font=ilan_cta_font)
         ilan_tw = bbox_ilan[2] - bbox_ilan[0]
-        draw.text(((1080 - ilan_tw) // 2, url_bar_y + url_bar_h + 14), ilan_cta, fill=(100, 116, 139), font=ilan_cta_font)
+        draw.text(((1080 - ilan_tw) // 2, url_bar_y + url_bar_h + 14), ilan_cta, fill=COL_GOLD, font=ilan_cta_font)
 
-        # 11. Alt Imza
+        # 11. Alt İmza
         draw.line([(56, 1540), (1024, 1540)], fill=(51, 65, 85), width=1)
-        draw.text((270, 1560), "DOGRU BILGI  |  DOGRU KARIYER  |  KAMU PERSONEL REHBERI", fill=(100, 116, 139), font=self._get_font(14, bold=True))
+        draw.text((270, 1560), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=COL_LGRAY, font=self._get_font(14, bold=True))
 
-        # 12. RGB Cikti Kaydet
+        # 12. RGB Çıktı Kaydet
         final_img = canvas.convert("RGB")
         final_img.save(str(filepath), "PNG", quality=95)
-        logger.info(f"Yeni Nesil Modern Afis Uretildi [Pillow Engine/{sector}]: {filepath}")
+        logger.info(f"Yeni Nesil Modern Afiş Üretildi [Pillow Engine/{sector}]: {filepath}")
         return filepath
 
     def _render_pillow_modern_story_card(
@@ -638,7 +655,7 @@ class ModernCardGenerator:
         1080x1920 boyutunda Instagram Story ve Reels için modern 9:16 görsel üretir.
         """
         w, h = 1080, 1920
-        canvas = Image.new("RGBA", (w, h), (6, 12, 25, 255))
+        canvas = Image.new("RGBA", (w, h), (8, 12, 22, 255))
 
         bg_filename = self.SECTOR_BG_MAP.get(sector, "general.jpg")
         bg_path = self.bg_dir / bg_filename
@@ -647,100 +664,142 @@ class ModernCardGenerator:
         if bg_path.exists():
             try:
                 bg = Image.open(bg_path).convert("RGBA")
-                bg = bg.resize((w, 1100), Image.Resampling.LANCZOS)
+                scale = max(w / bg.width, 1100 / bg.height)
+                bg = bg.resize((int(bg.width * scale), int(bg.height * scale)), Image.Resampling.LANCZOS)
                 canvas.paste(bg, (0, 0))
             except Exception as e:
                 logger.warning(f"Story arka plan hatası: {e}")
 
+        # Sinematik Degrade
         gradient = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         d_grad = ImageDraw.Draw(gradient)
         for y in range(h):
-            if y < 400:
-                alpha = int(100 + (y / 400.0) * 80)
+            if y < 350:
+                alpha = int(80 + (y / 350.0) * 80)
             elif y < 900:
-                alpha = int(180 + ((y - 400) / 500.0) * 75)
+                alpha = int(160 + ((y - 350) / 550.0) * 65)
+            elif y < 1450:
+                alpha = int(225 + ((y - 900) / 550.0) * 25)
             else:
                 alpha = 255
-            d_grad.line([(0, y), (w, y)], fill=(6, 12, 25, alpha))
+            d_grad.line([(0, y), (w, y)], fill=(8, 12, 22, alpha))
         canvas = Image.alpha_composite(canvas, gradient)
         draw = ImageDraw.Draw(canvas)
 
+        COL_RED    = (220, 38, 38)
+        COL_GOLD   = (250, 204, 21)
+        COL_WHITE  = (255, 255, 255)
+        COL_GRAY   = (203, 213, 225)
+        COL_LGRAY  = (148, 163, 184)
+        COL_NAVY   = (15, 23, 42)
+
+        # Üst Logo & Marka Başlığı
         if self.logo_path.exists():
             try:
                 logo = Image.open(self.logo_path).convert("RGBA")
-                logo.thumbnail((60, 60), Image.Resampling.LANCZOS)
+                logo.thumbnail((54, 54), Image.Resampling.LANCZOS)
                 canvas.paste(logo, (56, 70), mask=logo)
             except Exception:
                 pass
 
-        draw.text((130, 72), "KAMUPERSONEL REHBERİ", fill=(255, 255, 255), font=self._get_font(24, bold=True))
-        draw.text((130, 104), "KAMUDA KARİYERİNİZ İÇİN DOĞRU ADRES", fill=(148, 163, 184), font=self._get_font(14))
+        draw.text((124, 72), "KAMU PERSONEL REHBERİ", fill=COL_WHITE, font=self._get_font(24, bold=True))
+        draw.text((124, 104), "KAMUDA KARİYERİNİZ İÇİN %100 RESMİ TEYİTLİ ADRES", fill=COL_LGRAY, font=self._get_font(14))
 
         if is_cancellation:
-            draw.rounded_rectangle([(56, 165), (520, 215)], radius=12, fill=(220, 38, 38), outline=(254, 202, 202), width=1)
-            draw.text((76, 178), "🚨 ALIM İPTALİ / DÜZELTME DUYURUSU", fill=(255, 255, 255), font=self._get_font(18, bold=True))
+            draw.rounded_rectangle([(56, 165), (520, 215)], radius=12, fill=COL_RED)
+            draw.text((76, 178), "ALIM İPTALİ / DÜZELTME DUYURUSU", fill=COL_WHITE, font=self._get_font(18, bold=True))
         elif tot_num >= 20:
-            draw.rounded_rectangle([(56, 165), (460, 215)], radius=12, fill=(37, 99, 235), outline=(56, 189, 248), width=1)
-            draw.text((76, 178), f"🔥 {tot_num:,} KİŞİLİK PERSONEL ALIMI".replace(",", "."), fill=(255, 255, 255), font=self._get_font(18, bold=True))
+            draw.rounded_rectangle([(56, 165), (460, 215)], radius=12, fill=COL_RED)
+            draw.text((76, 178), f"YÜKSEK KONTENJAN: {tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(18, bold=True))
         else:
-            draw.rounded_rectangle([(56, 165), (420, 215)], radius=12, fill=(14, 165, 233), outline=(56, 189, 248), width=1)
-            draw.text((76, 178), "🏛 RESMİ KAMU ALIMI", fill=(255, 255, 255), font=self._get_font(18, bold=True))
+            draw.rounded_rectangle([(56, 165), (340, 215)], radius=12, fill=COL_RED)
+            draw.text((76, 178), "RESMİ KAMU ALIMI", fill=COL_WHITE, font=self._get_font(18, bold=True))
 
         inst_lines = self._wrap_text(clean_inst, self._get_font(38, bold=True), 960)
         y_cur = 250
-        for line in inst_lines[:3]:
-            draw.text((56, y_cur), line, fill=(255, 255, 255), font=self._get_font(38, bold=True))
+        for line in inst_lines[:2]:
+            draw.text((56, y_cur), line, fill=COL_WHITE, font=self._get_font(38, bold=True))
             y_cur += 50
 
         pos_lines = self._wrap_text(clean_pos, self._get_font(44, bold=True), 960)
-        pos_color = (248, 113, 113) if is_cancellation else (250, 204, 21)
-        y_cur += 15
-        for line in pos_lines[:3]:
+        y_cur += 12
+        pos_color = (248, 113, 113) if is_cancellation else COL_GOLD
+        for line in pos_lines[:2]:
             draw.text((56, y_cur), line, fill=pos_color, font=self._get_font(44, bold=True))
             y_cur += 56
 
-        card_y = 570
-        draw.rounded_rectangle([(56, card_y), (524, card_y + 150)], radius=20, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        draw.text((80, card_y + 22), "KONTENJAN", fill=(148, 163, 184), font=self._get_font(16, bold=True))
-        draw.text((80, card_y + 54), f"{tot_num:,} KİŞİ".replace(",", "."), fill=(56, 189, 248), font=self._get_font(38, bold=True))
-        draw.text((80, card_y + 110), "Resmi Kadro Sayısı", fill=(100, 116, 139), font=self._get_font(14))
+        card_bg = (15, 23, 42)
+        card_border = (51, 65, 85)
 
-        draw.rounded_rectangle([(556, card_y), (1024, card_y + 150)], radius=20, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        draw.text((580, card_y + 22), "SON BAŞVURU", fill=(148, 163, 184), font=self._get_font(16, bold=True))
-        draw.text((580, card_y + 58), str(deadline_str).upper()[:16], fill=(255, 255, 255), font=self._get_font(28, bold=True))
-        draw.text((580, card_y + 110), "Resmi Başvuru Takvimi", fill=(100, 116, 139), font=self._get_font(14))
+        card_y = 570
+        draw.rounded_rectangle([(56, card_y), (524, card_y + 150)], radius=20, fill=card_bg, outline=card_border, width=1)
+        draw.text((80, card_y + 22), "KONTENJAN", fill=COL_LGRAY, font=self._get_font(16, bold=True))
+        draw.text((80, card_y + 54), f"{tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(38, bold=True))
+        draw.text((80, card_y + 110), "Resmi Kadro Sayısı", fill=COL_GOLD, font=self._get_font(14))
+
+        draw.rounded_rectangle([(556, card_y), (1024, card_y + 150)], radius=20, fill=card_bg, outline=card_border, width=1)
+        draw.text((580, card_y + 22), "SON BAŞVURU", fill=COL_LGRAY, font=self._get_font(16, bold=True))
+        draw.text((580, card_y + 58), str(deadline_str).upper()[:16], fill=COL_WHITE, font=self._get_font(28, bold=True))
+        draw.text((580, card_y + 110), "Resmi Başvuru Takvimi", fill=COL_GOLD, font=self._get_font(14))
 
         pills = [("ÖĞRENİM", edu_str), ("KPSS", kpss_str), ("GÖREV YERİ", city_str)]
         b_y = 760
         for tag, val in pills:
-            draw.rounded_rectangle([(56, b_y), (1024, b_y + 72)], radius=16, fill=(15, 23, 42), outline=(51, 65, 85), width=1)
-            draw.text((80, b_y + 24), f"{tag}:", fill=(56, 189, 248), font=self._get_font(18, bold=True))
+            draw.rounded_rectangle([(56, b_y), (1024, b_y + 72)], radius=16, fill=card_bg, outline=card_border, width=1)
+            draw.rounded_rectangle([(58, b_y + 8), (64, b_y + 64)], radius=3, fill=COL_GOLD)
+            draw.text((82, b_y + 24), f"{tag}:", fill=COL_GOLD, font=self._get_font(18, bold=True))
             bbox = self._get_font(18, bold=True).getbbox(f"{tag}: ")
             tag_w = bbox[2] - bbox[0]
-            draw.text((80 + tag_w + 12, b_y + 24), str(val)[:52], fill=(226, 232, 240), font=self._get_font(18))
+            draw.text((82 + tag_w + 12, b_y + 24), str(val)[:52], fill=COL_GRAY, font=self._get_font(18))
             b_y += 88
 
-        # Instagram Story Link Sticker Safe Zone (Orta Alan)
-        draw.rounded_rectangle([(56, 1070), (1024, 1300)], radius=24, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        draw.text((360, 1100), "🔗 RESMİ BAŞVURU LİNKİ", fill=(56, 189, 248), font=self._get_font(26, bold=True))
-        draw.text((270, 1148), "Hikayedeki link çıkartmasına dokunarak", fill=(255, 255, 255), font=self._get_font(20))
-        draw.text((310, 1184), "resmi kılavuza ve başvuruya hemen ulaşın! 👆", fill=(250, 204, 21), font=self._get_font(20, bold=True))
-        draw.text((330, 1234), f"İlan No: #{job_id} • Doğrulanmış Resmi İlan", fill=(148, 163, 184), font=self._get_font(16))
+        # Instagram Story Link Sticker Alanı (Haber story kartıyla birebir uyumlu)
+        box_y1 = 1060
+        box_y2 = 1350
+        draw.rounded_rectangle([(56, box_y1), (1024, box_y2)], radius=22, fill=card_bg, outline=card_border, width=1)
+        draw.rounded_rectangle([(80, box_y1 + 22), (86, box_y1 + 62)], radius=3, fill=COL_RED)
+        draw.text((100, box_y1 + 26), "RESMİ KILAVUZ & BAŞVURU LİNKİ", fill=COL_WHITE, font=self._get_font(24, bold=True))
 
-        # CTA Button
-        cta_btn_color = (220, 38, 38) if is_cancellation else (37, 99, 235)
-        cta_text = "İPTAL DETAYLARINI İNCELE →" if is_cancellation else "RESMİ KILAVUZU GÖRÜNTÜLE →"
-        draw.rounded_rectangle([(56, 1350), (1024, 1440)], radius=18, fill=cta_btn_color)
-        draw.text((270, 1378), cta_text, fill=(255, 255, 255), font=self._get_font(26, bold=True))
+        # Beyaz simüle sticker butonu
+        btn_y1 = box_y1 + 80
+        btn_y2 = box_y1 + 190
+        btn_x1 = 90
+        btn_x2 = 1080 - 90
+        draw.rounded_rectangle([(btn_x1 - 3, btn_y1 - 3), (btn_x2 + 3, btn_y2 + 3)], radius=55, fill=(0, 0, 0, 70))
+        draw.rounded_rectangle([(btn_x1, btn_y1), (btn_x2, btn_y2)], radius=55, fill=(255, 255, 255), outline=(226, 232, 240), width=2)
+
+        font_btn = self._get_font(32, bold=True)
+        btn_lbl = "DETAYLAR İÇİN TIKLAYINIZ"
+        btn_bbox = draw.textbbox((0, 0), btn_lbl, font=font_btn)
+        btn_lbl_w = btn_bbox[2] - btn_bbox[0]
+        draw.text(((1080 - btn_lbl_w) // 2, btn_y1 + 36), btn_lbl, fill=COL_NAVY, font=font_btn)
+
+        # Buton altı site linki
+        font_sub_link = self._get_font(22, bold=True)
+        sub_link_txt = "kamupersonelrehberiniz.me"
+        sub_bbox = draw.textbbox((0, 0), sub_link_txt, font=font_sub_link)
+        sub_w = sub_bbox[2] - sub_bbox[0]
+        draw.text(((1080 - sub_w) // 2, btn_y2 + 15), sub_link_txt, fill=COL_GOLD, font=font_sub_link)
+
+        # Alt Bilgi Barı
+        cta_btn_color = COL_RED
+        cta_text = "İPTAL DETAYLARINI İNCELE" if is_cancellation else "RESMİ KILAVUZU GÖRÜNTÜLE"
+        draw.rounded_rectangle([(56, 1400), (1024, 1490)], radius=18, fill=cta_btn_color)
+        cta_font = self._get_font(24, bold=True)
+        bbox_cta = draw.textbbox((0, 0), cta_text, font=cta_font)
+        cta_tw = bbox_cta[2] - bbox_cta[0]
+        draw.text(((1080 - cta_tw) // 2, 1428), cta_text, fill=COL_WHITE, font=cta_font)
 
         # Web adresi
-        draw.rounded_rectangle([(56, 1470), (1024, 1550)], radius=18, fill=(15, 23, 42), outline=(56, 189, 248), width=1)
-        draw.text((330, 1494), f"🌐 {website_url}", fill=(56, 189, 248), font=self._get_font(24, bold=True))
+        draw.rounded_rectangle([(56, 1515), (1024, 1595)], radius=18, fill=(15, 23, 42), outline=(255, 255, 255, 120), width=1)
+        url_font = self._get_font(24, bold=True)
+        bbox_u = draw.textbbox((0, 0), website_url, font=url_font)
+        uw = bbox_u[2] - bbox_u[0]
+        draw.text(((1080 - uw) // 2, 1538), website_url, fill=COL_WHITE, font=url_font)
 
         # Footer
         draw.line([(56, 1780), (1024, 1780)], fill=(51, 65, 85), width=1)
-        draw.text((260, 1810), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=(100, 116, 139), font=self._get_font(15, bold=True))
-        draw.text((340, 1840), "Takip Edin: @kamupersonelrehberi", fill=(56, 189, 248), font=self._get_font(16, bold=True))
+        draw.text((260, 1810), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=COL_LGRAY, font=self._get_font(15, bold=True))
 
         final_img = canvas.convert("RGB")
         final_img.save(str(filepath), "PNG", quality=95)
@@ -769,7 +828,7 @@ class ModernCardGenerator:
         slides = []
 
         # ================= SLAYT 1: KAPAK (HOOK) =================
-        c1 = Image.new("RGBA", (w, h), (6, 12, 25, 255))
+        c1 = Image.new("RGBA", (w, h), (8, 12, 22, 255))
         bg_filename = self.SECTOR_BG_MAP.get(sector, "general.jpg")
         bg_path = self.bg_dir / bg_filename
         if not bg_path.exists():
@@ -777,7 +836,8 @@ class ModernCardGenerator:
         if bg_path.exists():
             try:
                 bg = Image.open(bg_path).convert("RGBA")
-                bg = bg.resize((w, 800), Image.Resampling.LANCZOS)
+                scale = max(w / bg.width, 800 / bg.height)
+                bg = bg.resize((int(bg.width * scale), int(bg.height * scale)), Image.Resampling.LANCZOS)
                 c1.paste(bg, (0, 0))
             except Exception as e:
                 logger.warning(f"Carousel arka plan hatası: {e}")
@@ -786,14 +846,23 @@ class ModernCardGenerator:
         d_g1 = ImageDraw.Draw(grad1)
         for y in range(h):
             if y < 250:
-                alpha = int(100 + (y / 250.0) * 80)
+                alpha = int(90 + (y / 250.0) * 80)
             elif y < 650:
-                alpha = int(180 + ((y - 250) / 400.0) * 75)
+                alpha = int(170 + ((y - 250) / 400.0) * 60)
             else:
                 alpha = 255
-            d_g1.line([(0, y), (w, y)], fill=(6, 12, 25, alpha))
+            d_g1.line([(0, y), (w, y)], fill=(8, 12, 22, alpha))
         c1 = Image.alpha_composite(c1, grad1)
         d1 = ImageDraw.Draw(c1)
+
+        COL_RED    = (220, 38, 38)
+        COL_GOLD   = (250, 204, 21)
+        COL_WHITE  = (255, 255, 255)
+        COL_GRAY   = (203, 213, 225)
+        COL_LGRAY  = (148, 163, 184)
+        COL_NAVY   = (15, 23, 42)
+        card_bg    = (15, 23, 42)
+        card_border = (51, 65, 85)
 
         if self.logo_path.exists():
             try:
@@ -803,42 +872,42 @@ class ModernCardGenerator:
             except Exception:
                 pass
 
-        d1.text((120, 46), "KAMUPERSONEL REHBERİ", fill=(255, 255, 255), font=self._get_font(22, bold=True))
-        d1.text((120, 74), "KAMUDA KARİYERİNİZ İÇİN DOĞRU ADRES", fill=(148, 163, 184), font=self._get_font(13))
+        d1.text((120, 46), "KAMU PERSONEL REHBERİ", fill=COL_WHITE, font=self._get_font(22, bold=True))
+        d1.text((120, 74), "KAMUDA KARİYERİNİZ İÇİN %100 RESMİ TEYİTLİ ADRES", fill=COL_LGRAY, font=self._get_font(13))
 
         if is_cancellation:
-            d1.rounded_rectangle([(56, 125), (480, 170)], radius=10, fill=(220, 38, 38), outline=(254, 202, 202), width=1)
-            d1.text((76, 137), "🚨 İLAN İPTALİ / DÜZELTME DUYURUSU", fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            d1.rounded_rectangle([(56, 125), (480, 170)], radius=10, fill=COL_RED)
+            d1.text((76, 137), "İLAN İPTALİ / DÜZELTME DUYURUSU", fill=COL_WHITE, font=self._get_font(16, bold=True))
         elif tot_num >= 20:
-            d1.rounded_rectangle([(56, 125), (460, 170)], radius=10, fill=(37, 99, 235), outline=(56, 189, 248), width=1)
-            d1.text((76, 137), f"🔥 {tot_num:,} KİŞİLİK PERSONEL ALIMI".replace(",", "."), fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            d1.rounded_rectangle([(56, 125), (460, 170)], radius=10, fill=COL_RED)
+            d1.text((76, 137), f"YÜKSEK KONTENJAN: {tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(16, bold=True))
         else:
-            d1.rounded_rectangle([(56, 125), (420, 170)], radius=10, fill=(14, 165, 233), outline=(56, 189, 248), width=1)
-            d1.text((76, 137), "🏛 RESMİ KAMU ALIMI", fill=(255, 255, 255), font=self._get_font(16, bold=True))
+            d1.rounded_rectangle([(56, 125), (340, 170)], radius=10, fill=COL_RED)
+            d1.text((76, 137), "RESMİ KAMU ALIMI", fill=COL_WHITE, font=self._get_font(16, bold=True))
 
         inst_lines = self._wrap_text(clean_inst, self._get_font(36, bold=True), 960)
         y_cur = 200
-        for line in inst_lines[:3]:
-            d1.text((56, y_cur), line, fill=(255, 255, 255), font=self._get_font(36, bold=True))
+        for line in inst_lines[:2]:
+            d1.text((56, y_cur), line, fill=COL_WHITE, font=self._get_font(36, bold=True))
             y_cur += 48
 
         pos_lines = self._wrap_text(clean_pos, self._get_font(42, bold=True), 960)
-        pos_color = (248, 113, 113) if is_cancellation else (250, 204, 21)
+        pos_color = (248, 113, 113) if is_cancellation else COL_GOLD
         y_cur += 12
-        for line in pos_lines[:3]:
+        for line in pos_lines[:2]:
             d1.text((56, y_cur), line, fill=pos_color, font=self._get_font(42, bold=True))
             y_cur += 54
 
         card_y = 540
-        d1.rounded_rectangle([(56, card_y), (524, card_y + 140)], radius=18, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        d1.text((80, card_y + 20), "KONTENJAN", fill=(148, 163, 184), font=self._get_font(15, bold=True))
-        d1.text((80, card_y + 48), f"{tot_num:,} KİŞİ".replace(",", "."), fill=(56, 189, 248), font=self._get_font(36, bold=True))
-        d1.text((80, card_y + 100), "Resmi Kadro Sayısı", fill=(100, 116, 139), font=self._get_font(14))
+        d1.rounded_rectangle([(56, card_y), (524, card_y + 140)], radius=18, fill=card_bg, outline=card_border, width=1)
+        d1.text((80, card_y + 20), "KONTENJAN", fill=COL_LGRAY, font=self._get_font(15, bold=True))
+        d1.text((80, card_y + 48), f"{tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(36, bold=True))
+        d1.text((80, card_y + 100), "Resmi Kadro Sayısı", fill=COL_GOLD, font=self._get_font(14))
 
-        d1.rounded_rectangle([(556, card_y), (1024, card_y + 140)], radius=18, fill=(14, 26, 52), outline=(56, 189, 248), width=2)
-        d1.text((580, card_y + 20), "SON BAŞVURU", fill=(148, 163, 184), font=self._get_font(15, bold=True))
-        d1.text((580, card_y + 52), str(deadline_str).upper()[:16], fill=(255, 255, 255), font=self._get_font(28, bold=True))
-        d1.text((580, card_y + 100), "Resmi Başvuru Takvimi", fill=(100, 116, 139), font=self._get_font(14))
+        d1.rounded_rectangle([(556, card_y), (1024, card_y + 140)], radius=18, fill=card_bg, outline=card_border, width=1)
+        d1.text((580, card_y + 20), "SON BAŞVURU", fill=COL_LGRAY, font=self._get_font(15, bold=True))
+        d1.text((580, card_y + 52), str(deadline_str).upper()[:16], fill=COL_WHITE, font=self._get_font(28, bold=True))
+        d1.text((580, card_y + 100), "Resmi Başvuru Takvimi", fill=COL_GOLD, font=self._get_font(14))
 
         bullets_data = [
             ("ÖĞRENİM", edu_str),
@@ -847,86 +916,90 @@ class ModernCardGenerator:
         ]
         b_y = 715
         for tag, val in bullets_data:
-            d1.rounded_rectangle([(56, b_y), (1024, b_y + 64)], radius=14, fill=(15, 23, 42), outline=(51, 65, 85), width=1)
-            d1.text((78, b_y + 20), f"{tag}:", fill=(56, 189, 248), font=self._get_font(17, bold=True))
+            d1.rounded_rectangle([(56, b_y), (1024, b_y + 64)], radius=14, fill=card_bg, outline=card_border, width=1)
+            d1.rounded_rectangle([(58, b_y + 8), (64, b_y + 56)], radius=3, fill=COL_GOLD)
+            d1.text((82, b_y + 20), f"{tag}:", fill=COL_GOLD, font=self._get_font(17, bold=True))
             bbox = self._get_font(17, bold=True).getbbox(f"{tag}: ")
             tag_w = bbox[2] - bbox[0]
-            d1.text((78 + tag_w + 10, b_y + 20), str(val)[:56], fill=(226, 232, 240), font=self._get_font(17))
+            d1.text((82 + tag_w + 10, b_y + 20), str(val)[:56], fill=COL_GRAY, font=self._get_font(17))
             b_y += 76
 
-        d1.rounded_rectangle([(56, 965), (1024, 1040)], radius=16, fill=(37, 99, 235))
-        d1.text((180, 988), "👉 TÜM DETAYLAR VE ŞARTLAR İÇİN SOLA KAYDIRIN (1/3)", fill=(255, 255, 255), font=self._get_font(21, bold=True))
+        d1.rounded_rectangle([(56, 965), (1024, 1040)], radius=16, fill=COL_RED)
+        d1.text((230, 988), "TÜM DETAYLAR VE ŞARTLAR İÇİN SOLA KAYDIRIN (1/3) >>>", fill=COL_WHITE, font=self._get_font(21, bold=True))
 
         d1.line([(56, 1260), (1024, 1260)], fill=(51, 65, 85), width=1)
-        d1.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=(100, 116, 139), font=self._get_font(14, bold=True))
+        d1.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=COL_LGRAY, font=self._get_font(14, bold=True))
 
         p1 = self.output_dir / f"carousel_{job_id}_slide1_{timestamp}.png"
         c1.convert("RGB").save(str(p1), "PNG", quality=95)
         slides.append(p1)
 
         # ================= SLAYT 2: DETAYLAR (VALUE) =================
-        c2 = Image.new("RGBA", (w, h), (6, 12, 25, 255))
+        c2 = Image.new("RGBA", (w, h), (8, 12, 22, 255))
         d2 = ImageDraw.Draw(c2)
 
-        d2.rounded_rectangle([(56, 50), (1024, 125)], radius=16, fill=(14, 26, 52), outline=(56, 189, 248), width=1)
-        d2.text((80, 68), "📋 BAŞVURU ŞARTLARI & KADRO DAĞILIMI", fill=(56, 189, 248), font=self._get_font(22, bold=True))
-        d2.text((80, 96), f"{clean_inst[:40]} — {clean_pos[:40]}", fill=(255, 255, 255), font=self._get_font(16))
+        d2.rounded_rectangle([(56, 50), (1024, 125)], radius=16, fill=card_bg, outline=card_border, width=1)
+        d2.text((80, 68), "BAŞVURU ŞARTLARI & KADRO DAĞILIMI", fill=COL_GOLD, font=self._get_font(22, bold=True))
+        d2.text((80, 96), f"{clean_inst[:40]} — {clean_pos[:40]}", fill=COL_WHITE, font=self._get_font(16))
 
         cards_data = [
-            ("🎓 ÖĞRENİM ŞARTI", edu_str, "İlgili bölüm mezuniyeti ve resmi diploma şartı aranmaktadır."),
-            ("🎯 KPSS PUAN ŞARTI", kpss_str, "Belirtilen taban KPSS puanını sağlayan adaylar başvurabilir."),
-            ("📍 GÖREV YERİ / ŞEHİR", city_str, "Atama yapılacak il ve kurum teşkilatı merkezleri."),
-            ("🗓️ BAŞVURU TAKVİMİ", f"Son Gün: {deadline_str}", "Başvurular resmi kamu portalı üzerinden alınmaktadır."),
-            ("📄 RESMİ KILAVUZ", "Resmi Başvuru Kılavuzu & Kadro Dağılımı Yayında", "Tüm özel şartlar, unvan tablosu ve belgeler kılavuzda yer alır.")
+            ("ÖĞRENİM ŞARTI", edu_str, "İlgili bölüm mezuniyeti ve resmi diploma şartı aranmaktadır."),
+            ("KPSS PUAN ŞARTI", kpss_str, "Belirtilen taban KPSS puanını sağlayan adaylar başvurabilir."),
+            ("GÖREV YERİ / ŞEHİR", city_str, "Atama yapılacak il ve kurum teşkilatı merkezleri."),
+            ("BAŞVURU TAKVİMİ", f"Son Gün: {deadline_str}", "Başvurular resmi kamu portalı üzerinden alınmaktadır."),
+            ("RESMİ KILAVUZ", "Resmi Başvuru Kılavuzu & Kadro Dağılımı Yayında", "Tüm özel şartlar, unvan tablosu ve belgeler kılavuzda yer alır.")
         ]
         cy = 160
         for title_c, val_c, desc_c in cards_data:
-            d2.rounded_rectangle([(56, cy), (1024, cy + 140)], radius=18, fill=(15, 23, 42), outline=(51, 65, 85), width=1)
-            d2.text((80, cy + 20), title_c, fill=(56, 189, 248), font=self._get_font(18, bold=True))
-            d2.text((80, cy + 54), str(val_c)[:52], fill=(255, 255, 255), font=self._get_font(22, bold=True))
-            d2.text((80, cy + 96), desc_c[:65], fill=(148, 163, 184), font=self._get_font(15))
+            d2.rounded_rectangle([(56, cy), (1024, cy + 140)], radius=18, fill=card_bg, outline=card_border, width=1)
+            d2.rounded_rectangle([(58, cy + 8), (64, cy + 132)], radius=3, fill=COL_GOLD)
+            d2.text((82, cy + 20), title_c, fill=COL_GOLD, font=self._get_font(18, bold=True))
+            d2.text((82, cy + 54), str(val_c)[:52], fill=COL_WHITE, font=self._get_font(22, bold=True))
+            d2.text((82, cy + 96), desc_c[:65], fill=COL_GRAY, font=self._get_font(15))
             cy += 160
 
-        d2.rounded_rectangle([(56, 965), (1024, 1040)], radius=16, fill=(37, 99, 235))
-        d2.text((170, 988), "👉 RESMİ BAŞVURU LİNKİ & KILAVUZ İÇİN SOLA KAYDIRIN (2/3)", fill=(255, 255, 255), font=self._get_font(21, bold=True))
+        d2.rounded_rectangle([(56, 965), (1024, 1040)], radius=16, fill=COL_RED)
+        d2.text((210, 988), "RESMİ BAŞVURU LİNKİ & KILAVUZ İÇİN SOLA KAYDIRIN (2/3) >>>", fill=COL_WHITE, font=self._get_font(21, bold=True))
 
         d2.line([(56, 1260), (1024, 1260)], fill=(51, 65, 85), width=1)
-        d2.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=(100, 116, 139), font=self._get_font(14, bold=True))
+        d2.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=COL_LGRAY, font=self._get_font(14, bold=True))
 
         p2 = self.output_dir / f"carousel_{job_id}_slide2_{timestamp}.png"
         c2.convert("RGB").save(str(p2), "PNG", quality=95)
         slides.append(p2)
 
         # ================= SLAYT 3: CONVERSION & DM CTA (ACTION) =================
-        c3 = Image.new("RGBA", (w, h), (6, 12, 25, 255))
+        c3 = Image.new("RGBA", (w, h), (8, 12, 22, 255))
         d3 = ImageDraw.Draw(c3)
 
-        d3.rounded_rectangle([(56, 80), (1024, 460)], radius=24, fill=(14, 26, 52), outline=(250, 204, 21), width=2)
-        d3.text((260, 120), "💬 YORUMA 'KILAVUZ' YAZIN!", fill=(250, 204, 21), font=self._get_font(34, bold=True))
-        d3.text((220, 185), "Resmi başvuru kılavuzunu ve doğrudan", fill=(255, 255, 255), font=self._get_font(24, bold=True))
-        d3.text((240, 230), "başvuru linkini anında mesaj olarak iletelim! 🚀", fill=(56, 189, 248), font=self._get_font(22, bold=True))
-        d3.text((280, 290), "Atanmak isteyen bir arkadaşını etiketlemeyi unutma!", fill=(148, 163, 184), font=self._get_font(16))
+        d3.rounded_rectangle([(56, 80), (1024, 460)], radius=24, fill=card_bg, outline=card_border, width=1)
+        d3.rounded_rectangle([(80, 110), (86, 160)], radius=3, fill=COL_RED)
+        d3.text((102, 115), "YORUMA 'KILAVUZ' VEYA 'LINK' YAZIN!", fill=COL_WHITE, font=self._get_font(32, bold=True))
+        d3.text((82, 185), "Resmi başvuru kılavuzunu ve doğrudan", fill=COL_GRAY, font=self._get_font(24))
+        d3.text((82, 228), "başvuru linkini anında DM olarak iletelim.", fill=COL_WHITE, font=self._get_font(24, bold=True))
+        d3.text((82, 285), "Atanmak isteyen arkadaşlarınızı etiketleyebilirsiniz.", fill=COL_LGRAY, font=self._get_font(18))
 
-        d3.rounded_rectangle([(140, 345), (940, 420)], radius=14, fill=(250, 204, 21))
-        d3.text((280, 368), "👉 YORUMLARA 'KILAVUZ' YAZ 👈", fill=(15, 23, 42), font=self._get_font(24, bold=True))
+        d3.rounded_rectangle([(80, 345), (1000, 420)], radius=14, fill=COL_RED)
+        d3.text((310, 368), "YORUMLARA 'KILAVUZ' YAZIN", fill=COL_WHITE, font=self._get_font(24, bold=True))
 
-        d3.rounded_rectangle([(56, 490), (1024, 730)], radius=20, fill=(15, 23, 42), outline=(56, 189, 248), width=1)
-        d3.text((80, 520), "🌐 WEB SİTEMİZDEN HEMEN BAŞVURUN", fill=(255, 255, 255), font=self._get_font(22, bold=True))
-        d3.text((80, 560), website_url, fill=(56, 189, 248), font=self._get_font(30, bold=True))
-        d3.text((80, 615), f"Resmi İlan No: #{job_id} | Tüm başvuru evrakları ve kadrolar sitede!", fill=(226, 232, 240), font=self._get_font(18))
-        d3.text((80, 660), "🔗 Profildeki (Bio) bağlantıya tıklayarak da ilana hemen ulaşabilirsiniz.", fill=(148, 163, 184), font=self._get_font(16))
+        d3.rounded_rectangle([(56, 490), (1024, 730)], radius=20, fill=card_bg, outline=card_border, width=1)
+        d3.text((80, 520), "DETAYLAR İÇİN ZİYARET EDİN:", fill=COL_LGRAY, font=self._get_font(20))
+        d3.text((80, 558), website_url, fill=COL_WHITE, font=self._get_font(32, bold=True))
+        d3.text((80, 618), f"Resmi İlan No: #{job_id} | Tüm başvuru evrakları ve kadrolar sitede!", fill=COL_GRAY, font=self._get_font(18))
+        d3.text((80, 660), "kamupersonelrehberiniz.me üzerinden tek tıkla başvurun.", fill=COL_GOLD, font=self._get_font(18, bold=True))
 
-        d3.rounded_rectangle([(56, 760), (1024, 980)], radius=20, fill=(15, 23, 42), outline=(51, 65, 85), width=1)
-        d3.text((80, 790), "🔔 YENİ İLANLARI İLK SİZ ÖĞRENİN", fill=(250, 204, 21), font=self._get_font(22, bold=True))
-        d3.text((80, 830), "@kamupersonelrehberi", fill=(255, 255, 255), font=self._get_font(28, bold=True))
-        d3.text((80, 885), "Türkiye'nin en hızlı ve güvenilir resmi kamu personel rehberi.", fill=(148, 163, 184), font=self._get_font(18))
-        d3.text((80, 925), "Gönderiyi kaydetmeyi ve arkadaşlarınızla paylaşmayı unutmayın! ⭐", fill=(56, 189, 248), font=self._get_font(16, bold=True))
+        d3.rounded_rectangle([(56, 760), (1024, 980)], radius=20, fill=card_bg, outline=card_border, width=1)
+        d3.rounded_rectangle([(80, 785), (86, 825)], radius=3, fill=COL_GOLD)
+        d3.text((102, 788), "YENİ İLANLARI İLK SİZ ÖĞRENİN", fill=COL_GOLD, font=self._get_font(22, bold=True))
+        d3.text((82, 835), "@kamupersonelrehberi", fill=COL_WHITE, font=self._get_font(28, bold=True))
+        d3.text((82, 885), "Türkiye'nin güvenilir resmi kamu personel kariyer rehberi.", fill=COL_GRAY, font=self._get_font(18))
+        d3.text((82, 925), "%100 Resmi Teyitli İlanlar • Aracısız & Reklamsız", fill=COL_LGRAY, font=self._get_font(16))
 
-        d3.rounded_rectangle([(56, 1010), (1024, 1080)], radius=16, fill=(37, 99, 235))
-        d3.text((320, 1032), "KAMU PERSONEL REHBERİ (3/3)", fill=(255, 255, 255), font=self._get_font(22, bold=True))
+        d3.rounded_rectangle([(56, 1010), (1024, 1080)], radius=16, fill=COL_RED)
+        d3.text((360, 1032), "KAMU PERSONEL REHBERİ (3/3)", fill=COL_WHITE, font=self._get_font(22, bold=True))
 
         d3.line([(56, 1260), (1024, 1260)], fill=(51, 65, 85), width=1)
-        d3.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=(100, 116, 139), font=self._get_font(14, bold=True))
+        d3.text((270, 1285), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=COL_LGRAY, font=self._get_font(14, bold=True))
 
         p3 = self.output_dir / f"carousel_{job_id}_slide3_{timestamp}.png"
         c3.convert("RGB").save(str(p3), "PNG", quality=95)
