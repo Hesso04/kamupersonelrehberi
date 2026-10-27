@@ -471,9 +471,7 @@ class NewsCardGenerator:
         )
         slides.append(slide1_path)
 
-        # Slayt 1 arka planini yukle - Slayt 2 ve 3 icin tekrar kullanilacak
-        # Once AI cache dosyasini bul, yoksa static bg kullan
-        bg_reuse_path = None
+        # AI arka planini bul - Slayt 2 ve 3 icin yeniden kullanilacak
         try:
             from graphics.ai_background_generator import AIGeneratorService
             ai_service = AIGeneratorService()
@@ -491,161 +489,160 @@ class NewsCardGenerator:
             if not bg_reuse_path.exists():
                 bg_reuse_path = self.bg_dir / "general.jpg"
 
+        # ── RENK PALETİ: Slide 1 ile birebir aynı kurumsal dil ──
+        # Slide 1'deki "SON DAKİKA" kırmızısı
+        COL_RED    = (220, 38, 38)
+        # Slide 1'deki kurumsal gold alt-başlık
+        COL_GOLD   = (250, 204, 21)
+        # Slide 1'deki beyaz başlık
+        COL_WHITE  = (255, 255, 255)
+        # Cool-gray ikincil metin
+        COL_GRAY   = (203, 213, 225)
+        COL_LGRAY  = (148, 163, 184)
+        # Slide 1'deki derin navy panel
+        COL_NAVY   = (15, 23, 42)
+
         def _make_premium_slide_canvas(slide_bg_path) -> Image.Image:
-            """Shared: AI arka plani yukle, sinematik karartma ekle, RGBA tuval dondur."""
-            canvas = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (8, 12, 22, 255))
+            """AI arka plani yukle, hafif sinematik karartma uygula — cok koy degil."""
+            c = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (8, 12, 22, 255))
             if slide_bg_path and Path(slide_bg_path).exists():
                 try:
                     bg = Image.open(str(slide_bg_path)).convert("RGBA")
                     scale = max(self.WIDTH / bg.width, self.HEIGHT / bg.height)
                     bg = bg.resize((int(bg.width * scale), int(bg.height * scale)), Image.Resampling.LANCZOS)
-                    canvas.paste(bg, (0, 0))
+                    c.paste(bg, (0, 0))
                 except Exception:
                     pass
-            # Sinematik karartma katmani
-            overlay = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (0, 0, 0, 0))
-            ov_draw = ImageDraw.Draw(overlay)
+            # Slide 1 ile birebir aynı sinematik karartma gradyanı
+            ov = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (0, 0, 0, 0))
+            ovd = ImageDraw.Draw(ov)
             for y in range(self.HEIGHT):
-                if y < 300:
-                    alpha = int(140 + (y / 300.0) * 60)
-                elif y < 900:
-                    ratio = (y - 300) / 600.0
-                    alpha = int(200 + ratio * 50)
+                if y < 200:
+                    alpha = int(80 + (y / 200.0) * 80)          # üst kısım daha açık
+                elif y < 700:
+                    ratio = (y - 200) / 500.0
+                    alpha = int(160 + ratio * 55)
+                elif y < 1100:
+                    ratio = (y - 700) / 400.0
+                    alpha = int(215 + ratio * 35)
                 else:
-                    alpha = 255
-                ov_draw.line([(0, y), (self.WIDTH, y)], fill=(8, 12, 22, alpha))
-            return Image.alpha_composite(canvas, overlay)
+                    alpha = 250                                   # alt kısım tam koy
+                ovd.line([(0, y), (self.WIDTH, y)], fill=(8, 12, 22, alpha))
+            return Image.alpha_composite(c, ov)
 
-        # =========================================================
-        # SLAYT 2: DETAYLAR - Slayt 1 AI arka plani yeniden kullan
-        # =========================================================
+        def _glass(canvas, box, radius=18, opacity=155):
+            """Border yok, sadece semi-transparent navy blur panel."""
+            x1, y1, x2, y2 = box
+            w, h = x2 - x1, y2 - y1
+            panel = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            pd = ImageDraw.Draw(panel)
+            # Çok hafif dış gölge (1 piksel daha büyük, %20 opaklık)
+            pd.rounded_rectangle([(2, 2), (w - 2, h - 2)], radius=radius, fill=(*COL_NAVY, opacity))
+            canvas.paste(panel, (x1, y1), mask=panel)
+
+        # ─────────────────────────────────────────────────────────────
+        # SLAYT 2: DETAYLAR
+        # ─────────────────────────────────────────────────────────────
         slide2_path = self.output_dir / f"{base_name}_slide2.png"
-        s2_canvas = _make_premium_slide_canvas(bg_reuse_path)
+        s2c = _make_premium_slide_canvas(bg_reuse_path)
 
-        # Frosted glass ust panel
-        self._create_frosted_glass_panel(
-            s2_canvas,
-            (48, 60, self.WIDTH - 48, 160),
-            radius=20,
-            tint_color=(15, 23, 42, 200),
-            border_color=(255, 255, 255, 40)
-        )
-        s2_draw = ImageDraw.Draw(s2_canvas)
-        s2_draw.text((70, 90), "KAMU PERSONEL REHBERI", fill=(203, 213, 225), font=self._get_font(22, bold=True))
-        s2_draw.text((self.WIDTH - 170, 90), "2 / 3", fill=(96, 165, 250), font=self._get_font(22, bold=True))
+        # Üst header bar — aynı paleti kullan
+        _glass(s2c, (48, 55, self.WIDTH - 48, 148), radius=14, opacity=170)
+        s2d = ImageDraw.Draw(s2c)
+        s2d.text((72, 82), "KAMU PERSONEL REHBERI", fill=COL_GRAY, font=self._get_font(22, bold=True))
+        # Slide numarası: gold, cıvık mavi değil
+        s2d.text((self.WIDTH - 155, 82), "2 / 3", fill=COL_GOLD, font=self._get_font(22, bold=True))
 
-        # Frosted glass ana icerik paneli
-        self._create_frosted_glass_panel(
-            s2_canvas,
-            (48, 180, self.WIDTH - 48, self.HEIGHT - 100),
-            radius=24,
-            tint_color=(6, 10, 28, 220),
-            border_color=(96, 165, 250, 80)
-        )
-        s2_draw = ImageDraw.Draw(s2_canvas)
+        # Ana içerik paneli — daha açık opaklık
+        _glass(s2c, (48, 168, self.WIDTH - 48, self.HEIGHT - 90), radius=20, opacity=160)
+        s2d = ImageDraw.Draw(s2c)
 
-        s2_draw.text((78, 210), "RESMI METIN & AYRINTILAR", fill=(96, 165, 250), font=self._get_font(26, bold=True))
-        # Ust vurgu cizgi
-        s2_draw.line([(78, 248), (self.WIDTH - 78, 248)], fill=(96, 165, 250, 180), width=2)
+        # Bölüm başlığı: beyaz, bold — slide 1 kurum adı tonu
+        s2d.text((78, 198), "RESMI METIN & AYRINTILAR", fill=COL_WHITE, font=self._get_font(26, bold=True))
+        # İnce gold accent çizgisi (slide 1 subtitle gold tonuyla aynı)
+        s2d.line([(78, 238), (self.WIDTH - 78, 238)], fill=(*COL_GOLD, 90), width=1)
 
         full_body = content or summary or title
         body_lines = self._wrap_text(full_body, self._get_font(25), max_width=self.WIDTH - 160)[:20]
-        cur_y = 268
+        cur_y = 258
         for bline in body_lines:
-            s2_draw.text((78, cur_y), bline, fill=(226, 232, 240), font=self._get_font(25))
+            s2d.text((78, cur_y), bline, fill=COL_GRAY, font=self._get_font(25))
             cur_y += 48
 
-        # Alt CTA
-        self._create_frosted_glass_panel(
-            s2_canvas,
-            (48, self.HEIGHT - 95, self.WIDTH - 48, self.HEIGHT - 20),
-            radius=16,
-            tint_color=(15, 23, 42, 230),
-            border_color=(255, 255, 255, 40)
-        )
-        s2_draw = ImageDraw.Draw(s2_canvas)
-        s2_draw.text((78, self.HEIGHT - 72), "www.kamupersonelrehberiniz.me", fill=(96, 165, 250), font=self._get_font(20, bold=True))
-        s2_draw.text((self.WIDTH - 260, self.HEIGHT - 72), "Sola Kaydirin >>>", fill=(250, 204, 21), font=self._get_font(19, bold=True))
+        # Alt şerit
+        _glass(s2c, (48, self.HEIGHT - 85, self.WIDTH - 48, self.HEIGHT - 18), radius=14, opacity=180)
+        s2d = ImageDraw.Draw(s2c)
+        s2d.text((78, self.HEIGHT - 60), "www.kamupersonelrehberiniz.me", fill=COL_WHITE, font=self._get_font(20, bold=True))
+        # "Sola Kaydirin" → navy zeminde gold — slide 1 subtitle gold tonu
+        s2d.text((self.WIDTH - 250, self.HEIGHT - 60), "Sola Kaydirin >>>", fill=COL_GOLD, font=self._get_font(19, bold=True))
 
-        s2_canvas.convert("RGB").save(str(slide2_path), "PNG", quality=98)
+        s2c.convert("RGB").save(str(slide2_path), "PNG", quality=98)
         slides.append(str(slide2_path))
 
-        # =========================================================
-        # SLAYT 3: YONLENDIRME - Slayt 1 AI arka plani yeniden kullan
-        # =========================================================
+        # ─────────────────────────────────────────────────────────────
+        # SLAYT 3: YÖNLENDIRME & QR
+        # ─────────────────────────────────────────────────────────────
         slide3_path = self.output_dir / f"{base_name}_slide3.png"
-        s3_canvas = _make_premium_slide_canvas(bg_reuse_path)
+        s3c = _make_premium_slide_canvas(bg_reuse_path)
 
-        # Ust bar
-        self._create_frosted_glass_panel(
-            s3_canvas,
-            (48, 60, self.WIDTH - 48, 160),
-            radius=20,
-            tint_color=(15, 23, 42, 200),
-            border_color=(255, 255, 255, 40)
-        )
-        s3_draw = ImageDraw.Draw(s3_canvas)
-        s3_draw.text((70, 90), "KAMU PERSONEL REHBERI", fill=(203, 213, 225), font=self._get_font(22, bold=True))
-        s3_draw.text((self.WIDTH - 170, 90), "3 / 3", fill=(74, 222, 128), font=self._get_font(22, bold=True))
+        # Üst header bar
+        _glass(s3c, (48, 55, self.WIDTH - 48, 148), radius=14, opacity=170)
+        s3d = ImageDraw.Draw(s3c)
+        s3d.text((72, 82), "KAMU PERSONEL REHBERI", fill=COL_GRAY, font=self._get_font(22, bold=True))
+        s3d.text((self.WIDTH - 155, 82), "3 / 3", fill=COL_GOLD, font=self._get_font(22, bold=True))
 
-        # Web linki vurgu paneli
-        self._create_frosted_glass_panel(
-            s3_canvas,
-            (48, 185, self.WIDTH - 48, 320),
-            radius=20,
-            tint_color=(2, 6, 23, 240),
-            border_color=(59, 130, 246, 200)
-        )
-        s3_draw = ImageDraw.Draw(s3_canvas)
-        s3_draw.text((80, 220), "DETAYLAR ICIN ZIYARET EDIN:", fill=(148, 163, 184), font=self._get_font(20))
-        s3_draw.text((80, 258), "kamupersonelrehberiniz.me", fill=(147, 197, 253), font=self._get_font(36, bold=True))
+        # Web adresi panel
+        _glass(s3c, (48, 175, self.WIDTH - 48, 310), radius=18, opacity=160)
+        s3d = ImageDraw.Draw(s3c)
+        s3d.text((80, 207), "DETAYLAR ICIN ZIYARET EDIN:", fill=COL_LGRAY, font=self._get_font(19))
+        # URL: beyaz büyük bold — slide 1 başlık tonu
+        s3d.text((80, 246), "kamupersonelrehberiniz.me", fill=COL_WHITE, font=self._get_font(34, bold=True))
 
-        # Yorum CTA paneli
-        self._create_frosted_glass_panel(
-            s3_canvas,
-            (48, 350, self.WIDTH - 48, 560),
-            radius=20,
-            tint_color=(20, 30, 55, 230),
-            border_color=(250, 204, 21, 100)
-        )
-        s3_draw = ImageDraw.Draw(s3_canvas)
-        s3_draw.text((80, 380), "YORUMA 'LINK' YAZIN!", fill=(250, 204, 21), font=self._get_font(32, bold=True))
+        # CTA panel: "SON DAKİKA" kırmızısıyla aynı aksiyon tonu
+        _glass(s3c, (48, 335, self.WIDTH - 48, 555), radius=18, opacity=158)
+        s3d = ImageDraw.Draw(s3c)
+        # "YORUMA 'LINK' YAZIN!" → slide 1 "SON DAKİKA" kırmızısı ile aynı kurumsal güç
+        # Küçük kırmızı rozet
+        s3d.rounded_rectangle([(80, 362), (80 + 6, 410)], radius=3, fill=COL_RED)
+        s3d.text((96, 362), "YORUMA 'LINK' YAZIN!", fill=COL_WHITE, font=self._get_font(30, bold=True))
+        # gold ince çizgi
+        s3d.line([(80, 406), (self.WIDTH - 80, 406)], fill=(*COL_GOLD, 70), width=1)
         yorum_lines = [
             "Gonderi altina 'LINK' veya 'KILAVUZ' yazan",
             "takipcilerimize resmi duyuru baglantisi",
-            "otomatik olarak DM ile iletilecektir."
+            "otomatik olarak DM ile iletilecektir.",
         ]
-        yc = 435
+        yc = 424
         for yl in yorum_lines:
-            s3_draw.text((80, yc), yl, fill=(203, 213, 225), font=self._get_font(22))
+            s3d.text((80, yc), yl, fill=COL_GRAY, font=self._get_font(22))
             yc += 38
 
-        # QR Kod Alani
+        # QR Kod — sade navy zemin, temiz görünüm
         try:
             qr = qrcode.QRCode(box_size=7, border=2)
             qr.add_data("https://kamupersonelrehberiniz.me")
             qr.make(fit=True)
-            qr_img = qr.make_image(fill_color="white", back_color=(8, 12, 22)).convert("RGBA")
-            qr_w = qr_img.size[0]
+            qr_img = qr.make_image(fill_color="white", back_color=(15, 23, 42)).convert("RGBA")
+            qr_w, qr_h = qr_img.size
             qr_x = (self.WIDTH - qr_w) // 2
-            s3_canvas.paste(qr_img, (qr_x, 600))
-            s3_draw = ImageDraw.Draw(s3_canvas)
-            s3_draw.text((qr_x, 600 + qr_img.size[1] + 14), "Kameranizla Tara", fill=(148, 163, 184), font=self._get_font(20))
+            qr_y = 590
+            # QR arkasına hafif panel
+            _glass(s3c, (qr_x - 20, qr_y - 16, qr_x + qr_w + 20, qr_y + qr_h + 46), radius=14, opacity=150)
+            s3c.paste(qr_img, (qr_x, qr_y), mask=qr_img)
+            s3d = ImageDraw.Draw(s3c)
+            label = "Kameranizla Tara & Ac"
+            bbox_lbl = s3d.textbbox((0, 0), label, font=self._get_font(18))
+            lbl_w = bbox_lbl[2] - bbox_lbl[0]
+            s3d.text(((self.WIDTH - lbl_w) // 2, qr_y + qr_h + 14), label, fill=COL_LGRAY, font=self._get_font(18))
         except Exception:
             pass
 
-        # Alt URL bar
-        self._create_frosted_glass_panel(
-            s3_canvas,
-            (48, self.HEIGHT - 95, self.WIDTH - 48, self.HEIGHT - 20),
-            radius=16,
-            tint_color=(15, 23, 42, 230),
-            border_color=(255, 255, 255, 40)
-        )
-        s3_draw = ImageDraw.Draw(s3_canvas)
-        s3_draw.text((78, self.HEIGHT - 72), "www.kamupersonelrehberiniz.me", fill=(74, 222, 128), font=self._get_font(20, bold=True))
+        # Alt şerit
+        _glass(s3c, (48, self.HEIGHT - 85, self.WIDTH - 48, self.HEIGHT - 18), radius=14, opacity=180)
+        s3d = ImageDraw.Draw(s3c)
+        s3d.text((78, self.HEIGHT - 60), "www.kamupersonelrehberiniz.me", fill=COL_WHITE, font=self._get_font(20, bold=True))
 
-        s3_canvas.convert("RGB").save(str(slide3_path), "PNG", quality=98)
+        s3c.convert("RGB").save(str(slide3_path), "PNG", quality=98)
         slides.append(str(slide3_path))
 
         logger.info(f"Haber #{news_id} icin 3 slaytlik premium Karusel uretildi (sifir ekstra AI maliyeti): {slides}")
