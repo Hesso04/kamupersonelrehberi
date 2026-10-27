@@ -223,22 +223,27 @@ class NewsCardGenerator:
         draw.text((bx + 20, by + 13), "SON DAKİKA", fill=(255, 255, 255), font=self._get_font(21, bold=True))
 
         # 6. KURUM ADI VE MANŞET BAŞLIKLARI
-        font_inst = self._get_font(50, bold=True)
-        font_sub = self._get_font(38, bold=True)
-
         inst_clean = institution.upper() if institution else "T.C. RESMİ KAMU KURUMU"
-        draw.text((bx, 860), inst_clean, fill=(255, 255, 255), font=font_inst)
+        font_inst = self._get_font(42, bold=True)
+        draw.text((bx, 840), inst_clean, fill=(203, 213, 225), font=font_inst)
 
-        # Başlık satır bölme
-        headline_lines = self._wrap_text(title, font_inst, max_width=self.WIDTH - bx - 50)
-        cur_ty = 925
-        for tl in headline_lines[:2]:
-            draw.text((bx, cur_ty), tl, fill=(255, 255, 255), font=font_inst)
-            cur_ty += 62
+        # Başlık boyutu ve satır yönetimi: Başlık uzunsa daha dengeli font seç
+        title_len = len(title)
+        title_font_size = 48 if title_len < 55 else (42 if title_len < 90 else 36)
+        font_headline = self._get_font(title_font_size, bold=True)
+        line_spacing = title_font_size + 12
+
+        headline_lines = self._wrap_text(title, font_headline, max_width=self.WIDTH - bx - 50)
+        cur_ty = 895
+        # En fazla 3 satır başlık vererek cümlenin ortada kesilmesini önle
+        for tl in headline_lines[:3]:
+            draw.text((bx, cur_ty), tl, fill=(255, 255, 255), font=font_headline)
+            cur_ty += line_spacing
 
         # Sarı Vurgu Alt Başlığı
+        font_sub = self._get_font(32, bold=True)
         sub_text = "Basvuru Kilavuzu ve Sartlar Yayimlandi." if ("alımı" in title.lower() or "ilan" in title.lower() or "alım" in title.lower()) else "Resmi Karar ve Ayrintilar Duyuruldu."
-        draw.text((bx, cur_ty + 20), sub_text, fill=(250, 204, 21), font=font_sub)
+        draw.text((bx, cur_ty + 14), sub_text, fill=(250, 204, 21), font=font_sub)
 
         # 7. KURAL 3: FİLİGRANI ÖRTEN GENIŞLETILMIŞ & TAM MERKEZLİ WEB BUTONU (y=1188..1258)
         bar_w, bar_h = 560, 62
@@ -287,48 +292,36 @@ class NewsCardGenerator:
         out_path = self.output_dir / f"story_news_{news_id}.png"
         sw, sh = 1080, 1920
 
-        # Renk ve Tema Paleti
-        if category in ["OZLUK_MAAS", "OZLUK"]:
-            theme_badge = "📊 ÖZLÜK & MAAŞ DÜZENLEMESİ"
-            accent_col = (59, 130, 246)  # Mavi
-            accent_bg = (30, 58, 138)
-            accent_light = (147, 197, 253)
-        elif category in ["ATAMA_KADRO", "ATAMA"]:
-            theme_badge = "🎯 ÖSYM & ATAMA DUYURUSU"
-            accent_col = (16, 185, 129)  # Zümrüt Yeşil
-            accent_bg = (6, 78, 59)
-            accent_light = (167, 243, 208)
-        elif category == "SOSYAL_HAK_TOKI":
-            theme_badge = "🏠 TOKİ SOSYAL KONUT & KURA"
-            accent_col = (245, 158, 11)  # Altın Amber
-            accent_bg = (120, 53, 15)
-            accent_light = (253, 230, 138)
-        elif category == "DEZENFORMASYON":
-            theme_badge = "🛡️ DMM DOĞRULAMA BÜLTENİ"
-            accent_col = (239, 68, 68)  # Kırmızı
-            accent_bg = (153, 27, 27)
-            accent_light = (254, 202, 202)
-        else:
-            theme_badge = "📢 RESMİ KAMU DUYURUSU"
-            accent_col = (139, 92, 246)  # Mor
-            accent_bg = (76, 29, 149)
-            accent_light = (221, 214, 254)
+        # Kurumsal Renk Paleti (Carousel slide 3 ile birebir aynı kurumsal tonlar)
+        COL_RED    = (220, 38, 38)     # Son Dakika / Rozet kırmızısı
+        COL_GOLD   = (250, 204, 21)    # Kurumsal gold
+        COL_WHITE  = (255, 255, 255)   # Saf beyaz
+        COL_GRAY   = (203, 213, 225)   # Cool-gray gövde metni
+        COL_LGRAY  = (148, 163, 184)   # Açık kurumsal gri
+        COL_NAVY   = (15, 23, 42)      # Koyu lacivert zemin/panel
 
         # 1. 1080x1920 Dikey Zemin (AI Mimari Arka Plan + Lüks Karanlık Degrade)
         canvas = Image.new("RGBA", (sw, sh), (8, 12, 22, 255))
 
-        # AI Arka Plan Yükleme
+        # AI Arka Plan Yükleme (Slayt 1 ile aynı AI cache kontrolü)
+        s_bg_path = None
         try:
             from graphics.ai_background_generator import AIGeneratorService
             ai_service = AIGeneratorService()
-            s_bg_path = ai_service.generate_background(
-                news_id=news_id,
-                title=title,
-                institution=institution,
-                category=category,
-                width=sw,
-                height=sh
-            )
+            import re as _re
+            clean_cat = _re.sub(r"[^\w]", "_", category)
+            candidate = ai_service.cache_dir / f"ai_{clean_cat}_{news_id}_1080x1350.jpg"
+            if candidate.exists() and candidate.stat().st_size > 10000:
+                s_bg_path = candidate
+            else:
+                s_bg_path = ai_service.generate_background(
+                    news_id=news_id,
+                    title=title,
+                    institution=institution,
+                    category=category,
+                    width=sw,
+                    height=sh
+                )
             if s_bg_path and Path(s_bg_path).exists():
                 s_bg = Image.open(str(s_bg_path)).convert("RGBA")
                 scale = max(sw / s_bg.width, sh / s_bg.height)
@@ -338,102 +331,113 @@ class NewsCardGenerator:
         except Exception as s_bg_err:
             logger.debug(f"Story AI arka plan yüklenemedi: {s_bg_err}")
 
-        # Sinematik Karanlık Cam Katmanı
+        # Sinematik Karanlık Cam Katmanı (Kademeli kurumsal karartma)
         s_overlay = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
         d_over = ImageDraw.Draw(s_overlay)
         for i in range(sh):
-            ratio = i / sh
-            alpha = int(170 + 85 * ratio)
+            if i < 250:
+                alpha = int(70 + (i / 250.0) * 80)
+            elif i < 900:
+                ratio = (i - 250) / 650.0
+                alpha = int(150 + ratio * 60)
+            elif i < 1500:
+                ratio = (i - 900) / 600.0
+                alpha = int(210 + ratio * 35)
+            else:
+                alpha = 250
             d_over.line([(0, i), (sw, i)], fill=(8, 12, 22, alpha))
         canvas = Image.alpha_composite(canvas, s_overlay)
-        draw = ImageDraw.Draw(canvas)
 
-        # Üst Vurgu Rozeti ve Branding Barı (Y: 120-260)
-        draw.text((60, 130), "kamupersonelrehberiniz.me", fill=(148, 163, 184), font=self._get_font(22, bold=True))
+        def _story_glass(c, box, radius=18, opacity=165):
+            x1, y1, x2, y2 = box
+            w, h = x2 - x1, y2 - y1
+            panel = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            pd = ImageDraw.Draw(panel)
+            pd.rounded_rectangle([(0, 0), (w, h)], radius=radius, fill=(*COL_NAVY, opacity))
+            c.paste(panel, (x1, y1), mask=panel)
+
+        # 1. ÜST HEADER BAR (Y: 90 - 180) - Carousel Slayt 3 ile aynı
+        _story_glass(canvas, (50, 90, sw - 50, 185), radius=16, opacity=170)
+        draw = ImageDraw.Draw(canvas)
+        draw.text((80, 122), "KAMU PERSONEL REHBERI", fill=COL_GRAY, font=self._get_font(24, bold=True))
         date_str = to_turkish_date_str(publish_date or datetime.utcnow())
-        draw.text((sw - 60 - 240, 130), f"🗓️ {date_str}", fill=(100, 116, 139), font=self._get_font(18))
+        draw.text((sw - 330, 124), date_str, fill=COL_GOLD, font=self._get_font(20, bold=True))
 
-        # #SonDakika Kırmızı Neon Rozet
-        draw.rounded_rectangle([(60, 185), (290, 245)], radius=30, fill=(220, 38, 38, 255), outline=(248, 113, 113, 200), width=2)
-        draw.text((88, 200), "🔥 #SON DAKİKA", fill=(255, 255, 255), font=self._get_font(22, bold=True))
+        # 2. ROZETLER (Y: 215 - 280) - #SON DAKİKA + RESMİ KURUM BÜLTENİ
+        draw.rounded_rectangle([(50, 215), (280, 275)], radius=12, fill=COL_RED)
+        draw.text((76, 230), "SON DAKİKA", fill=COL_WHITE, font=self._get_font(22, bold=True))
 
-        # Kategori Rozeti
-        draw.rounded_rectangle([(310, 185), (sw - 60, 245)], radius=30, fill=(*accent_bg, 220), outline=(*accent_col, 200), width=2)
-        draw.text((335, 202), theme_badge, fill=accent_light, font=self._get_font(19, bold=True))
+        inst_clean = institution.upper() if institution else "T.C. RESMİ KAMU KURUMU"
+        draw.text((310, 232), inst_clean, fill=COL_WHITE, font=self._get_font(24, bold=True))
 
-        # 2. Kurum Başlığı Paneli (Y: 280-360)
-        inst_clean = institution.upper() if institution else "T.C. RESMİ KURUM"
-        draw.text((60, 290), f"🏛️ {inst_clean}", fill=(203, 213, 225), font=self._get_font(24, bold=True))
-
-        # 3. Ana Manşet Akrilik Cam Paneli (Y: 350-980)
-        self._create_frosted_glass_panel(
-            canvas,
-            (50, 350, sw - 50, 980),
-            radius=28,
-            tint_color=(15, 23, 42, 230),
-            border_color=(255, 255, 255, 45),
-            accent_strip_color=accent_col
-        )
+        # 3. ANA MANŞET PANELİ (Y: 310 - 750) - Beyaz Başlık + Altın Sarı Vurgu
+        _story_glass(canvas, (50, 310, sw - 50, 780), radius=22, opacity=165)
         draw = ImageDraw.Draw(canvas)
 
-        font_story_title = self._get_font(46, bold=True)
-        title_lines = self._wrap_text(title, font_story_title, max_width=900)
-        title_lines = title_lines[:8]
+        font_story_title = self._get_font(44, bold=True)
+        title_lines = self._wrap_text(title, font_story_title, max_width=sw - 160)
+        cur_ty = 350
+        for tline in title_lines[:5]:
+            draw.text((85, cur_ty), tline, fill=COL_WHITE, font=font_story_title)
+            cur_ty += 62
 
-        cur_ty = 400
-        for tline in title_lines:
-            # Hafif gölge efekti
-            draw.text((86, cur_ty + 2), tline, fill=(0, 0, 0, 180), font=font_story_title)
-            draw.text((84, cur_ty), tline, fill=(255, 255, 255), font=font_story_title)
-            cur_ty += 66
+        # Sarı Vurgu Alt Başlığı
+        sub_text = "Basvuru Kilavuzu ve Sartlar Yayimlandi." if ("alımı" in title.lower() or "ilan" in title.lower() or "alım" in title.lower()) else "Resmi Karar ve Ayrintilar Duyuruldu."
+        draw.text((85, cur_ty + 20), sub_text, fill=COL_GOLD, font=self._get_font(30, bold=True))
 
-        # 4. Resmi Spot / Özet Paneli (Y: 1020-1460)
-        self._create_frosted_glass_panel(
-            canvas,
-            (50, 1020, sw - 50, 1460),
-            radius=24,
-            tint_color=(2, 6, 23, 240),
-            border_color=(51, 65, 85, 220),
-            accent_strip_color=accent_col
-        )
+        # 4. RESMİ AÇIKLAMA ÖZETİ PANELİ (Y: 820 - 1280)
+        _story_glass(canvas, (50, 820, sw - 50, 1260), radius=22, opacity=160)
+        draw = ImageDraw.Draw(canvas)
+        draw.rounded_rectangle([(80, 855), (86, 895)], radius=3, fill=COL_GOLD)
+        draw.text((102, 858), "RESMI ACIKLAMA VE AYRINTILAR", fill=COL_GOLD, font=self._get_font(22, bold=True))
+        draw.line([(80, 910), (sw - 80, 910)], fill=(*COL_GOLD, 70), width=1)
+
+        font_summary = self._get_font(28, bold=False)
+        clean_summary = summary or "Ilgili kamu karari ve resmi takvim kamuoyuna duyurulmustur."
+        summary_lines = self._wrap_text(clean_summary, font_summary, max_width=sw - 170)
+        cur_sy = 935
+        for sline in summary_lines[:6]:
+            draw.text((85, cur_sy), sline, fill=COL_GRAY, font=font_summary)
+            cur_sy += 44
+
+        # 5. INSTAGRAM HİKAYE BAĞLANTI (LINK STICKER) YÖNLENDİRME KATMANI (Y: 1300 - 1600)
+        # Kullanıcı buraya Instagram'ın 'Bağlantı' çıkartmasını (sticker) ekleyecek
+        _story_glass(canvas, (50, 1300, sw - 50, 1620), radius=22, opacity=170)
         draw = ImageDraw.Draw(canvas)
 
-        draw.text((84, 1055), "📌 RESMİ AÇIKLAMA VE AYRINTILAR", fill=accent_light, font=self._get_font(22, bold=True))
+        # Rozet bar: YORUMA LINK YAZIN veya TIKLAYIN
+        draw.rounded_rectangle([(80, 1335), (86, 1378)], radius=3, fill=COL_RED)
+        draw.text((102, 1340), "RESMI DUYURU & BASVURU LINKI", fill=COL_WHITE, font=self._get_font(24, bold=True))
 
-        font_summary = self._get_font(30, bold=False)
-        clean_summary = summary or "İlgili kamu kararı ve resmi takvim kamuoyuna duyurulmuştur."
-        summary_lines = self._wrap_text(clean_summary, font_summary, max_width=900)
-        summary_lines = summary_lines[:7]
-
-        cur_sy = 1115
-        for sline in summary_lines:
-            draw.text((84, cur_sy), sline, fill=(226, 232, 240), font=font_summary)
-            cur_sy += 46
-
-        # 5. SİMÜLE EDİLMİŞ INSTAGRAM HİKAYE BAĞLANTI KATMANI (Y: 1520-1720)
-        # Tıpkı Instagram hikayelerindeki lüks beyaz oval bağlantı çıkartması gibi
-        btn_y1 = 1530
-        btn_y2 = 1660
+        # Instagram Story Link Çıkartması Alanı (Görsel olarak tam link konumu simülasyonu)
+        btn_y1 = 1410
+        btn_y2 = 1530
         btn_x1 = 90
         btn_x2 = sw - 90
 
-        # Dış ışıma & gölge
-        draw.rounded_rectangle([(btn_x1 - 4, btn_y1 - 4), (btn_x2 + 4, btn_y2 + 4)], radius=65, fill=(0, 0, 0, 80))
-        # Beyaz parlak oval buton
-        draw.rounded_rectangle([(btn_x1, btn_y1), (btn_x2, btn_y2)], radius=65, fill=(255, 255, 255, 255), outline=(226, 232, 240, 255), width=3)
+        # Beyaz parlak oval buton — Instagram Link Sticker ile tam örtüşür
+        draw.rounded_rectangle([(btn_x1 - 3, btn_y1 - 3), (btn_x2 + 3, btn_y2 + 3)], radius=55, fill=(0, 0, 0, 70))
+        draw.rounded_rectangle([(btn_x1, btn_y1), (btn_x2, btn_y2)], radius=55, fill=(255, 255, 255), outline=(226, 232, 240), width=2)
 
         # Buton İç Metni
-        font_btn = self._get_font(34, bold=True)
-        draw.text((btn_x1 + 65, btn_y1 + 40), "🔗 DETAYLAR İÇİN TIKLAYINIZ", fill=(15, 23, 42), font=font_btn)
+        font_btn = self._get_font(32, bold=True)
+        btn_lbl = "DETAYLAR ICIN TIKLAYINIZ"
+        btn_bbox = draw.textbbox((0, 0), btn_lbl, font=font_btn)
+        btn_lbl_w = btn_bbox[2] - btn_bbox[0]
+        draw.text(((sw - btn_lbl_w) // 2, btn_y1 + 40), btn_lbl, fill=COL_NAVY, font=font_btn)
 
-        # Buton Altı Web Adresi Yönlendirmesi
+        # Buton Altı Web Adresi
         font_sub_link = self._get_font(22, bold=True)
-        draw.text((sw // 2 - 165, 1690), "👉 kamupersonelrehberiniz.me", fill=accent_light, font=font_sub_link)
+        sub_link_txt = "kamupersonelrehberiniz.me"
+        sub_bbox = draw.textbbox((0, 0), sub_link_txt, font=font_sub_link)
+        sub_w = sub_bbox[2] - sub_bbox[0]
+        draw.text(((sw - sub_w) // 2, 1555), sub_link_txt, fill=COL_GOLD, font=font_sub_link)
 
-        # 6. Alt Güven ve Telif Şeridi (Y: 1770-1860)
-        draw.line([(60, 1760), (sw - 60, 1760)], fill=(51, 65, 85, 120), width=1)
-        draw.text((sw // 2 - 275, 1795), "Türkiye'nin Güvenilir Resmi Kamu Bilgi & Kariyer Platformu", fill=(148, 163, 184), font=self._get_font(18))
-        draw.text((sw // 2 - 210, 1830), "T.C. Resmi Kaynaklarından Anlık Teyit Edilmiştir", fill=(100, 116, 139), font=self._get_font(16))
+        # 6. ALT ŞERİT (Y: 1780 - 1860) - Carousel Slayt 3 alt şeridiyle aynı
+        _story_glass(canvas, (50, 1780, sw - 50, 1860), radius=16, opacity=180)
+        draw = ImageDraw.Draw(canvas)
+        draw.text((85, 1805), "www.kamupersonelrehberiniz.me", fill=COL_WHITE, font=self._get_font(22, bold=True))
+        draw.text((sw - 380, 1807), "%100 Resmi Teyitli Kamu Kaynagi", fill=COL_GRAY, font=self._get_font(18))
 
         # Kaydet
         final_story = canvas.convert("RGB")

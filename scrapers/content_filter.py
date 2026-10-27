@@ -73,6 +73,16 @@ BLACKLIST_KEYWORDS = [
     "toplantısına katıldı",
     "incelemede bulundu",
     "açılışını yaptı",
+    "konuğu oldu",
+    "programının konuğu",
+    "yayınına katıldı",
+    "canlı yayın konuğu",
+    "zirvesi düzenlendi",
+    "çalıştayı düzenlendi",
+    "festivali başladı",
+    "fuarı açıldı",
+    "sempozyum düzenlendi",
+    "imza töreni gerçekleştirildi",
 ]
 
 # 2. BEYAZ LİSTE / YÜKSEK İLGİ ANAHTARLARI (Kitlenin en çok etkileşim verdiği konular)
