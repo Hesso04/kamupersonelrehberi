@@ -131,51 +131,16 @@ class NewsCardGenerator:
     ) -> str:
         """
         1080x1350 Ultra HD editoryal haber bülteni kartı üretir.
+        Kural 1: Sektörel AI arka plan mimarisi.
+        Kural 2: İkon ve emojilerden tamamen arındırılmış kurumsal saf tipografi.
+        Kural 3: Filigranı yok eden y=1050..1350 siyah degrade ve dip kapatma bandı.
         """
         out_path = self.output_dir / f"news_{news_id}.png"
-
-        # Tema Renk Paletleri
-        if category == "DEZENFORMASYON":
-            theme_name = "DMM DOĞRULAMA"
-            badge_icon = "🛡️"
-            badge_title = "DMM DEZENFORMASYON BÜLTENİ"
-            badge_bg = (185, 28, 28)
-            badge_border = (248, 113, 113)
-            accent_rgb = (239, 68, 68)
-            accent_light = (254, 202, 202)
-            bg_ambient = (69, 10, 10)
-        elif category == "OZLUK_MAAS":
-            theme_name = "ÖZLÜK & MAAŞ"
-            badge_icon = "📊"
-            badge_title = "ÖZLÜK HAKLARI & MALİ GELİŞME"
-            badge_bg = (4, 120, 87)
-            badge_border = (52, 211, 153)
-            accent_rgb = (16, 185, 129)
-            accent_light = (167, 243, 208)
-            bg_ambient = (6, 78, 59)
-        elif category == "MEVZUAT":
-            theme_name = "MEVZUAT"
-            badge_icon = "📜"
-            badge_title = "YASAL MEVZUAT DEĞİŞİKLİĞİ"
-            badge_bg = (67, 56, 202)
-            badge_border = (129, 140, 248)
-            accent_rgb = (99, 102, 241)
-            accent_light = (199, 210, 254)
-            bg_ambient = (30, 27, 75)
-        else:
-            theme_name = "RESMİ HABER"
-            badge_icon = "🏛️"
-            badge_title = "T.C. RESMİ DEVLET AÇIKLAMASI"
-            badge_bg = (29, 78, 216)
-            badge_border = (96, 165, 250)
-            accent_rgb = (37, 99, 235)
-            accent_light = (191, 219, 254)
-            bg_ambient = (15, 23, 42)
 
         # 1. Ana Tuval (Derin Gece Tonu)
         canvas = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (8, 12, 22, 255))
 
-        # 2. Mimari Arka Plan Fotoğrafı (Önce Pollinations AI Flux Motoru, Yedek Olarak Yerel Arşiv)
+        # 2. Mimari Arka Plan Fotoğrafı (Sektörel AI Arka Plan Motoru)
         bg_path = None
         try:
             from graphics.ai_background_generator import AIGeneratorService
@@ -200,187 +165,92 @@ class NewsCardGenerator:
         if bg_path and Path(bg_path).exists():
             try:
                 bg = Image.open(str(bg_path)).convert("RGBA")
-                # Fotoğrafı 1080x1350'ye orantılı kırp
-                scale = max(self.WIDTH / bg.width, 950 / bg.height)
+                scale = max(self.WIDTH / bg.width, self.HEIGHT / bg.height)
                 new_w = int(bg.width * scale)
                 new_h = int(bg.height * scale)
                 bg = bg.resize((new_w, new_h), Image.Resampling.LANCZOS)
-                # Üst kısmı yerleştir
                 canvas.paste(bg, (0, 0))
             except Exception as e:
                 logger.warning(f"Arka plan görseli yükleme uyarısı: {e}")
 
-        # 3. Sinematik Karanlık Degrade Katmanı
-        gradient = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (0, 0, 0, 0))
-        d_grad = ImageDraw.Draw(gradient)
+        # 3. KURAL 3: FİLİGRAN YOK EDİCİ SİNEMATİK KARARTMA DEGRADE KATMANI (Y: 500 - 1350)
+        overlay = Image.new("RGBA", (self.WIDTH, self.HEIGHT), (0, 0, 0, 0))
+        draw_ov = ImageDraw.Draw(overlay)
 
-        for y in range(self.HEIGHT):
-            if y < 220:
-                alpha = int(140 + (y / 220.0) * 50)
-                r = int(bg_ambient[0] * 0.4)
-                g = int(bg_ambient[1] * 0.4)
-                b = int(bg_ambient[2] * 0.4)
-            elif y < 650:
-                ratio = (y - 220) / 430.0
-                alpha = int(190 + ratio * 55)
-                r = int(bg_ambient[0] * 0.5 * (1 - ratio) + 8 * ratio)
-                g = int(bg_ambient[1] * 0.5 * (1 - ratio) + 12 * ratio)
-                b = int(bg_ambient[2] * 0.5 * (1 - ratio) + 22 * ratio)
-            else:
-                alpha = 255
-                r, g, b = 8, 12, 22
-            d_grad.line([(0, y), (self.WIDTH, y)], fill=(r, g, b, alpha))
+        # 500 - 1050 arası sinematik okuma karartması
+        for y in range(500, 1050):
+            ratio = (y - 500) / 550.0
+            alpha = int(200 * (ratio ** 1.3))
+            draw_ov.line([(0, y), (self.WIDTH, y)], fill=(8, 12, 22, alpha))
 
-        canvas = Image.alpha_composite(canvas, gradient)
+        # 1050 - 1260 arası yumuşak geçiş
+        for y in range(1050, 1260):
+            ratio = (y - 1050) / 210.0
+            alpha = int(200 + 55 * ratio)
+            draw_ov.line([(0, y), (self.WIDTH, y)], fill=(6, 9, 18, alpha))
+
+        # Y=1260 - 1350 ARASI TAM OPAK DERİN SİYAH (POLLINATIONS FİLİGRANINI SIFIRLAR)
+        for y in range(1260, self.HEIGHT):
+            draw_ov.line([(0, y), (self.WIDTH, y)], fill=(6, 9, 18, 255))
+
+        canvas = Image.alpha_composite(canvas, overlay)
         draw = ImageDraw.Draw(canvas)
 
-        # 4. Üst Navigasyon & Marka Bandı
-        header_h = 110
-        # Üst şerit için lüks cam panel
-        self._create_frosted_glass_panel(
-            canvas,
-            (48, 36, self.WIDTH - 48, 126),
-            radius=18,
-            tint_color=(15, 23, 42, 180),
-            border_color=(255, 255, 255, 40)
-        )
-        draw = ImageDraw.Draw(canvas)
+        # 4. KURAL 2: İKON VE EMOJİLERDEN ARINDIRILMIŞ SOL BEYAZ KAPSÜL
+        cw, ch = 88, 720
+        cx, cy = 60, 100
+        draw.rounded_rectangle([(cx, cy), (cx + cw, cy + ch)], radius=44, fill=(255, 255, 255, 255))
 
-        # Logo Yerleştir
-        active_logo = self.logo_circ_path if self.logo_circ_path.exists() else self.logo_path
-        if active_logo.exists():
-            try:
-                logo_img = Image.open(active_logo).convert("RGBA")
-                logo_img.thumbnail((62, 62), Image.Resampling.LANCZOS)
-                canvas.paste(logo_img, (66, 50), mask=logo_img)
-            except Exception:
-                pass
+        # Kapsül Üst Dairesel Logo
+        draw.ellipse([(cx + 8, cy + 8), (cx + cw - 8, cy + cw - 8)], fill=(15, 23, 42, 255))
+        draw.text((cx + 25, cy + 22), "K", fill=(255, 255, 255), font=self._get_font(34, bold=True))
 
-        font_brand = self._get_font(23, bold=True)
-        font_sub = self._get_font(13, bold=False)
+        # Dikey Saf Kurumsal Metin (İkonsuz)
+        vert_txt = "KAMU PERSONEL REHBERİ  •  WWW.KAMUPERSONELREHBERINIZ.ME"
+        txt_img = Image.new("RGBA", (560, 40), (255, 255, 255, 0))
+        txt_draw = ImageDraw.Draw(txt_img)
+        txt_draw.text((0, 8), vert_txt, fill=(51, 65, 85, 255), font=self._get_font(17, bold=True))
+        rotated_txt = txt_img.rotate(270, expand=True)
+        canvas.paste(rotated_txt, (cx + 24, cy + 110), mask=rotated_txt)
 
-        draw.text((142, 53), "KAMU PERSONEL REHBERİ", fill=(255, 255, 255), font=font_brand)
-        draw.text((142, 83), "T.C. RESMİ HABER & DOĞRULAMA AKIŞI", fill=accent_light, font=font_sub)
+        # 5. KURAL 2: İKONSUZ KURUMSAL 'SON DAKİKA' ROZETİ
+        bx = cx + cw + 40
+        by = 780
+        badge_w, badge_h = 200, 52
+        draw.rounded_rectangle([(bx, by), (bx + badge_w, by + badge_h)], radius=12, fill=(220, 38, 38, 255))
+        draw.text((bx + 20, by + 13), "SON DAKİKA", fill=(255, 255, 255), font=self._get_font(21, bold=True))
 
-        # Sağ Üst Canlı Teyit Rozeti
-        badge_right_w = 210
-        rx1 = self.WIDTH - 48 - badge_right_w - 18
-        ry1 = 54
-        draw.rounded_rectangle([(rx1, ry1), (rx1 + badge_right_w, ry1 + 36)], radius=18, fill=(16, 185, 129, 45), outline=(52, 211, 153), width=1)
-        draw.ellipse([(rx1 + 14, ry1 + 13), (rx1 + 24, ry1 + 23)], fill=(52, 211, 153))
-        font_right_pill = self._get_font(13, bold=True)
-        draw.text((rx1 + 32, ry1 + 9), "RESMİ DEVLET TEYİTLİ", fill=(255, 255, 255), font=font_right_pill)
+        # 6. KURUM ADI VE MANŞET BAŞLIKLARI
+        font_inst = self._get_font(50, bold=True)
+        font_sub = self._get_font(38, bold=True)
 
-        # 5. Kategori Rozeti (Glowing Banner)
-        cat_y = 158
-        font_badge = self._get_font(21, bold=True)
-        badge_full_text = f"{badge_icon}  {badge_title}"
-        b_box = font_badge.getbbox(badge_full_text)
-        bw = (b_box[2] - b_box[0]) + 44
-        bh = 48
+        inst_clean = institution.upper() if institution else "T.C. RESMİ KAMU KURUMU"
+        draw.text((bx, 860), inst_clean, fill=(255, 255, 255), font=font_inst)
 
-        # Rozet Dış Işıması
-        draw.rounded_rectangle([(48, cat_y), (48 + bw, cat_y + bh)], radius=12, fill=badge_bg, outline=badge_border, width=2)
-        draw.text((70, cat_y + 11), badge_full_text, fill=(255, 255, 255), font=font_badge)
+        # Başlık satır bölme
+        headline_lines = self._wrap_text(title, font_inst, max_width=self.WIDTH - bx - 50)
+        cur_ty = 925
+        for tl in headline_lines[:2]:
+            draw.text((bx, cur_ty), tl, fill=(255, 255, 255), font=font_inst)
+            cur_ty += 62
 
-        # 6. Kurum Adı
-        font_inst = self._get_font(30, bold=True)
-        clean_inst = tr_upper(institution or "T.C. RESMİ DEVLET KURUMU")
-        inst_y = 228
-        draw.text((48, inst_y), clean_inst, fill=(226, 232, 240), font=font_inst)
+        # Sarı Vurgu Alt Başlığı
+        sub_text = "Başvuru Kılavuzu ve Şartlar Yayımlandı." if ("alımı" in title.lower() or "ilan" in title.lower() or "alım" in title.lower()) else "Resmi Karar ve Ayrıntılar Duyuruldu."
+        draw.text((bx, cur_ty + 20), sub_text, fill=(250, 204, 21), font=font_sub)
 
-        # Dekoratif Altın / Neon Çizgi
-        draw.line([(48, inst_y + 44), (280, inst_y + 44)], fill=accent_rgb, width=4)
+        # 7. KURAL 3: FİLİGRANI ÖRTEN OVAL WEB BUTONU VE BİLGİ ŞERİDİ (y=1225..1315)
+        bar_w, bar_h = 440, 56
+        bar_x = (self.WIDTH - bar_w) // 2
+        bar_y = 1225
+        draw.rounded_rectangle([(bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h)], radius=28, fill=(15, 23, 42, 240), outline=(255, 255, 255, 90), width=1)
+        draw.text((bar_x + 44, bar_y + 16), "www.kamupersonelrehberiniz.me", fill=(241, 245, 249), font=self._get_font(18, bold=True))
 
-        # 7. Büyük Editoryal Manşet (Headline)
-        font_headline = self._get_font(48, bold=True)
-        headline_lines = self._wrap_text(title, font_headline, max_width=984)
-        headline_lines = headline_lines[:3]  # En fazla 3 satır
+        # Dip Bilgi Satırı - Filigranın tam üstünü ezer
+        draw.text((self.WIDTH // 2 - 180, 1305), "Türkiye Resmi Kamu İlan ve Bilgi Portalı", fill=(100, 116, 139), font=self._get_font(14))
 
-        head_y = 296
-        for hline in headline_lines:
-            # Hafif drop-shadow efekti ile maksimum okunurluk
-            draw.text((49, head_y + 2), hline, fill=(0, 0, 0, 180), font=font_headline)
-            draw.text((48, head_y), hline, fill=(255, 255, 255), font=font_headline)
-            head_y += 62
-
-        # 8. Lüks Akrilik Cam Spot Kutusu (Frosted Glass Panel)
-        spot_top = max(head_y + 26, 520)
-        spot_h = 390
-        spot_bbox = (48, spot_top, self.WIDTH - 48, spot_top + spot_h)
-
-        self._create_frosted_glass_panel(
-            canvas,
-            spot_bbox,
-            radius=20,
-            tint_color=(15, 23, 42, 210),
-            border_color=(255, 255, 255, 50),
-            accent_strip_color=accent_rgb
-        )
-        draw = ImageDraw.Draw(canvas)
-
-        # Spot İçi Etiketi
-        font_spot_tag = self._get_font(18, bold=True)
-        draw.text((78, spot_top + 26), "📌 RESMİ AÇIKLAMA / SPOT ÖZET", fill=accent_light, font=font_spot_tag)
-
-        # Spot Metni
-        font_spot_text = self._get_font(25, bold=False)
-        clean_summary = summary or "İlgili resmi kamu duyurusunun yasal gerekçeleri, uygulama takvimi ve resmi metni yayımlanmıştır."
-        summary_lines = self._wrap_text(clean_summary, font_spot_text, max_width=920)
-        summary_lines = summary_lines[:7]
-
-        sum_cur_y = spot_top + 68
-        for sline in summary_lines:
-            draw.text((78, sum_cur_y), sline, fill=(226, 232, 240), font=font_spot_text)
-            sum_cur_y += 38
-
-        # 9. Güvenilirlik & Teyit Mührü Barı (Trust Seal)
-        seal_y = 940
-        seal_h = 130
-        self._create_frosted_glass_panel(
-            canvas,
-            (48, seal_y, self.WIDTH - 48, seal_y + seal_h),
-            radius=18,
-            tint_color=(2, 6, 23, 235),
-            border_color=(51, 65, 85, 200)
-        )
-        draw = ImageDraw.Draw(canvas)
-
-        font_seal_title = self._get_font(22, bold=True)
-        font_seal_desc = self._get_font(16, bold=False)
-        date_str = to_turkish_date_str(publish_date or datetime.utcnow())
-
-        draw.text((80, seal_y + 24), "✅ BİRİNCİL ELDEN DEVLET KAYNAĞI TEYİTLİDİR", fill=(74, 222, 128), font=font_seal_title)
-        draw.text((80, seal_y + 58), f"Yayın Tarihi: {date_str} • Doğrudan Kurum Portalı (.gov.tr)", fill=(203, 213, 225), font=font_seal_desc)
-        draw.text((80, seal_y + 88), "Reklamsız • Tıklama Tuzaksız • Doğrulanmış Resmi Haber", fill=(148, 163, 184), font=self._get_font(14))
-
-        # 10. Alt Marka İmzası & QR Kod Alanı (Footer)
-        footer_y = 1110
-        font_foot_brand = self._get_font(30, bold=True)
-        font_foot_url = self._get_font(20, bold=False)
-
-        draw.text((48, footer_y), "KAMU PERSONEL REHBERİ", fill=(255, 255, 255), font=font_foot_brand)
-        draw.text((48, footer_y + 42), "kamupersonelrehberiniz.me/haberler", fill=accent_light, font=font_foot_url)
-        draw.text((48, footer_y + 78), "Türkiye'nin Güvenilir Resmi Kamu Kariyer & Bilgi Portalı", fill=(100, 116, 139), font=self._get_font(15))
-
-        # Sağ Alt Lüks QR Kod Kutusu
-        qr_box_x = self.WIDTH - 48 - 140
-        qr_box_y = footer_y - 12
-        try:
-            qr = qrcode.QRCode(box_size=3, border=2)
-            qr.add_data(source_url or "https://kamupersonelrehberiniz.me")
-            qr.make(fit=True)
-            qr_img = qr.make_image(fill_color="white", back_color=(8, 12, 22)).convert("RGBA")
-            # QR kodu yuvarlak köşeli cam arkalıkla süsle
-            draw.rounded_rectangle([(qr_box_x - 10, qr_box_y - 10), (qr_box_x + 130, qr_box_y + 130)], radius=16, fill=(15, 23, 42, 240), outline=(255, 255, 255, 40), width=1)
-            canvas.paste(qr_img, (qr_box_x, qr_box_y))
-            draw.text((qr_box_x - 4, qr_box_y + 140), "Resmi Haberi Oku", fill=(148, 163, 184), font=self._get_font(13))
-        except Exception as qre:
-            logger.warning(f"QR kod üretim hatası: {qre}")
-
-        # RGB Moduna Dönüştür ve Ultra HD Olarak Kaydet
+        # RGB Moduna Dönüştür ve Kaydet
         final_img = canvas.convert("RGB")
-        final_img.save(str(out_path), "PNG", quality=98)
+        final_img.save(str(out_path), "JPEG", quality=96)
         logger.info(f"Ultra HD haber kartı başarıyla üretildi: {out_path}")
         return str(out_path)
 
