@@ -581,23 +581,42 @@ class ModernCardGenerator:
             draw.text((78 + tag_w + 10, b_y + 22), val_display, fill=(226, 232, 240), font=self._get_font(17))
             b_y += 82
 
-        # 10. CTA & Web Adresi Butonları
+        # 10. CTA & Web Adresi Butonlari
         cta_btn_color = (220, 38, 38) if is_cancellation else (37, 99, 235)
-        cta_text = "İPTAL DETAYLARINI İNCELE →" if is_cancellation else "ŞARTLARI İNCELE & RESMİ KILAVUZU İNDİR →"
+        cta_text = "IPTAL DETAYLARINI INCELE" if is_cancellation else "SARTLARI INCELE & RESMI KILAVUZU INDIR"
         draw.rounded_rectangle([(56, 1160), (1024, 1240)], radius=16, fill=cta_btn_color)
-        draw.text((220, 1184), cta_text, fill=(255, 255, 255), font=self._get_font(23, bold=True))
+        cta_font = self._get_font(22, bold=True)
+        bbox_cta = draw.textbbox((0, 0), cta_text, font=cta_font)
+        cta_tw = bbox_cta[2] - bbox_cta[0]
+        draw.text(((1080 - cta_tw) // 2, 1193), cta_text, fill=(255, 255, 255), font=cta_font)
 
-        draw.rounded_rectangle([(56, 1260), (1024, 1330)], radius=16, fill=(15, 23, 42), outline=(56, 189, 248), width=1)
-        draw.text((360, 1282), f"🌐 {website_url}", fill=(56, 189, 248), font=self._get_font(21, bold=True))
+        # Buyutulmus & tam merkezli web URL pill
+        url_bar_w, url_bar_h = 660, 60
+        url_bar_x = (1080 - url_bar_w) // 2
+        url_bar_y = 1260
+        draw.rounded_rectangle([(url_bar_x - 3, url_bar_y - 3), (url_bar_x + url_bar_w + 3, url_bar_y + url_bar_h + 3)], radius=35, fill=(0, 0, 0, 80))
+        draw.rounded_rectangle([(url_bar_x, url_bar_y), (url_bar_x + url_bar_w, url_bar_y + url_bar_h)], radius=32, fill=(15, 23, 42), outline=(56, 189, 248), width=2)
+        url_disp = website_url.replace("https://", "").replace("http://", "")
+        url_font = self._get_font(22, bold=True)
+        bbox_url = draw.textbbox((0, 0), url_disp, font=url_font)
+        url_tw = bbox_url[2] - bbox_url[0]
+        draw.text(((1080 - url_tw) // 2, url_bar_y + 18), url_disp, fill=(56, 189, 248), font=url_font)
 
-        # 11. Alt İmza
+        # Yorum CTA satiri - tamamen merkezli
+        ilan_cta = "Ilan detaylari icin yoruma KILAVUZ veya LINK yazin"
+        ilan_cta_font = self._get_font(14)
+        bbox_ilan = draw.textbbox((0, 0), ilan_cta, font=ilan_cta_font)
+        ilan_tw = bbox_ilan[2] - bbox_ilan[0]
+        draw.text(((1080 - ilan_tw) // 2, url_bar_y + url_bar_h + 14), ilan_cta, fill=(100, 116, 139), font=ilan_cta_font)
+
+        # 11. Alt Imza
         draw.line([(56, 1540), (1024, 1540)], fill=(51, 65, 85), width=1)
-        draw.text((270, 1560), "DOĞRU BİLGİ  |  DOĞRU KARİYER  |  KAMU PERSONEL REHBERİ", fill=(100, 116, 139), font=self._get_font(14, bold=True))
+        draw.text((270, 1560), "DOGRU BILGI  |  DOGRU KARIYER  |  KAMU PERSONEL REHBERI", fill=(100, 116, 139), font=self._get_font(14, bold=True))
 
-        # 12. RGB Çıktı Kaydet
+        # 12. RGB Cikti Kaydet
         final_img = canvas.convert("RGB")
         final_img.save(str(filepath), "PNG", quality=95)
-        logger.info(f"Yeni Nesil Modern Afiş Üretildi [Pillow Engine/{sector}]: {filepath}")
+        logger.info(f"Yeni Nesil Modern Afis Uretildi [Pillow Engine/{sector}]: {filepath}")
         return filepath
 
     def _render_pillow_modern_story_card(

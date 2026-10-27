@@ -727,23 +727,14 @@ class InstagramPublisher(BasePublisher):
                 self.post_news_comment(post_id, news)
                 logger.info(f"Haber başarıyla Instagram'da paylaşıldı (Post ID: {post_id})")
 
-                # Story Çapraz Paylaşımı
+                # Story Çapraz Paylaşımı: Yeni AI görseli üretmek yerine mevcut akış kartı (final_img_path) doğrudan Story olarak kullanılır
                 story_note = ""
                 if get_system_setting("AUTOPILOT_IG_STORY_ENABLED", "true") == "true":
                     try:
-                        from graphics.news_card_generator import NewsCardGenerator
-                        ngen = NewsCardGenerator()
-                        story_file = ngen.generate_story(
-                            news_id=getattr(news, "id", 0),
-                            title=getattr(news, "title", ""),
-                            institution=getattr(news, "institution", ""),
-                            category=getattr(news, "category", "RESMI_HABER"),
-                            summary=getattr(news, "summary", "")
-                        )
-                        if story_file and Path(story_file).exists():
-                            s_ok, s_m = self.publish_story(story_file)
+                        if final_img_path and Path(final_img_path).exists():
+                            s_ok, s_m = self.publish_story(final_img_path)
                             if s_ok:
-                                story_note = " [9:16 Dikey Story olarak da paylaşıldı]"
+                                story_note = " [Akış görseli Story olarak da paylaşıldı]"
                     except Exception as se:
                         logger.warning(f"Haber Story çapraz paylaşım istisnası: {se}")
 

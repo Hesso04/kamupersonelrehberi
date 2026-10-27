@@ -9,7 +9,7 @@ Kaynaklar:
 """
 import re
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 import requests
 from bs4 import BeautifulSoup
@@ -411,12 +411,11 @@ class OfficialNewsScraper:
     def generate_social_post_text(self, item: Dict[str, Any]) -> str:
         """
         Sosyal medya kanalları için editoryal haber diliyle (Haber Ağzı) metin üretir.
-        İlan paylaşımlarından tamamen farklıdır.
+        Dış kaynak linki verilmez, sadece kamupersonelrehberiniz.me yer alır ve DM/yorum tetikleyicisi eklenir.
         """
         title = item.get("title", "")
         institution = item.get("institution", "")
         summary = item.get("summary", "")
-        url = item.get("source_url", "")
         category = item.get("category", "")
 
         cat_tag = "#KamuHaberleri"
@@ -450,19 +449,44 @@ class OfficialNewsScraper:
             "",
             "ℹ️ <i>Kamu çalışanları ve adaylar için doğrudan birinci elden resmi teyitli bilgidir. Reklamsız ve aracısız devlet kaynağıdır.</i>",
             "",
-            f"🔗 <b>Resmi Kaynak Bağlantısı:</b> {url}",
-            f"🌐 <b>Tüm Kamu Haberleri & İlanlar:</b> https://kamupersonelrehberiniz.me",
+            "💬 <b>Haber detayları & resmi kılavuz için:</b> Yoruma <b>KILAVUZ</b> veya <b>LİNK</b> yazın; resmi duyuru bağlantısı otomatik olarak DM ile iletilecektir.",
+            "🌐 <b>Tüm Kamu Haberleri & İlanlar:</b> https://kamupersonelrehberiniz.me",
             "",
             f"{cat_tag} #KamuPersoneli #Memur #Haber"
         ]
         return "\n".join(lines)
 
+    def purge_expired_news(self) -> int:
+        """3 günden eski haberleri veritabanından ve havuzdan kalıcı olarak temizler."""
+        purged = 0
+        cutoff_date = datetime.utcnow() - timedelta(days=3)
+        try:
+            with get_db() as db:
+                deleted_rows = db.query(OfficialNews).filter(OfficialNews.publish_date < cutoff_date).delete(synchronize_session=False)
+                db.commit()
+                purged = deleted_rows or 0
+                if purged > 0:
+                    logger.info(f"🧹 [OTOMATİK TEMİZLİK] 3 günden eski {purged} adet haber sistem havuzundan silindi.")
+        except Exception as e:
+            logger.warning(f"Eski haber temizleme hatası: {e}")
+        return purged
+
     def save_to_db(self, items: List[Dict[str, Any]]) -> int:
         """Akıllı filtre kalkanından geçen ve mükerrer olmayan haberleri veritabanına kaydeder."""
+        # Öncelikle 3 günden eski haberleri temizle
+        self.purge_expired_news()
+
+        cutoff_date = datetime.utcnow() - timedelta(days=3)
         saved_count = 0
         filtered_out_count = 0
         with get_db() as db:
             for item in items:
+                # 0. 3 Günden eski haberleri kabul etme
+                pub_date = item.get("publish_date", datetime.utcnow())
+                if pub_date and pub_date < cutoff_date:
+                    logger.debug(f"⏳ [ZAMAN AŞIMI ELENDİ] 3 günden eski haber atlandı: {item.get('title')[:40]}")
+                    continue
+
                 # 1. Akıllı Editoryal Filtre Kalkanı Kontrolü (Kara Liste ve Kitle Uygunluğu)
                 filter_res = ContentFilterEngine.filter_item(
                     title=item["title"],
@@ -497,7 +521,7 @@ class OfficialNewsScraper:
                         source_url=item["source_url"],
                         image_url=item.get("image_url"),
                         social_post_text=social_text,
-                        publish_date=item.get("publish_date", datetime.utcnow()),
+                        publish_date=pub_date,
                         is_verified=True,
                         is_social_published=False
                     )
