@@ -88,13 +88,16 @@ class IlanGovTrScraper(BaseScraper):
                 # Son başvuru tarihi: Resmi İlanlarda genel kural 15 günlük başvuru süresidir
                 app_end = (pub_date.replace(tzinfo=None) if pub_date else datetime.now()) + timedelta(days=15)
 
+                from core.quota_validator import extract_verified_quota
+                quota_info = extract_verified_quota(title, raw_content)
+
                 job = ScrapedJob(
                     title=title,
                     source_name=self.source_name,
                     source_url=ad_url,
                     institution=institution,
                     position=title,
-                    total_positions=1,
+                    total_positions=quota_info["quota"],
                     official_doc_url=ad_url,
                     raw_content=raw_content,
                     publish_date=pub_date,

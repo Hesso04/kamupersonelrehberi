@@ -74,28 +74,11 @@ class PublisherManager:
             portal_base = f"https://{website_domain}"
             portal_job_url = f"{portal_base}/?ilan={job.id}" if getattr(job, "id", None) else f"{portal_base}/"
 
-            # 1. AKILLI KONTENJAN TESPİTİ (Başlıktan '860 Gelir Uzman Yardımcısı' vb. sayıları otomatik yakalar)
-            def extract_smart_quota(title_str: str, current_cnt: int = 1) -> int:
-                if not title_str:
-                    return current_cnt or 1
-                t_clean = title_str.strip()
-                # '860 Gelir Uzmanı', '15 Memur' gibi doğrudan tamlamalar
-                m_direct = re.findall(r"\b(\d{1,4}(?:[.,]\d{3})?)\s*(?:adet|kişi|kişilik|personel|memur|uzman|asistan|öğretim|işçi|sağlık|güvenlik|zabıta|sözleşmeli|polis|astsubay|mühendis|avukat|denetçi|müfettiş)", t_clean, re.IGNORECASE)
-                if m_direct:
-                    val = int(m_direct[0].replace(".", "").replace(",", ""))
-                    if 1 <= val < 10000 and val not in [657, 4857, 2024, 2025, 2026, 2027]:
-                        return val
-                nums = [int(n) for n in re.findall(r"\b(\d+)\b", t_clean)]
-                valid_nums = [n for n in nums if n not in [2024, 2025, 2026, 2027, 2028, 657, 4857, 375, 2547, 5018] and 1 <= n < 10000]
-                if len(valid_nums) > 1 and ("," in t_clean or " ve " in t_clean or "+" in t_clean):
-                    return sum(valid_nums)
-                elif valid_nums:
-                    return valid_nums[0]
-                return current_cnt if (current_cnt and current_cnt > 1) else 1
-
-            detected_quota = extract_smart_quota(job.title or "", job.total_positions or 1)
-            if detected_quota > (job.total_positions or 1) or not job.total_positions:
-                job.total_positions = detected_quota
+            # 1. AKILLI & TEYİTLİ KONTENJAN TESPİTİ
+            from core.quota_validator import extract_verified_quota
+            quota_res = extract_verified_quota(job.title or "", job.raw_content or "", default_val=job.total_positions)
+            job.total_positions = quota_res["quota"]
+            quota_display = quota_res["display_text"]
 
             if job.status in [JobStatus.DRAFT, JobStatus.PENDING_APPROVAL] or not job.position or job.position == "None":
                 pos_src = job.position if (job.position and job.position != "None") else job.title.split(" - ")[-1]
@@ -143,7 +126,7 @@ class PublisherManager:
                         f"📢 <b>{job.institution or 'Kamu Kurumu'} Personel Alım İlanı</b>\n\n"
                         f"🏛 <b>Kurum:</b> {job.institution or 'Kamu Kurumu'}\n"
                         f"📋 <b>Kadro / Pozisyon:</b> {job.position}\n"
-                        f"👥 <b>Kontenjan:</b> {job.total_positions or 1} Kişi\n"
+                        f"👥 <b>Kontenjan:</b> {quota_display}\n"
                         f"🗓 <b>Son Başvuru:</b> {deadline_str}\n"
                         f"🎓 <b>Öğrenim:</b> {job.education_level or 'Kılavuzda belirtilen mezuniyet şartı'}\n"
                         f"🎯 <b>KPSS:</b> {job.kpss_requirement or 'Resmi ilanda belirtilen puan şartı'}\n\n"
@@ -152,11 +135,17 @@ class PublisherManager:
                         f"#KamuPersoneli #İlan #KamuAlımı"
                     )
             else:
-                # Mevcut metindeki eski 1 Kişi kalıntılarını tespit edilen gerçek kontenjan ile onar
-                if job.total_positions and job.total_positions > 1:
+                # Mevcut metindeki eski hatalı 2026/2027 veya 1 Kişi kalıntılarını teyitli değer ile onar
+                if quota_res["is_exact"]:
                     job.social_post_text = re.sub(
-                        r"Kontenjan:(?:</b>)?\s*(?:1|None|\[Sayı\])\s*Kişi",
-                        f"Kontenjan:</b> {job.total_positions} Kişi",
+                        r"Kontenjan:(?:</b>)?\s*(?:202[0-9]|1|None|\[Sayı\])\s*Kişi",
+                        f"Kontenjan:</b> {quota_display}",
+                        job.social_post_text
+                    )
+                else:
+                    job.social_post_text = re.sub(
+                        r"Kontenjan:(?:</b>)?\s*(?:202[0-9]|None|\[Sayı\])\s*Kişi",
+                        f"Kontenjan:</b> {quota_display}",
                         job.social_post_text
                     )
                 # PDF eklenmediği için metindeki 'PDF ekte sunulmuştur' ifadesini site linkiyle güncelle

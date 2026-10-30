@@ -148,19 +148,14 @@ def clean_institution_and_position(job: JobAnnouncement) -> tuple:
         else:
             position = pos_clean
 
-    # 3. Kontenjan (Total Positions) Çözümleme
-    quota = job.total_positions or 1
-    nums = [int(n) for n in re.findall(r"\b(\d+)\b", title)]
-    valid_nums = [n for n in nums if n not in [2024, 2025, 2026, 2027, 2028, 657, 4857, 375, 2547, 5018] and 1 <= n < 10000]
-    if valid_nums:
-        if len(valid_nums) > 1 and ("," in title or " ve " in title or "+" in title):
-            quota = sum(valid_nums)
-        else:
-            quota = valid_nums[0]
-    elif not job.total_positions:
-        quota = 1
+    # 3. Teyitli Kontenjan Çözümleme
+    from core.quota_validator import extract_verified_quota
+    q_res = extract_verified_quota(title, job.raw_content or "", default_val=job.total_positions)
+    quota = q_res["quota"]
+    is_exact = q_res["is_exact"]
+    quota_display = q_res["display_text"]
 
-    return inst, position, quota, is_cancellation
+    return inst, position, quota, is_cancellation, is_exact, quota_display
 
 
 def determine_category(inst: str, title: str, position: str) -> tuple:
@@ -202,7 +197,7 @@ def export_data(output_paths: List[Path]) -> None:
         featured_candidates = []
 
         for j in jobs:
-            inst, pos, quota, is_canc = clean_institution_and_position(j)
+            inst, pos, quota, is_canc, is_exact, quota_display = clean_institution_and_position(j)
             cat_name, cat_slug, cat_icon = determine_category(inst, j.title, pos)
 
             # Tarih Çıkarımı
@@ -273,6 +268,8 @@ def export_data(output_paths: List[Path]) -> None:
                 "title": j.title,
                 "position": pos,
                 "total_positions": quota,
+                "is_exact_quota": is_exact,
+                "quota_display": quota_display,
                 "category": cat_name,
                 "category_slug": cat_slug,
                 "category_icon": cat_icon,
@@ -520,10 +517,11 @@ def sync_and_push(auto_push: bool = True) -> bool:
             except Exception:
                 pass
 
-        # Değişiklikleri stage'e al (Veri JSON'ları + Sitemap + Robots + Belgeler)
+        # Değişiklikleri stage'e al (Veri JSON'ları + Haberler + Sitemap + Robots + Belgeler)
         subprocess.run([
             "git", "add",
             "docs/data/jobs.json", "website/data/jobs.json",
+            "docs/data/news.json", "website/data/news.json",
             "docs/sitemap.xml", "website/sitemap.xml",
             "docs/robots.txt", "website/robots.txt",
             "docs/documents/"
@@ -538,12 +536,12 @@ def sync_and_push(auto_push: bool = True) -> bool:
         # Commit at ve push et
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         subprocess.run(
-            ["git", "commit", "-m", f"chore(data): auto-sync live jobs [{now_str}] [skip ci]"],
+            ["git", "commit", "-m", f"chore(data): auto-sync live jobs and news [{now_str}] [skip ci]"],
             cwd=str(ROOT_DIR),
             check=True
         )
         push_res = subprocess.run(["git", "push", "origin", "main"], cwd=str(ROOT_DIR), check=True)
-        print("🚀 Güncel ilan verileri başarıyla GitHub Pages'e push edildi!")
+        print("🚀 Güncel ilan ve haber verileri başarıyla GitHub Pages'e push edildi!")
         return True
     except Exception as e:
         print(f"⚠️ Git otomatik senkronizasyon uyarısı: {e}")

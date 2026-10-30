@@ -323,7 +323,10 @@ function renderJobRowItem(job) {
   const isExpired = job.status === 'SÜRESİ DOLDU';
   const isOpen = job.status === 'BAŞVURUYA AÇIK';
   const emblemChar = (job.institution || 'K').trim()[0].toUpperCase();
+  const isExactQuota = job.is_exact_quota !== false;
   const quota = job.total_positions || 1;
+  const quotaDisplay = isExactQuota ? (job.quota_display || `${quota} Kişi`) : 'Kılavuzda';
+  const quotaNumberDisplay = isExactQuota ? quota : '—';
   const dateStr = escapeHtml(job.date_interval || job.end_date_str || 'Güncel İlan');
   const eduStr = escapeHtml(job.education_level || 'Belirtilmedi');
   const kpssStr = escapeHtml(job.kpss_requirement || 'KPSS Şartı İlanda');
@@ -437,8 +440,8 @@ function renderJobRowItem(job) {
 
         <!-- Col 1: Kontenjan Sayısı -->
         <div class="col-job-quota">
-          <span class="job-quota-number font-editorial">${quota}</span>
-          <span class="job-quota-caption">Kontenjan</span>
+          <span class="job-quota-number font-editorial">${quotaNumberDisplay}</span>
+          <span class="job-quota-caption">${isExactQuota ? 'Kontenjan' : 'Kılavuzda'}</span>
         </div>
 
         <!-- Col 2: Son Başvuru Tarihi & Ok Butonu -->
@@ -471,7 +474,7 @@ function renderJobRowItem(job) {
         <div class="mobile-pills-wrap">
           <span class="mobile-info-pill quota">
             <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            ${quota} Kişi
+            ${quotaDisplay}
           </span>
           <span class="mobile-info-pill">
             <svg class="mini-meta-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>

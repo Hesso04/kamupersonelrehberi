@@ -31,6 +31,10 @@ jobs:
           pip install beautifulsoup4 requests lxml feedparser Pillow pytz
 
       - name: Kaynak Siteleri Tara (İlanlar & Resmi Haberler)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.lxffirosgbrfptnbjvdg:BedirXaaN.04@aws-0-eu-west-1.pooler.supabase.com:6543/postgres' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://lxffirosgbrfptnbjvdg.supabase.co' }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9' }}
         run: |
           echo "=== 1. Resmi Haberleri Tarama ==="
           python scrapers/official_news.py || true

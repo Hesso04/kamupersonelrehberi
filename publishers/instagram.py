@@ -115,6 +115,10 @@ class InstagramPublisher(BasePublisher):
                 f"#KamuPersoneli #İlanİptali #KamuHaber #Duyuru #{inst_tag}"
             )
         else:
+            from core.quota_validator import extract_verified_quota
+            quota_res = extract_verified_quota(job.title or "", job.raw_content or "", default_val=job.total_positions)
+            quota_text = quota_res["display_text"]
+
             caption = (
                 f"👇 RESMİ BAŞVURU EKRANI & KILAVUZ İÇİN:\n"
                 f"Bu gönderinin altına \"KILAVUZ\" yazın; resmi başvuru ekranı linki ve "
@@ -122,7 +126,7 @@ class InstagramPublisher(BasePublisher):
                 f"(⚠️ Botun linki iletebilmesi için sayfamızı TAKİP ETMEYİ unutmayın)\n\n"
                 f"🏛 {inst_clean.upper()} PERSONEL ALIMI\n"
                 f"📢 {job.position or job.title}\n\n"
-                f"👥 Kontenjan: {job.total_positions or 1} Kişi\n"
+                f"👥 Kontenjan: {quota_text}\n"
                 f"🗓 Son Başvuru: {d_str}\n"
                 f"🎯 KPSS Şartı: {job.kpss_requirement or 'Resmi ilanda belirtilen'}\n"
                 f"🎓 Mezuniyet: {job.education_level or 'Kılavuzda belirtilen'}\n\n"

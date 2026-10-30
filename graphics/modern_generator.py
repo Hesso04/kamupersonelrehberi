@@ -232,21 +232,19 @@ class ModernCardGenerator:
             else:
                 pos_clean = "Personel Alımı"
 
-        # Kontenjan hesaplama
-        tot_num = total_positions
-        if not tot_num or tot_num <= 0:
-            all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", tit)]
-            if len(all_nums) > 1 and ("," in tit or " ve " in tit):
-                tot_num = sum(all_nums)
-            elif all_nums and all_nums[0] > 1:
-                tot_num = all_nums[0]
-            else:
-                tot_num = 1
+        # Kontenjan hesaplama (Teyitli Quota Validator)
+        from core.quota_validator import extract_verified_quota
+        q_res = extract_verified_quota(tit, default_val=total_positions)
+        tot_num = q_res["quota"]
+        is_exact = q_res["is_exact"]
+        display_text = q_res["display_text"]
 
         return {
             "institution": tr_upper(inst_clean),
             "position": tr_title(pos_clean),
-            "total_positions": tot_num
+            "total_positions": tot_num,
+            "is_exact": is_exact,
+            "display_text": display_text
         }
 
     def generate_modern_card(
@@ -537,10 +535,13 @@ class ModernCardGenerator:
         draw.text((120, 78), "KAMUDA KARİYERİNİZ İÇİN %100 RESMİ TEYİTLİ ADRES", fill=COL_LGRAY, font=self._get_font(13))
 
         # 5. Sektör & Durum Rozeti (İkonlardan arındırılmış kurumsal dil)
+        is_exact = clean_data.get("is_exact", False)
+        display_text = clean_data.get("display_text", "Resmi Kılavuzda")
+
         if is_cancellation:
             draw.rounded_rectangle([(56, 130), (460, 175)], radius=10, fill=COL_RED)
             draw.text((74, 142), "ALIM İPTALİ / DÜZELTME DUYURUSU", fill=COL_WHITE, font=self._get_font(16, bold=True))
-        elif tot_num >= 20:
+        elif is_exact and tot_num >= 50:
             draw.rounded_rectangle([(56, 130), (380, 175)], radius=10, fill=COL_RED)
             draw.text((74, 142), f"YÜKSEK KONTENJAN: {tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(16, bold=True))
         else:
@@ -570,8 +571,12 @@ class ModernCardGenerator:
         # Sol Kart: Kontenjan
         draw.rounded_rectangle([(56, 615), (524, 755)], radius=16, fill=card_bg, outline=card_border, width=1)
         draw.text((80, 635), "KONTENJAN", fill=COL_LGRAY, font=self._get_font(15, bold=True))
-        draw.text((80, 665), f"{tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(36, bold=True))
-        draw.text((80, 718), "Resmi Kadro Sayısı", fill=COL_GOLD, font=self._get_font(14))
+        if is_exact:
+            draw.text((80, 665), f"{tot_num:,} KİŞİ".replace(",", "."), fill=COL_WHITE, font=self._get_font(36, bold=True))
+            draw.text((80, 718), "Resmi Kadro Sayısı", fill=COL_GOLD, font=self._get_font(14))
+        else:
+            draw.text((80, 668), "KILAVUZDA", fill=COL_WHITE, font=self._get_font(30, bold=True))
+            draw.text((80, 718), "Kadro Tablosunda Belirtilmiştir", fill=COL_GOLD, font=self._get_font(13))
 
         # Sağ Kart: Son Başvuru
         draw.rounded_rectangle([(556, 615), (1024, 755)], radius=16, fill=card_bg, outline=card_border, width=1)

@@ -241,9 +241,10 @@ class SBBKamuIlanScraper(BaseScraper):
                 if remaining.upper().startswith(institution.upper()):
                     remaining = remaining[len(institution):].strip(" -:")
 
-                # Kontenjan sayısını yakala
-                all_nums = [int(n) for n in re.findall(r"\b(\d+)\b", remaining)]
-                total_pos = sum(all_nums) if len(all_nums) > 1 and ("," in remaining or " ve " in remaining) else (all_nums[0] if all_nums else 1)
+                # Kontenjan sayısını teyitli olarak yakala
+                from core.quota_validator import extract_verified_quota
+                quota_info = extract_verified_quota(remaining or full_text, full_text)
+                total_pos = quota_info["quota"]
 
                 # Temiz kadro / pozisyon adı
                 pos_clean = re.sub(r"^\d+\s*", "", remaining)
