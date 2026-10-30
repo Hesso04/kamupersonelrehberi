@@ -580,80 +580,20 @@ function goToPage(page) {
 }
 
 // =============================================================================
-// 6. 3D CURSOR & TOUCH WEIGHT TILT MOTORU (.tilt-surface)
+// 6. 3D CURSOR & TOUCH WEIGHT TILT MOTORU (KULLANICI TALEBİYLE KALDIRILDI)
 // =============================================================================
 function initCursorWeightTilt() {
-  document.addEventListener('mousemove', handleTiltMove);
-  document.addEventListener('mouseleave', handleTiltLeave, true);
-  document.addEventListener('touchmove', handleTiltTouch, { passive: true });
-  document.addEventListener('touchend', handleTiltTouchEnd, { passive: true });
+  // Sayfanın yamulma/eğilme animasyonları görsel stabilite için komple kaldırıldı.
 }
 
-function rebindTiltSurfaces() {
-  // Dinamik olarak eklenen elemanlar zaten event delegation ile handleTiltMove tarafından yakalanır.
-}
-
-function handleTiltMove(e) {
-  const target = e.target.closest('.tilt-surface');
-  if (!target) return;
-
-  const rect = target.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  const normX = x / rect.width - 0.5;
-  const normY = y / rect.height - 0.5;
-
-  // İnce satırlar (<120px) için 2.6deg, büyük kartlar için 4.2deg
-  const maxTilt = rect.height < 120 ? 2.6 : 4.2;
-
-  const rx = (-normY * maxTilt * 2).toFixed(2);
-  const ry = (normX * maxTilt * 2).toFixed(2);
-
-  target.style.setProperty('--rx', `${rx}deg`);
-  target.style.setProperty('--ry', `${ry}deg`);
-  target.style.setProperty('--tz', '-2px');
-  target.style.setProperty('--spot-x', `${((normX + 0.5) * 100).toFixed(1)}%`);
-  target.style.setProperty('--spot-y', `${((normY + 0.5) * 100).toFixed(1)}%`);
-  target.classList.add('is-tilting');
-}
-
-function handleTiltLeave(e) {
-  const target = e.target.closest ? e.target.closest('.tilt-surface') : null;
-  if (!target) return;
-  resetTiltSurface(target);
-}
-
-function handleTiltTouch(e) {
-  if (!e.touches || !e.touches[0]) return;
-  const touch = e.touches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.tilt-surface');
-  if (!target) return;
-
-  const rect = target.getBoundingClientRect();
-  const normX = (touch.clientX - rect.left) / rect.width - 0.5;
-  const normY = (touch.clientY - rect.top) / rect.height - 0.5;
-  const maxTilt = rect.height < 120 ? 2.6 : 4.2;
-
-  const rx = (-normY * maxTilt * 2).toFixed(2);
-  const ry = (normX * maxTilt * 2).toFixed(2);
-
-  target.style.setProperty('--rx', `${rx}deg`);
-  target.style.setProperty('--ry', `${ry}deg`);
-  target.style.setProperty('--tz', '-3px');
-  target.style.setProperty('--spot-x', `${((normX + 0.5) * 100).toFixed(1)}%`);
-  target.style.setProperty('--spot-y', `${((normY + 0.5) * 100).toFixed(1)}%`);
-  target.classList.add('is-tilting');
-}
-
-function handleTiltTouchEnd() {
-  document.querySelectorAll('.tilt-surface.is-tilting').forEach(resetTiltSurface);
-}
-
+function rebindTiltSurfaces() {}
+function handleTiltMove(e) {}
+function handleTiltLeave(e) {}
+function handleTiltTouch(e) {}
+function handleTiltTouchEnd() {}
 function resetTiltSurface(el) {
-  el.style.setProperty('--rx', '0deg');
-  el.style.setProperty('--ry', '0deg');
-  el.style.setProperty('--tz', '0px');
+  if (!el) return;
+  el.style.transform = 'none';
   el.classList.remove('is-tilting');
 }
 
