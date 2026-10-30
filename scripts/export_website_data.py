@@ -359,10 +359,28 @@ def export_data(output_paths: List[Path]) -> None:
         export_news_data(news_paths)
 
 
+def _fix_tr_encoding(text: str) -> str:
+    """Türkçe encoding bozukluklarını (mojibake) export sırasında düzeltir."""
+    import unicodedata as _ud
+    if not isinstance(text, str):
+        return text
+    _MAP = {
+        "Ã¼": "ü", "Ã–": "Ö", "Ã¶": "ö", "Ã§": "ç", "Ã‡": "Ç",
+        "Ä°": "İ", "Ä±": "ı", "Äž": "Ğ", "Äź": "ğ", "ÅŸ": "ş", "Åž": "Ş",
+        "Ý": "İ", "ý": "ı", "Þ": "Ş", "þ": "ş",
+        "&#305;": "ı", "&#304;": "İ", "&#351;": "ş", "&#350;": "Ş",
+        "&#287;": "ğ", "&#286;": "Ğ", "&#252;": "ü", "&#220;": "Ü",
+        "&#246;": "ö", "&#214;": "Ö", "&#231;": "ç", "&#199;": "Ç",
+    }
+    for wrong, correct in _MAP.items():
+        text = text.replace(wrong, correct)
+    return _ud.normalize("NFC", text)
+
+
 def export_news_data(news_paths: List[Path]) -> None:
     """
     OfficialNews tablosundaki resmi kamu haberlerini web sitesi için optimize
-    news.json formatında kaydeder.
+    news.json formatında kaydeder. Türkçe encoding sorunları otomatik düzeltilir.
     """
     category_labels = {
         "RESMI_HABER": "🏛️ T.C. Resmi Duyurusu",
@@ -378,15 +396,22 @@ def export_news_data(news_paths: List[Path]) -> None:
         for item in news_list:
             cat_label = category_labels.get(item.category, "📢 Resmi Açıklama")
             pub_date_str = format_tr_date(item.publish_date)
+
+            # Türkçe karakter encoding düzeltmesi uygula
+            title_fixed       = _fix_tr_encoding(item.title or "")
+            institution_fixed = _fix_tr_encoding(item.institution or "")
+            summary_fixed     = _fix_tr_encoding(item.summary or "")
+            content_fixed     = _fix_tr_encoding(item.content or item.summary or "")
+
             exported_news.append({
                 "id": item.id,
-                "title": item.title,
-                "institution": item.institution,
+                "title": title_fixed,
+                "institution": institution_fixed,
                 "category": item.category or "RESMI_HABER",
                 "category_label": cat_label,
-                "summary": item.summary or "",
-                "content": item.content or item.summary or "",
-                "source_name": item.source_name,
+                "summary": summary_fixed,
+                "content": content_fixed,
+                "source_name": _fix_tr_encoding(item.source_name or ""),
                 "source_url": item.source_url,
                 "publish_date": item.publish_date.isoformat() if item.publish_date else "",
                 "publish_date_formatted": pub_date_str,

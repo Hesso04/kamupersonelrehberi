@@ -8,6 +8,7 @@ Kaynaklar:
 - Mevzuat Bilgi Sistemi (mevzuat.gov.tr)
 """
 import re
+import unicodedata
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
@@ -34,13 +35,73 @@ HEADERS = {
 }
 
 
+# Türkçe encoding bozukluğu (mojibake) düzeltme haritası
+# ISO-8859-9 (Latin-5) yerine yanlış CP1252/Latin-1 ile decode edilmiş karakterler
+_TR_MOJIBAKE_MAP = {
+    # Çift-encode bozukluğu (UTF-8 olarak okunmuş ISO-8859-9)
+    "Ã¼": "ü", "Ã–": "Ö", "Ã¶": "ö", "Ã\x9c": "Ü", "Ã§": "ç",
+    "Ã‡": "Ç", "Ä°": "İ", "Ä±": "ı", "Äž": "Ğ", "Äź": "ğ",
+    "ÅŸ": "ş", "Åž": "Ş",
+    # Windows-1252 ile yanlış decode
+    "\xfc": "ü", "\xf6": "ö", "\xdc": "Ü", "\xd6": "Ö",
+    "\xe7": "ç", "\xc7": "Ç", "\xfd": "ı", "\xdd": "İ",
+    "\xfe": "ş", "\xde": "Ş", "\xf0": "ğ", "\xd0": "Ğ",
+    # HTML entity bozuklukları
+    "&uuml;": "ü", "&ouml;": "ö", "&Uuml;": "Ü", "&Ouml;": "Ö",
+    "&ccedil;": "ç", "&Ccedil;": "Ç", "&amp;": "&",
+    # Yaygın bozuk sequence'lar
+    "Ý": "İ", "ý": "ı", "Þ": "Ş", "þ": "ş",
+}
+
+
+def fix_turkish_encoding(text: str) -> str:
+    """Türkçe karakter kodlama bozukluklarını (mojibake) düzeltir."""
+    if not text:
+        return text
+    # Önce bilinen bozuk dizileri düzelt
+    for wrong, correct in _TR_MOJIBAKE_MAP.items():
+        text = text.replace(wrong, correct)
+    # Unicode NFC normalize et (birleşik karakterleri düzelt)
+    text = unicodedata.normalize("NFC", text)
+    return text
+
+
+def decode_response_text(resp: requests.Response) -> str:
+    """
+    HTTP yanıtını doğru encoding ile decode eder.
+    Türk devlet siteleri için UTF-8 öncelikli; başarısız olursa
+    apparent_encoding (chardet) ve son çare ISO-8859-9 dener.
+    """
+    content = resp.content
+    # 1. Önce UTF-8 dene (BOM dahil)
+    try:
+        return content.decode("utf-8-sig")
+    except (UnicodeDecodeError, LookupError):
+        pass
+    # 2. chardet/cchardet ile otomatik tespit
+    try:
+        detected = resp.apparent_encoding
+        if detected and detected.lower() not in ("ascii", "windows-1254"):
+            return content.decode(detected, errors="replace")
+    except Exception:
+        pass
+    # 3. Türkçe'ye özgü Latin-5 (ISO-8859-9)
+    try:
+        return content.decode("iso-8859-9", errors="replace")
+    except Exception:
+        return content.decode("utf-8", errors="replace")
+
+
 def clean_text(text: Optional[str]) -> str:
     if not text:
         return ""
     # HTML etiketlerini ve fazla boşlukları temizle
     soup = BeautifulSoup(text, "html.parser")
     cleaned = soup.get_text(separator=" ").strip()
-    return re.sub(r"\s+", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    # Türkçe encoding bozukluklarını onar
+    cleaned = fix_turkish_encoding(cleaned)
+    return cleaned
 
 
 class OfficialNewsScraper:
@@ -162,7 +223,8 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 seen_titles = set()
                 # Ana sayfadaki tüm linkleri tara
                 for a in soup.find_all("a", href=True):
@@ -198,7 +260,8 @@ class OfficialNewsScraper:
             # SSL doğrulaması bazı kurum sunucularında hata verebiliyor
             resp = self.session.get(url, timeout=12, verify=False)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 seen = set()
                 for a in soup.find_all("a", href=True):
                     href = a.get("href", "").strip()
@@ -234,8 +297,8 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12)
             if resp.status_code == 200:
-                resp.encoding = "utf-8"
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 seen = set()
                 for a in soup.find_all("a", href=True):
                     href = a.get("href", "").strip()
@@ -267,7 +330,14 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(rss_url, timeout=12)
             if resp.status_code == 200:
-                root = ET.fromstring(resp.content)
+                # RSS/XML: encoding declaration'ına güven, bozuksa UTF-8 zorla
+                xml_bytes = resp.content
+                try:
+                    root = ET.fromstring(xml_bytes)
+                except ET.ParseError:
+                    # BOM veya encoding sorunu varsa temizleyip tekrar dene
+                    xml_bytes = xml_bytes.lstrip(b'\xef\xbb\xbf')  # UTF-8 BOM
+                    root = ET.fromstring(xml_bytes)
                 for item in root.findall(".//item")[:10]:
                     title = clean_text(item.findtext("title"))
                     link = clean_text(item.findtext("link"))
@@ -290,7 +360,8 @@ class OfficialNewsScraper:
             web_url = "https://www.iletisim.gov.tr/turkce/haberler"
             resp = self.session.get(web_url, timeout=12)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 for card in soup.select("a[href*='/turkce/haberler/']")[:8]:
                     href = card.get("href", "")
                     title = clean_text(card.get_text())
@@ -314,7 +385,8 @@ class OfficialNewsScraper:
         url = "https://www.iletisim.gov.tr/turkce/dezenformasyon-bulteni"
         resp = self.session.get(url, timeout=12)
         if resp.status_code == 200:
-            soup = BeautifulSoup(resp.text, "html.parser")
+            page_text = decode_response_text(resp)
+            soup = BeautifulSoup(page_text, "html.parser")
             links = soup.select("a[href*='dezenformasyon']")
             for a in links[:6]:
                 title = clean_text(a.get_text())
@@ -339,7 +411,8 @@ class OfficialNewsScraper:
         url = "https://www.csgb.gov.tr/duyurular/"
         resp = self.session.get(url, timeout=12)
         if resp.status_code == 200:
-            soup = BeautifulSoup(resp.text, "html.parser")
+            page_text = decode_response_text(resp)
+            soup = BeautifulSoup(page_text, "html.parser")
             cards = soup.select("a[href*='/duyurular/']")
             seen_titles = set()
             for c in cards[:8]:
@@ -367,7 +440,8 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 cards = soup.select("a[href*='duyuru']")
                 seen = set()
                 for c in cards[:6]:
@@ -549,7 +623,12 @@ class OfficialNewsScraper:
                 resp = self.session.get(rss_url, timeout=15)
                 if resp.status_code != 200:
                     continue
-                root = ET.fromstring(resp.content)
+                xml_bytes = resp.content
+                try:
+                    root = ET.fromstring(xml_bytes)
+                except ET.ParseError:
+                    xml_bytes = xml_bytes.lstrip(b'\xef\xbb\xbf')
+                    root = ET.fromstring(xml_bytes)
                 for item in root.findall(".//item")[:15]:
                     title = clean_text(item.findtext("title"))
                     link = clean_text(item.findtext("link"))
@@ -584,7 +663,12 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(rss_url, timeout=15)
             if resp.status_code == 200:
-                root = ET.fromstring(resp.content)
+                xml_bytes = resp.content
+                try:
+                    root = ET.fromstring(xml_bytes)
+                except ET.ParseError:
+                    xml_bytes = xml_bytes.lstrip(b'\xef\xbb\xbf')
+                    root = ET.fromstring(xml_bytes)
                 for item in root.findall(".//item")[:12]:
                     title = clean_text(item.findtext("title"))
                     link = clean_text(item.findtext("link"))
@@ -616,7 +700,8 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12, verify=False)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 seen = set()
                 # Genel link taraması (farklı kurumsal şablon yapılarını kapsıyor)
                 for a in soup.find_all("a", href=True):
@@ -654,7 +739,8 @@ class OfficialNewsScraper:
         try:
             resp = self.session.get(url, timeout=12, verify=False)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
+                page_text = decode_response_text(resp)
+                soup = BeautifulSoup(page_text, "html.parser")
                 seen = set()
                 for a in soup.find_all("a", href=True):
                     href = a.get("href", "").strip()
