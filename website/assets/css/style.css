@@ -601,6 +601,131 @@ html.dark .nav-telegram-btn {
   background: var(--bg-tertiary);
 }
 
+.nav-notify-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.nav-notify-btn:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+}
+
+.nav-notify-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10B981;
+}
+
+.nav-notify-btn .notify-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+}
+
+/* Bildirim İzin Banneri (Floating Card) */
+.notify-floating-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 380px;
+  background: var(--bg-primary);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 16px 18px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notify-floating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notify-floating-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.notify-floating-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notify-floating-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.notify-floating-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-notify-allow {
+  flex: 1;
+  padding: 8px 14px;
+  background: var(--primary-accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-notify-allow:hover {
+  background: var(--primary-accent-hover);
+}
+
+.btn-notify-dismiss {
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
 /* ==========================================================================
    7. HERO BAŞLIK, SPOTLIGHT ARAMA & HIZLI FİLTRE HAPLARI
    ========================================================================== */

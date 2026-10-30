@@ -121,6 +121,9 @@ async function initApp() {
 
     // 7. Kamu Haberleri ve Doğrulama Akışını Çek & Çiz
     fetchNewsData();
+
+    // 8. Yeni İlan Bildirim Sistemini Başlat
+    initPushNotifications();
   } catch (err) {
     console.error('İlan verisi yüklenirken hata:', err);
     const feed = document.getElementById('jobs-feed');
@@ -323,7 +326,10 @@ function renderJobRowItem(job) {
   const isExpired = job.status === 'SÜRESİ DOLDU';
   const isOpen = job.status === 'BAŞVURUYA AÇIK';
   const emblemChar = (job.institution || 'K').trim()[0].toUpperCase();
+  const isExactQuota = job.is_exact_quota !== false;
   const quota = job.total_positions || 1;
+  const quotaDisplay = isExactQuota ? (job.quota_display || `${quota} Kişi`) : 'Kılavuzda';
+  const quotaNumberDisplay = isExactQuota ? quota : '—';
   const dateStr = escapeHtml(job.date_interval || job.end_date_str || 'Güncel İlan');
   const eduStr = escapeHtml(job.education_level || 'Belirtilmedi');
   const kpssStr = escapeHtml(job.kpss_requirement || 'KPSS Şartı İlanda');
@@ -437,8 +443,8 @@ function renderJobRowItem(job) {
 
         <!-- Col 1: Kontenjan Sayısı -->
         <div class="col-job-quota">
-          <span class="job-quota-number font-editorial">${quota}</span>
-          <span class="job-quota-caption">Kontenjan</span>
+          <span class="job-quota-number font-editorial">${quotaNumberDisplay}</span>
+          <span class="job-quota-caption">${isExactQuota ? 'Kontenjan' : 'Kılavuzda'}</span>
         </div>
 
         <!-- Col 2: Son Başvuru Tarihi & Ok Butonu -->
@@ -471,7 +477,7 @@ function renderJobRowItem(job) {
         <div class="mobile-pills-wrap">
           <span class="mobile-info-pill quota">
             <svg class="mini-meta-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            ${quota} Kişi
+            ${quotaDisplay}
           </span>
           <span class="mobile-info-pill">
             <svg class="mini-meta-icon" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -1762,5 +1768,229 @@ document.addEventListener('click', e => {
     closeNewsDetailModal();
   }
 });
+
+
+// =============================================================================
+// YENİ İLAN BİLDİRİM YÖNETİCİSİ (PUSH & LOCAL NOTIFICATIONS)
+// =============================================================================
+const NOTIFY_STORAGE_KEY = 'kpr_notifications_enabled';
+const LAST_NOTIFIED_JOB_KEY = 'kpr_last_notified_job_id';
+
+function initPushNotifications() {
+  // Service Worker Kaydı
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.debug('Service Worker register not completed:', err);
+    });
+  }
+
+  updateNotifyBtnState();
+
+  const notifyBtn = document.getElementById('nav-notify-toggle-btn');
+  if (notifyBtn) {
+    notifyBtn.addEventListener('click', toggleNotificationPreference);
+  }
+
+  // Kullanıcı daha önce onay vermişse yeni ilanları kontrol et
+  if (isNotificationEnabled() && Notification.permission === 'granted') {
+    checkAndNotifyNewJobs();
+  } else if (!localStorage.getItem('kpr_notify_prompt_dismissed') && Notification.permission !== 'denied') {
+    // İlk ziyarette 8 saniye sonra zarif bir davet kartı göster
+    setTimeout(showNotificationBanner, 8000);
+  }
+}
+
+function isNotificationEnabled() {
+  return localStorage.getItem(NOTIFY_STORAGE_KEY) === 'true';
+}
+
+function updateNotifyBtnState() {
+  const btn = document.getElementById('nav-notify-toggle-btn');
+  const label = document.getElementById('nav-notify-label');
+  if (!btn) return;
+
+  if (isNotificationEnabled() && Notification.permission === 'granted') {
+    btn.classList.add('active');
+    btn.innerHTML = `
+      <span class="notify-badge-dot"></span>
+      <span>Bildirimler Açık</span>
+    `;
+    btn.title = "Yeni ilan bildirimleri açık (Kapatmak için tıklayın)";
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span>Bildirimleri Aç</span>
+    `;
+    btn.title = "Yeni yayımlanan resmi ilanlardan anında haberdar olun";
+  }
+}
+
+async function toggleNotificationPreference() {
+  if (!('Notification' in window)) {
+    alert('Tarayıcınız masaüstü / mobil web bildirimlerini desteklememektedir.');
+    return;
+  }
+
+  if (isNotificationEnabled()) {
+    // Kapat
+    localStorage.setItem(NOTIFY_STORAGE_KEY, 'false');
+    updateNotifyBtnState();
+    showToastNotification('🔕 İlan bildirimleri kapatıldı.');
+  } else {
+    // Açma isteği
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      localStorage.setItem(NOTIFY_STORAGE_KEY, 'true');
+      updateNotifyBtnState();
+      
+      // Hoş geldin bildirimi gönder
+      sendNativeNotification(
+        '🔔 Bildirimler Başarıyla Açıldı!',
+        'Kamu Personel Rehberi teyitli kamu ilanlarını artık anında size iletecektir.',
+        'https://kamupersonelrehberiniz.me'
+      );
+      showToastNotification('🔔 Bildirimler başarıyla açıldı!');
+      hideNotificationBanner();
+    } else {
+      alert('Bildirim izni verilmedi. Tarayıcı ayarlarından bildirimlere izin verebilirsiniz.');
+    }
+  }
+}
+
+function showNotificationBanner() {
+  if (document.getElementById('notify-floating-card') || isNotificationEnabled()) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'notify-floating-card';
+  banner.className = 'notify-floating-banner apple-glass';
+  banner.innerHTML = `
+    <div class="notify-floating-header">
+      <div class="notify-floating-title">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span>Yeni İlanları Kaçırmayın</span>
+      </div>
+      <button class="notify-floating-close" onclick="dismissNotificationBanner()" aria-label="Kapat">✕</button>
+    </div>
+    <p class="notify-floating-desc">
+      Resmi Gazete ve Kamu İlan Portalı'ndan yeni bir kamu personeli veya memur alımı yayımlandığında anında teyitli bildirim alın.
+    </p>
+    <div class="notify-floating-actions">
+      <button class="btn-notify-allow" onclick="allowNotificationFromBanner()">Bildirimleri Aç</button>
+      <button class="btn-notify-dismiss" onclick="dismissNotificationBanner()">Daha Sonra</button>
+    </div>
+  `;
+
+  document.body.appendChild(banner);
+}
+
+function hideNotificationBanner() {
+  const banner = document.getElementById('notify-floating-card');
+  if (banner) banner.remove();
+}
+
+function dismissNotificationBanner() {
+  localStorage.setItem('kpr_notify_prompt_dismissed', 'true');
+  hideNotificationBanner();
+}
+
+async function allowNotificationFromBanner() {
+  hideNotificationBanner();
+  await toggleNotificationPreference();
+}
+
+function checkAndNotifyNewJobs() {
+  if (!state.allJobs || state.allJobs.length === 0) return;
+
+  // En son ilanı bul
+  const latestJob = state.allJobs[0];
+  if (!latestJob || !latestJob.id) return;
+
+  const lastNotifiedId = parseInt(localStorage.getItem(LAST_NOTIFIED_JOB_KEY) || '0', 10);
+
+  // İlk açılış ise sadece son ID'yi kaydet, hemen spam yapma
+  if (lastNotifiedId === 0) {
+    localStorage.setItem(LAST_NOTIFIED_JOB_KEY, latestJob.id.toString());
+    return;
+  }
+
+  // Yeni ilan gelmişse
+  if (latestJob.id > lastNotifiedId) {
+    const qStr = latestJob.quota_display || `${latestJob.total_positions || 1} Kişi`;
+    sendNativeNotification(
+      `📢 Yeni İlan: ${latestJob.institution}`,
+      `${latestJob.title} (${qStr}) yayımlandı. Detaylar ve resmi kılavuz için tıklayın.`,
+      `https://kamupersonelrehberiniz.me/?ilan=${latestJob.id}`
+    );
+    localStorage.setItem(LAST_NOTIFIED_JOB_KEY, latestJob.id.toString());
+  }
+}
+
+function sendNativeNotification(title, body, url) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, {
+          body: body,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          vibrate: [100, 50, 100],
+          data: { url: url }
+        });
+      });
+    } else {
+      const n = new Notification(title, {
+        body: body,
+        icon: '/favicon.ico'
+      });
+      n.onclick = () => {
+        window.focus();
+        window.location.href = url;
+      };
+    }
+  } catch (e) {
+    console.debug('Notification trigger error:', e);
+  }
+}
+
+function showToastNotification(msg) {
+  let toast = document.getElementById('kpr-site-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'kpr-site-toast';
+    toast.style.cssText = `
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-primary);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      z-index: 9999;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+  }, 3500);
+}
+
 
 
