@@ -187,7 +187,13 @@ def export_data(output_paths: List[Path]) -> None:
     print("🔄 Veritabanından ilanlar okunuyor...")
 
     with get_db() as db:
-        jobs = db.query(JobAnnouncement).order_by(JobAnnouncement.id.desc()).all()
+        from sqlalchemy.orm import defer
+        jobs = db.query(JobAnnouncement).options(
+            defer(JobAnnouncement.raw_content),
+            defer(JobAnnouncement.social_post_text),
+            defer(JobAnnouncement.ai_summary),
+            defer(JobAnnouncement.image_path)
+        ).order_by(JobAnnouncement.id.desc()).all()
         print(f"✅ Toplam {len(jobs)} ilan bulundu.")
 
         exported_jobs = []

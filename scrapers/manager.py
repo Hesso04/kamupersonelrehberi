@@ -62,8 +62,14 @@ class ScraperManager:
 
                 with get_db() as db:
                     from sqlalchemy import or_
+                    from sqlalchemy.orm import defer
                     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-                    active_candidates = db.query(JobAnnouncement).filter(
+                    active_candidates = db.query(JobAnnouncement).options(
+                        defer(JobAnnouncement.raw_content),
+                        defer(JobAnnouncement.social_post_text),
+                        defer(JobAnnouncement.ai_summary),
+                        defer(JobAnnouncement.image_path)
+                    ).filter(
                         or_(
                             JobAnnouncement.application_end_date.is_(None),
                             JobAnnouncement.application_end_date >= today_start

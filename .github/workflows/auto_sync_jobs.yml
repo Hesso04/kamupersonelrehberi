@@ -2,8 +2,9 @@ name: Kamu Personel Rehberi - 2 Saatlik Otomatik Tarama ve Canlı Güncelleme
 
 on:
   schedule:
-    # Türkiye Saatiyle gün boyu her 2 saatte bir çalışır (UTC 0,2,4,6,8,10,12,14,16,18,20,22)
-    - cron: '0 */2 * * *'
+    # Türkiye Saatiyle günde 3 kez (Sabah 09:00, Öğlen 14:00, Akşam 19:00 TSI -> UTC 6, 11, 16)
+    # Supabase Free plan veri kotasını korumak için optimize edildi
+    - cron: '0 6,11,16 * * *'
   workflow_dispatch: # Elle tetiklemeye izin verir
 
 permissions:
