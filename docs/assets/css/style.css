@@ -2560,3 +2560,136 @@ html.dark .modal-status-banner.open {
   text-decoration: underline;
 }
 
+/* =============================================================================
+   14. DETAYLI EDİTORYAL REHBER & KURUMSAL MODAL STİLLERİ (ADSENSE QUALITY UPGRADE)
+   ============================================================================= */
+.guide-tabs-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+.guide-tab-pill {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.guide-tab-pill.active {
+  background: var(--primary-accent);
+  color: #FFFFFF;
+  border-color: var(--primary-accent);
+  box-shadow: 0 4px 12px var(--primary-accent-subtle);
+}
+
+.guide-author-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+  border: 1px solid var(--glass-border);
+}
+
+.guide-author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.guide-content-article {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.guide-content-article h3 {
+  font-family: var(--font-editorial);
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  margin: 22px 0 10px 0;
+  letter-spacing: -0.01em;
+}
+
+.guide-content-article h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-accent);
+  margin: 16px 0 8px 0;
+}
+
+.guide-content-article p {
+  margin-bottom: 14px;
+}
+
+.guide-content-article ul, .guide-content-article ol {
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.guide-content-article li {
+  margin-bottom: 6px;
+}
+
+.guide-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin: 18px 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+.guide-editorial-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.guide-editorial-table th {
+  background: var(--bg-tertiary);
+  padding: 10px 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.guide-editorial-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.guide-callout-box {
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-accent);
+  background: var(--primary-accent-subtle);
+  margin: 20px 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.guide-callout-warning {
+  border-left-color: #F59E0B;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
