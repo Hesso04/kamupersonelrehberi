@@ -1401,8 +1401,143 @@ function checkAndOpenDeepLinkedJob() {
 }
 
 // =============================================================================
-// 10. YASAL MODALLAR & ÇEREZ YÖNETİMİ
+// 10. YASAL MODALLAR & ÇEREZ YÖNETİMİ & EDİTORYAL REHBER KÜTÜPHANESİ
 // =============================================================================
+const GUIDE_ARTICLES = {
+  'kpss-guide': {
+    badge: 'KPSS MEVZUAT REHBERİ',
+    title: '2026 KPSS Puan Türleri (P3, P93, P94), Taban Puanlar ve Geçerlilik Kılavuzu',
+    content: `
+      <p>Kamu Personel Seçme Sınavı (KPSS), 657 Sayılı Devlet Memurları Kanunu kapsamında kamu kurumlarına memur ve sözleşmeli personel istihdamında kullanılan temel merkezi seçme sistemidir. Adayların eğitim düzeylerine göre puan türleri ve kullanım alanları temel farklılıklar göstermektedir.</p>
+      
+      <h3>1. Temel Puan Türleri ve Hedef Kadrolar</h3>
+      <ul>
+        <li><strong>KPSS P3 (Lisans Düzeyi):</strong> 4 yıllık fakülte ve yüksekokul mezunları için hesaplanır. Genel Yetenek ve Genel Kültür testlerinin eşit ağırlığıyla (%50 - %50) oluşur. Bakanlıklar, üniversiteler, belediyeler ve KİT'lerin lisans mezunu memur ve 4/B sözleşmeli personel kadrolarında kullanılır.</li>
+        <li><strong>KPSS P93 (Ön Lisans Düzeyi):</strong> 2 yıllık meslek yüksekokulu mezunları için uygulanır. Sağlık teknikeri, büro personeli, zabıta, koruma ve güvenlik görevlisi gibi pozisyonlarda esas alınır.</li>
+        <li><strong>KPSS P94 (Ortaöğretim / Lise Düzeyi):</strong> Lise ve dengi okul mezunları için hesaplanır. Hizmetli, şoför, teknisyen yardımcısı ve destek personeli alımlarında kullanılır.</li>
+      </ul>
+
+      <div class="guide-callout-box">
+        <strong>📌 Çift Yıl / Tek Yıl Farkı:</strong> B Grubu genel memur ve sözleşmeli personel alımlarında yalnızca <em>çift yıllarda</em> (2024, 2026 vb.) yapılan KPSS puanları 2 yıl süreyle geçerlidir. Tek yıllarda yapılan KPSS oturumları (A Grubu Müfettiş/Uzman Yardımcılığı ve Öğretmenlik hariç) genel memur alımlarında kullanılamaz.
+      </div>
+
+      <h3>2. Taban Puan ve Başvuru Mekanizmaları</h3>
+      <p>Kamu kurumları ilanlarında çoğunlukla <strong>60, 65 veya 70 taban puan</strong> şartı ararlar. Ancak bu taban puan yalnızca başvuru yapabilme asgari sınırıdır. Adaylar puan sırasına göre en yüksekten başlanarak kontenjanın 3, 5 veya 10 katı kadar sözlü sınava (mülakata) çağrılır ya da doğrudan KPSS puan üstünlüğüne göre asil/yedek listeler belirlenir.</p>
+
+      <h3>3. Puanın Eşitliği Halinde Sıralama</h3>
+      <p>Aynı kadroya başvuran iki adayın KPSS puanı eşit olduğunda; sırasıyla mezuniyet diploma notu yüksek olana, mezuniyet tarihi daha önce olana ve doğum tarihi daha büyük (yaşça büyük) olana öncelik tanınmaktadır.</p>
+    `
+  },
+  'sartsiz-guide': {
+    badge: 'SINAVSIZ KAMU İSTİHDAMI',
+    title: 'KPSS Şartı Aranmayan Kamu Kadroları ve Sürekli İşçi Alım Mevzuatı',
+    content: `
+      <p>Türkiye'de kamu istihdamı yalnızca KPSS puanı ile sınırlı değildir. Mevzuatta yer alan istisnai düzenlemeler çerçevesinde, belirli meslek grupları ve statülerde sınavsız veya noter kurası ile daimi istihdam sağlanmaktadır.</p>
+      
+      <h3>1. İŞKUR Üzerinden Sürekli İşçi Kadroları</h3>
+      <p>Kamu kurumlarının temizlik görevlisi, güvenlik görevlisi, hasta karşılama, aşçı, şoför ve bakım onarım personeli gibi kadroları <strong>4857 Sayılı İş Kanunu</strong> kapsamında "Sürekli İşçi" statüsünde istihdam edilir. Bu alımlarda KPSS şartı aranmaz; başvurular İŞKUR üzerinden alınır ve noter huzurunda yapılan dijital kura çekimi ile asil/yedek adaylar doğrudan belirlenir.</p>
+
+      <h3>2. Üniversitelerin Akademik Kadro Alımları</h3>
+      <ul>
+        <li><strong>Araştırma Görevlisi & Öğretim Görevlisi:</strong> KPSS puanı yerine ALES (Akademik Personel ve Lisansüstü Eğitimi Giriş Sınavı) ve YDS / YÖKDİL yabancı dil puanları ile lisans mezuniyet notu değerlendirmeye alınır.</li>
+        <li><strong>Doktor Öğretim Üyesi, Doçent & Profesör:</strong> 2547 Sayılı Yükseköğretim Kanunu uyarınca bilimsel yayınlar, atıflar ve jüri değerlendirmeleriyle doğrudan atanırlar.</li>
+      </ul>
+
+      <div class="guide-callout-box">
+        <strong>💡 Kıdemli Bilişim Personeli Muafiyeti:</strong> Kamu kurumlarının Bilgi İşlem Daire Başkanlıkları bünyesinde istihdam edilen tecrübeli yazılım uzmanları, siber güvenlik uzmanları ve sistem mimarları; KPSS şartı aranmaksızın veya KPSS tabanının %70'i kabul edilerek mesleki tecrübe ve sözlü/uygulamalı mülakatla istihdam edilebilir.
+      </div>
+    `
+  },
+  'sozlesmeli-guide': {
+    badge: '4/B PERSONEL MEVZUATI',
+    title: '657 Sayılı Kanun 4/B Sözleşmeli Personel Hakları, 3+1 Kuralı ve Kadroya Geçiş',
+    content: `
+      <p>657 Sayılı Devlet Memurları Kanunu'nun 4/B maddesi kapsamında istihdam edilen sözleşmeli personel, son yasal düzenlemelerle birlikte kadrolu memurlara çok yakın özlük haklarına kavuşmuştur.</p>
+      
+      <h3>1. 3+1 Modeli ve Memur Kadrosuna Geçiş</h3>
+      <p>Milli Eğitim Bakanlığı, Sağlık Bakanlığı, Diyanet İşleri Başkanlığı ve diğer genel bütçeli kurumlarda 4/B statüsünde göreve başlayan personel; <strong>3 yıl fiilen sözleşmeli olarak görev yaptıktan sonra</strong> talebi halinde bulunduğu yerde memur kadrosuna (4/A) atanır. Kadroya geçtikten sonra 1 yıl daha görev yapan personel genel yer değiştirme (tayin) hakkı elde eder.</p>
+
+      <h3>2. İzin, Rapor ve Sosyal Haklar</h3>
+      <ul>
+        <li><strong>Yıllık İzin:</strong> 1 yıldan 10 yıla kadar hizmeti olanlar için 20 gün, 10 yıldan fazla olanlar için 30 gündür. Bir önceki yıldan devreden izin hakları kullanılabilir.</li>
+        <li><strong>Mazeret ve Doğum İzni:</strong> Kadın personele doğumdan önce 8 ve doğumdan sonra 8 hafta olmak üzere toplam 16 hafta analık izni verilir. Erkek personele eşinin doğum yapması halinde 10 gün babalık izni tanınır.</li>
+        <li><strong>Eş Durumu ve Sağlık Tayini:</strong> Sözleşmeli personel, her iki eşin de kamu personeli olması ve belirli hizmet sürelerinin tamamlanması halinde kurum içi eş durumu tayininden faydalanabilir.</li>
+      </ul>
+
+      <div class="guide-callout-box guide-callout-warning">
+        <strong>⚠️ Sözleşme Feshi ve Cezai Bekleme Süresi:</strong> 4/B sözleşmeli personel, sözleşmesini usulsüz biçimde tek taraflı feshederse; fesih tarihinden itibaren 1 yıl geçmedikçe hiçbir kamu kurumunun sözleşmeli personel pozisyonuna yeniden başvuramaz.
+      </div>
+    `
+  },
+  'kariyerkapisi-guide': {
+    badge: 'BAŞVURU REHBERİ',
+    title: 'Kariyer Kapısı (CBİKO) Üzerinden Kamu İlanlarına Başvuru Rehberi',
+    content: `
+      <p>Cumhurbaşkanlığı İnsan Kaynakları Ofisi (CBİKO) tarafından hayata geçirilen <strong>Kariyer Kapısı Kamu İşe Alım Portalı</strong> (isealimkariyerkapisi.cbiko.gov.tr), Türkiye'deki tüm bakanlık, başkanlık ve kamu idarelerinin resmi alım kapısıdır.</p>
+      
+      <h3>1. e-Devlet ile Giriş ve Profil Güncelleme</h3>
+      <p>Adaylar e-Devlet şifreleri ile sisteme giriş yaptıklarında YÖKSİS (üniversite mezuniyeti), MEBBİS (lise mezuniyeti), ÖSYM (KPSS puanları), Nüfus Müdürlüğü (ikametgah ve kimlik) ve Askerlik Durum belgeleri MERNİS üzerinden otomatik olarak sisteme çekilir.</p>
+
+      <h3>2. Belge Yükleme Aşamasında Kritik Kurallar</h3>
+      <ul>
+        <li>Kurumların talep ettiği adli sicil kaydı, askerlik durum belgesi ve yerleşim yeri (ikametgah) belgeleri barkodlu veya karekodlu e-Devlet çıktısı (PDF) formatında yüklenmelidir.</li>
+        <li>Sertifika ve ehliyet gibi belgeler ilanda belirtilen tarihten önce alınmış olmalıdır; ilan tarihinden sonra alınan sertifikalar sistem tarafından elenebilmektedir.</li>
+      </ul>
+
+      <div class="guide-callout-box">
+        <strong>✅ Başvuru Onayı:</strong> Formu doldurup belgeleri yükledikten sonra mutlaka en alttaki <strong>"Başvuruyu Tamamla"</strong> butonuna basılmalı ve sistemin ürettiği <em>"Başvurunuz Başarıyla Kaydedilmiştir"</em> ibaresi ile başvuru takip numarası teyit edilmelidir.
+      </div>
+    `
+  },
+  'guvenlik-guide': {
+    badge: 'ARŞİV VE GÜVENLİK',
+    title: '7315 Sayılı Güvenlik Soruşturması ve Arşiv Araştırması Kapsamı',
+    content: `
+      <p>Kamuda herhangi bir kadroya atanmaya hak kazanan tüm adaylar hakkında göreve başlamadan önce 7315 Sayılı Kanun gereğince Arşiv Araştırması ve nitelikli kadrolar için Güvenlik Soruşturması yürütülür.</p>
+      
+      <h3>1. Arşiv Araştırmasında Neler İncelenir?</h3>
+      <p>Kişinin adli sicil kaydı, kesinleşmiş mahkeme kararları, hakkında devam eden kamu davaları veya yakalama kararları ile kamu görevinden çıkarma cezası bulunup bulunmadığı adli kayıtlar üzerinden incelenir.</p>
+
+      <h3>2. İnceleme Süresi ve Değerlendirme Komisyonu</h3>
+      <p>Emniyet Genel Müdürlüğü veya Milli İstihbarat Teşkilatı tarafından yürütülen inceleme süreci genellikle <strong>30 ila 60 gün</strong> arasında tamamlanır. Elde edilen veriler kurum bünyesindeki Değerlendirme Komisyonu tarafından gizlilikle değerlendirilir. Olumsuz sonuçlanan kararlara karşı 60 gün içinde İdare Mahkemesi'nde iptal davası açma hakkı mevcuttur.</p>
+    `
+  },
+  'maas-guide': {
+    badge: 'ÖZLÜK HAKLARI & MAAŞ',
+    title: 'Kamu Personeli Maaş Katsayıları, Taban Aylık ve Yan Ödeme Sistemi',
+    content: `
+      <p>Devlet memurlarının aylıkları 657 Sayılı Kanun'un mali hükümleri ve Hazine ve Maliye Bakanlığı tarafından her yıl Ocak ve Temmuz aylarında yayımlanan Genelgeler doğrultusunda hesaplanır.</p>
+      
+      <h3>1. Memur Maaşının Temel Bileşenleri</h3>
+      <ul>
+        <li><strong>Aylık Gösterge Tutarı:</strong> Memurun derece ve kademesine karşılık gelen gösterge rakamının aylık katsayısı ile çarpımıdır.</li>
+        <li><strong>Ek Gösterge:</strong> Unvana ve hizmet sınıfına göre belirlenen (örneğin 3600 ek gösterge) ve hem çalışırken hem de emeklilik ikramiyesi ile maaşında en belirleyici olan unsurdur.</li>
+        <li><strong>Taban Aylığı:</strong> Tüm memurlara eşit uygulanan taban aylık göstergesinin taban aylık katsayısı ile çarpımıdır.</li>
+        <li><strong>Aile ve Çocuk Yardımı:</strong> Çalışmayan eş ve bakmakla yükümlü olunan çocuklar için her ay vergiden muaf olarak ödenir.</li>
+      </ul>
+
+      <div class="guide-callout-box">
+        <strong>📊 657 Sayılı Kanun Güvencesi:</strong> Memur maaşları her ayın 15'inde peşin olarak ödenir. Emekli Sandığı (4/C) prim kesintileri kurum tarafından doğrudan SGK'ya aktarılır.
+      </div>
+    `
+  }
+};
+
+function openGuideArticle(guideKey) {
+  const guide = GUIDE_ARTICLES[guideKey];
+  if (!guide) return;
+
+  const badgeEl = document.getElementById('guide-modal-badge');
+  const titleEl = document.getElementById('guide-modal-title');
+  const contentEl = document.getElementById('guide-modal-content');
+
+  if (badgeEl) badgeEl.textContent = guide.badge;
+  if (titleEl) titleEl.textContent = guide.title;
+  if (contentEl) contentEl.innerHTML = guide.content;
+
+  openLegalModal('modal-guide-detail');
+}
+
 function openLegalModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
@@ -1427,6 +1562,7 @@ function initCookieConsent() {
   if (!consent) {
     setTimeout(() => banner.classList.add('show'), 1200);
   }
+
 
   const acceptBtn = document.getElementById('cookie-accept-btn');
   if (acceptBtn) {

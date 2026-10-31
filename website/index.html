@@ -67,7 +67,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Ana Tasarım Sistemi (Editorial Apple Glass) -->
-  <link rel="stylesheet" href="assets/css/style.css?v=6.2.0">
+  <link rel="stylesheet" href="assets/css/style.css?v=6.4.0">
 
   <!-- =========================================================================
        GELİŞMİŞ YAPILANDIRILMIŞ VERİ ŞEMASI (JSON-LD SCHEMA.ORG)
@@ -217,10 +217,12 @@
       <!-- Orta: Navigasyon Menüsü -->
       <div class="nav-links-center">
         <a href="#ilanlar" class="nav-link-item">Güncel İlan Listesi</a>
-        <a href="#haberler" class="nav-link-item">📰 Kamu Haberleri & Doğrulama</a>
+        <a href="#haberler" class="nav-link-item">📰 Kamu Haberleri</a>
         <a href="#rehber" class="nav-link-item">İstihdam Rehberi</a>
-        <a href="#faq" class="nav-link-item">Sıkça Sorulanlar</a>
-        <button class="nav-link-item" onclick="openLegalModal('modal-kvkk')">KVKK</button>
+        <a href="#faq" class="nav-link-item">S.S.S.</a>
+        <button class="nav-link-item" onclick="openLegalModal('modal-about')">Hakkımızda</button>
+        <button class="nav-link-item" onclick="openLegalModal('modal-contact')">İletişim</button>
+        <button class="nav-link-item" onclick="openLegalModal('modal-kvkk')">Gizlilik & Çerez</button>
         <button class="nav-link-item" onclick="openLegalModal('modal-legal-warning')">Yasal Uyarı</button>
       </div>
 
@@ -526,7 +528,7 @@
       <div class="guide-asymmetric-grid">
         
         <!-- Kart 1: KPSS P3 / P93 / P94 -->
-        <article class="guide-feature-card apple-glass tilt-surface" onclick="filterByKpssGeneral()">
+        <article class="guide-feature-card apple-glass tilt-surface">
           <div>
             <div class="guide-card-icon">
               <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -536,44 +538,113 @@
                 <line x1="16" y1="17" x2="8" y2="17"/>
               </svg>
             </div>
-            <h3 class="guide-card-title">KPSS Puan Türleri & Şartlar</h3>
+            <h3 class="guide-card-title">KPSS Puan Türleri & Şartlar (P3, P93, P94)</h3>
             <p class="guide-card-desc">
-              Lisans için <strong>P3</strong>, Ön Lisans için <strong>P93</strong>, Ortaöğretim için <strong>P94</strong> puan türleriyle yapılan merkezi ve kurumsal sözleşmeli alımların taban puan kriterleri.
+              Lisans (P3), Ön Lisans (P93) ve Ortaöğretim (P94) puan türlerinin geçerlilik süreleri, çift/tek yıl farkları ve merkezi/açıktan atamalarda taban puan mekanizmaları.
             </p>
           </div>
-          <span class="guide-card-action">İlgili İlanları Listele →</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('kpss-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="filterByKpssGeneral()">İlanları Filtrele →</span>
+          </div>
         </article>
 
         <!-- Kart 2: KPSS Şartsız & İşçi Alımları -->
-        <article class="guide-feature-card apple-glass tilt-surface" onclick="selectQuickPill('kpss_sartsiz')">
+        <article class="guide-feature-card apple-glass tilt-surface">
           <div>
             <div class="guide-card-icon">
               <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
               </svg>
             </div>
-            <h3 class="guide-card-title">KPSS Şartsız Daimi Kadrolar</h3>
+            <h3 class="guide-card-title">KPSS Şartsız Daimi Kamu Kadroları</h3>
             <p class="guide-card-desc">
-              İŞKUR üzerinden noter kurası ile istihdam edilen kamu işçileri, üniversitelerin akademik kadro duyuruları ve tecrübeli bilişim personeli alımlarında sınav muafiyet şartları.
+              İŞKUR noter kurasıyla sürekli işçi alımı, üniversite öğretim üyesi ilanları ve sınav muafiyetli kamu personeli statüleri hakkında yasal mevzuat rehberi.
             </p>
           </div>
-          <span class="guide-card-action">Şartsız Alımları İncele →</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('sartsiz-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="selectQuickPill('kpss_sartsiz')">İlanları Filtrele →</span>
+          </div>
         </article>
 
         <!-- Kart 3: 4/B Sözleşmeli Hakları -->
-        <article class="guide-feature-card apple-glass tilt-surface" onclick="selectQuickPill('sozlesmeli')">
+        <article class="guide-feature-card apple-glass tilt-surface">
           <div>
             <div class="guide-card-icon">
               <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
             </div>
-            <h3 class="guide-card-title">4/B Sözleşmeli Personel Mevzuatı</h3>
+            <h3 class="guide-card-title">4/B Sözleşmeli Personel Hakları & Kadro</h3>
             <p class="guide-card-desc">
-              657 Sayılı Kanun'un 4/B maddesi kapsamında istihdam edilen personelin 3 yıl sonrasında memur kadrosuna (4/A) geçiş hakkı, tayin prosedürleri ve özlük hakları rehberi.
+              657 Sayılı Kanun 4/B statüsü, 3+1 kuralı, memur kadrosuna geçiş şartları, yıllık izin, tayin, eş durumu ve tavan ücret düzenlemeleri.
             </p>
           </div>
-          <span class="guide-card-action">4/B İlanlarına Git →</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('sozlesmeli-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="selectQuickPill('sozlesmeli')">İlanları Filtrele →</span>
+          </div>
+        </article>
+
+        <!-- Kart 4: Kariyer Kapısı Başvuru Adımları -->
+        <article class="guide-feature-card apple-glass tilt-surface">
+          <div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <h3 class="guide-card-title">Kariyer Kapısı e-Devlet Başvuru Adımları</h3>
+            <p class="guide-card-desc">
+              CBİKO Kariyer Kapısı üzerinden online başvuru yaparken dikkat edilmesi gereken belge yükleme, mezuniyet doğrulama ve onay adımları.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('kariyerkapisi-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="filterByCategory('memur')">İlanları İncele →</span>
+          </div>
+        </article>
+
+        <!-- Kart 5: Güvenlik Soruşturması ve Arşiv Araştırması -->
+        <article class="guide-feature-card apple-glass tilt-surface">
+          <div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <h3 class="guide-card-title">7315 Sayılı Güvenlik Soruşturması Mevzuatı</h3>
+            <p class="guide-card-desc">
+              Kamuda ilk defa göreve başlayacaklar için uygulanan arşiv araştırması kriterleri, inceleme süreleri ve yasal hak arama yolları.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('guvenlik-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="filterByCategory('all')">İlanlara Dön →</span>
+          </div>
+        </article>
+
+        <!-- Kart 6: Memur Maaş Katsayıları ve Yan Haklar -->
+        <article class="guide-feature-card apple-glass tilt-surface">
+          <div>
+            <div class="guide-card-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <h3 class="guide-card-title">2026 Memur Maaş Katsayıları & Özlük Hakları</h3>
+            <p class="guide-card-desc">
+              Gösterge ve ek göstergeler, taban aylık, kıdem aylığı, aile ve çocuk yardımları ile brüt-net maaş hesaplama prensipleri.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;">
+            <button class="guide-card-action" onclick="openGuideArticle('maas-guide')">Kapsamlı Rehberi Oku 📖</button>
+            <span style="font-size:0.75rem;color:var(--text-tertiary);cursor:pointer;" onclick="filterByCategory('all')">İlanları Listele →</span>
+          </div>
         </article>
 
       </div>
@@ -866,12 +937,93 @@
   </div>
 
   <!-- =========================================================================
-       8. YASAL MODALLAR (KVKK, YASAL UYARI & ÇEREZ)
+       8. YASAL & KURUMSAL MODALLAR (HAKKIMIZDA, İLETİŞİM, KVKK, REHBER & ÇEREZ)
        ========================================================================= -->
-  <div class="modal-backdrop" id="modal-kvkk" role="dialog" aria-modal="true">
-    <div class="modal-sheet-dialog apple-glass" style="max-width:540px;">
+  
+  <!-- Hakkımızda Modalı (E-E-A-T AdSense Gereksinimi) -->
+  <div class="modal-backdrop" id="modal-about" role="dialog" aria-modal="true">
+    <div class="modal-sheet-dialog apple-glass" style="max-width:620px;">
       <div class="modal-header-block">
-        <h3 class="modal-title-text">KVKK Aydınlatma Metni</h3>
+        <div>
+          <span class="guide-badge-kicker">KURUMSAL KİMLİK</span>
+          <h3 class="modal-title-text">Hakkımızda & Yayın İlkelerimiz</h3>
+        </div>
+        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-about')" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-scroll-body" style="font-size:0.9rem;line-height:1.7;color:var(--text-secondary);">
+        <p><strong>Kamu Personel Rehberi (kamupersonelrehberiniz.me)</strong>, kamu personeli adaylarının, mezunların ve vatandaşların kamu istihdamı, memur alımları ve resmi duyurulara güvenli, sade ve şeffaf biçimde ulaşabilmesi amacıyla kurulmuş <strong>bağımsız bir kamu bilgilendirme ve rehberlik platformudur</strong>.</p>
+        
+        <h4 style="color:var(--text-primary);margin:16px 0 6px 0;font-size:1rem;">Misyonumuz & Çalışma Şeklimiz</h4>
+        <p>İnternetteki ilan kirliliğini, yanıltıcı tıklama tuzaklarını (clickbait) ve dezenformasyonu engellemek için tüm ilanlarımızı sadece Türkiye Cumhuriyeti'nin birincil yasal kaynaklarından teyit ederek sunuyoruz:</p>
+        <ul style="padding-left:20px;margin-bottom:12px;">
+          <li><strong>T.C. Resmî Gazete</strong> ilan bültenleri</li>
+          <li><strong>T.C. Cumhurbaşkanlığı Strateji ve Bütçe Başkanlığı (SBB)</strong> Kamu İlan Portalı</li>
+          <li><strong>Cumhurbaşkanlığı İletişim Başkanlığı</strong> ve Dezenformasyonla Mücadele Merkezi (DMM) bültenleri</li>
+        </ul>
+
+        <h4 style="color:var(--text-primary);margin:16px 0 6px 0;font-size:1rem;">Editoryal Bağımsızlık & Tarafsızlık</h4>
+        <p>Sitemiz hiçbir siyasi parti, dernek veya ticari çıkar grubuna bağlı değildir. İçeriklerimiz kamu personeli mevzuatı (657 Sayılı Kanun, 4/B sözleşmeli mevzuatı, 4857 Sayılı İş Kanunu) uzmanlarınca incelenmekte, adaylara başvuru adımları ve kontenjan dağılımları nesnel biçimde aktarılmaktadır.</p>
+      </div>
+      <div class="modal-footer-block" style="justify-content:flex-end;">
+        <button class="btn-apple-primary" onclick="closeLegalModal('modal-about')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- İletişim & Künye Modalı -->
+  <div class="modal-backdrop" id="modal-contact" role="dialog" aria-modal="true">
+    <div class="modal-sheet-dialog apple-glass" style="max-width:560px;">
+      <div class="modal-header-block">
+        <div>
+          <span class="guide-badge-kicker">DOĞRUDAN ULAŞIM</span>
+          <h3 class="modal-title-text">İletişim & Künye</h3>
+        </div>
+        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-contact')" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-scroll-body" style="font-size:0.9rem;line-height:1.7;color:var(--text-secondary);">
+        <p>Soru, görüş, düzeltme talepleri veya telif hakları ile ilgili bildirimleriniz için editoryal ekibimizle aşağıdaki resmi iletişim kanallarımızdan 7/24 bağlantı kurabilirsiniz.</p>
+        
+        <div style="background:var(--bg-secondary);border:1px solid var(--glass-border);padding:16px;border-radius:12px;margin:16px 0;">
+          <div style="margin-bottom:10px;">
+            <strong style="color:var(--text-primary);">📧 Resmi E-Posta:</strong><br>
+            <a href="mailto:iletisim@kamupersonelrehberiniz.me" style="color:var(--primary-accent);font-weight:600;">iletisim@kamupersonelrehberiniz.me</a>
+          </div>
+          <div style="margin-bottom:10px;">
+            <strong style="color:var(--text-primary);">✈️ Telegram Resmi Kanalı & Destek:</strong><br>
+            <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" style="color:var(--primary-accent);font-weight:600;">@kamupersonelrehberi</a>
+          </div>
+          <div>
+            <strong style="color:var(--text-primary);">📸 Instagram Haber Hattı:</strong><br>
+            <a href="https://instagram.com/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" style="color:var(--primary-accent);font-weight:600;">@kamupersonelrehberi</a>
+          </div>
+        </div>
+
+        <p style="font-size:0.8125rem;"><em>Geri bildirim ve düzeltme talepleri editoryal ekibimiz tarafından en geç 24 saat içerisinde incelenerek yanıtlanmaktadır.</em></p>
+      </div>
+      <div class="modal-footer-block" style="justify-content:flex-end;">
+        <button class="btn-apple-primary" onclick="closeLegalModal('modal-contact')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Genişletilmiş KVKK & Gizlilik & Çerez Politikası Modalı (Google AdSense Zorunlu Çerez Açıklamaları) -->
+  <div class="modal-backdrop" id="modal-kvkk" role="dialog" aria-modal="true">
+    <div class="modal-sheet-dialog apple-glass" style="max-width:620px;">
+      <div class="modal-header-block">
+        <div>
+          <span class="guide-badge-kicker">GİZLİLİK POLİTİKASI</span>
+          <h3 class="modal-title-text">Gizlilik Politikası, KVKK & Çerezler</h3>
+        </div>
         <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-kvkk')" aria-label="Kapat">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -879,10 +1031,21 @@
           </svg>
         </button>
       </div>
-      <div class="modal-scroll-body" style="font-size:0.875rem;line-height:1.6;color:var(--text-secondary);">
-        <p><strong>6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Bilgilendirme:</strong></p>
-        <p>Kamu Personel Rehberi (kamupersonelrehberiniz.me) olarak ziyaretçilerimizin kişisel verilerinin güvenliğine en üst seviyede önem vermekteyiz.</p>
-        <p>Sitemizde herhangi bir zorunlu üyelik veya kişisel kimlik verisi toplanmamaktadır. Yalnızca sitemizin teknik güvenliğini sağlamak ve genel sayfa görüntüleme istatistiklerini izlemek amacıyla anonimleştirilmiş ziyaret verileri işlenmektedir.</p>
+      <div class="modal-scroll-body" style="font-size:0.875rem;line-height:1.65;color:var(--text-secondary);">
+        <p><strong>Kamu Personel Rehberi (kamupersonelrehberiniz.me)</strong> olarak ziyaretçilerimizin kişisel mahremiyetine ve 6698 sayılı Kişisel Verilerin Korunması Kanunu'na (KVKK) tam uyum göstermekteyiz.</p>
+        
+        <h4 style="color:var(--text-primary);margin:14px 0 6px 0;font-size:0.95rem;">1. Veri Toplama ve İşleme</h4>
+        <p>Platformumuzda zorunlu üyelik veya form yoluyla kimlik/iletişim bilgisi toplanmaz. Yalnızca sitemizin performansını izlemek, sunucu güvenliğini temin etmek amacıyla anonim IP ve sayfa görüntüleme istatistikleri işlenir.</p>
+
+        <h4 style="color:var(--text-primary);margin:14px 0 6px 0;font-size:0.95rem;">2. Google AdSense ve Üçüncü Taraf Çerezleri</h4>
+        <p>Sitemizde reklam gösterimi için Google Inc. ("Google AdSense") teknolojileri kullanılmaktadır. Google, sitemizde ve internetteki diğer sitelerde kullanıcıların geçmiş ziyaretlerine dayalı olarak kişiselleştirilmiş veya kişiselleştirilmemiş reklamlar sunmak amacıyla çerezlerden (cookies) yararlanır.</p>
+        <ul style="padding-left:18px;margin-bottom:10px;">
+          <li>Kullanıcılar, <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" style="color:var(--primary-accent);text-decoration:underline;">Google Reklam Ayarları</a> sayfasından kişiselleştirilmiş reklamları diledikleri zaman devre dışı bırakabilirler.</li>
+          <li>Ayrıca <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" style="color:var(--primary-accent);text-decoration:underline;">aboutads.info</a> adresinden üçüncü taraf çerez tercihlerini yönetebilirsiniz.</li>
+        </ul>
+
+        <h4 style="color:var(--text-primary);margin:14px 0 6px 0;font-size:0.95rem;">3. Çerez Yönetimi ve Tercihler</h4>
+        <p>Sitemizi ilk ziyaretinizde ekranın altında beliren çerez onay paneli aracılığıyla yalnızca zorunlu teknik çerezleri seçebilir ya da tüm çerezleri onaylayabilirsiniz. Tarayıcı ayarlarınızdan çerezleri dilediğiniz zaman temizleyebilirsiniz.</p>
       </div>
       <div class="modal-footer-block" style="justify-content:flex-end;">
         <button class="btn-apple-primary" onclick="closeLegalModal('modal-kvkk')">Anladım</button>
@@ -903,10 +1066,44 @@
       </div>
       <div class="modal-scroll-body" style="font-size:0.875rem;line-height:1.6;color:var(--text-secondary);">
         <p>Kamu Personel Rehberi (kamupersonelrehberiniz.me), Türkiye Cumhuriyeti resmi kurumları ile idari veya organik bağı bulunmayan, kamu yararı doğrultusunda resmi alım ilanlarını tek ekranda derleyerek adaylara kolaylık sağlayan <strong>bağımsız bir rehberlik ve bilgilendirme platformudur</strong>.</p>
-        <p>Tüm başvurular doğrudan kurumların resmi portalları (Kariyer Kapısı, ÖSYM vb.) üzerinden yapılmalıdır.</p>
+        <p>Sitede yer alan ilan şartları ve tarihler birincil resmi kaynaklardan (Resmi Gazete ve SBB) alınmakta olup bağlayıcı metin her zaman kurumun orijinal başvuru kılavuzudur. Başvurular doğrudan kurumların resmi portalları (Kariyer Kapısı, ÖSYM vb.) üzerinden yapılmalıdır.</p>
       </div>
       <div class="modal-footer-block" style="justify-content:flex-end;">
         <button class="btn-apple-primary" onclick="closeLegalModal('modal-legal-warning')">Kabul Ediyorum</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kapsamlı İstihdam Rehberi Detay Modalı (Full-Article Reader) -->
+  <div class="modal-backdrop" id="modal-guide-detail" role="dialog" aria-modal="true">
+    <div class="modal-sheet-dialog apple-glass" style="max-width:760px;max-height:88vh;">
+      <div class="modal-header-block">
+        <div>
+          <span class="guide-badge-kicker" id="guide-modal-badge">RESMİ EDİTORYAL KILAVUZ</span>
+          <h2 class="modal-job-title" id="guide-modal-title" style="font-size:1.35rem;margin-top:4px;">Rehber Başlığı</h2>
+        </div>
+        <button class="modal-dismiss-btn" onclick="closeLegalModal('modal-guide-detail')" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-scroll-body">
+        <div class="guide-author-bar">
+          <div class="guide-author-avatar">KP</div>
+          <div style="font-size:0.8125rem;">
+            <div style="font-weight:700;color:var(--text-primary);">Kamu Personel Rehberi Editoryal Kurulu</div>
+            <div style="color:var(--text-secondary);">Mevzuat İnceleme & İstihdam Danışmanlığı</div>
+          </div>
+        </div>
+        <div class="guide-content-article" id="guide-modal-content">
+          <!-- Dinamik detay metni js tarafından yüklenir -->
+        </div>
+      </div>
+      <div class="modal-footer-block" style="justify-content:space-between;">
+        <span style="font-size:0.75rem;color:var(--text-tertiary);">T.C. Mevzuat Bilgi Sistemi Referanslıdır</span>
+        <button class="btn-apple-primary" onclick="closeLegalModal('modal-guide-detail')">Pencereyi Kapat</button>
       </div>
     </div>
   </div>
@@ -982,9 +1179,11 @@
         </div>
 
         <div>
-          <div class="footer-col-title">Kurumsal & İletişim</div>
+          <div class="footer-col-title">Kurumsal & Yasal</div>
           <ul class="footer-links">
-            <li><a class="footer-link-item" onclick="openLegalModal('modal-kvkk')">KVKK Aydınlatma Metni</a></li>
+            <li><a class="footer-link-item" onclick="openLegalModal('modal-about')">Hakkımızda & Misyonumuz</a></li>
+            <li><a class="footer-link-item" onclick="openLegalModal('modal-contact')">İletişim & Destek Formu</a></li>
+            <li><a class="footer-link-item" onclick="openLegalModal('modal-kvkk')">Gizlilik Politikası & Çerezler (KVKK)</a></li>
             <li><a class="footer-link-item" onclick="openLegalModal('modal-legal-warning')">Yasal Uyarı ve Sorumluluk Reddi</a></li>
             <li><a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="footer-link-item">Telegram Kanalımız</a></li>
             <li><a href="https://instagram.com/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="footer-link-item">Instagram Sayfamız</a></li>
@@ -1011,6 +1210,6 @@
     </svg>
   </button>
 
-  <script src="assets/js/app.js?v=6.3.0"></script>
+  <script src="assets/js/app.js?v=6.4.0"></script>
 </body>
 </html>
