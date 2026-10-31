@@ -1,9 +1,37 @@
 {
   "meta": {
-    "generated_at": "2026-10-31T14:14:32.754414+00:00",
-    "total_news": 51
+    "generated_at": "2026-10-31T19:41:46.820660+00:00",
+    "total_news": 53
   },
   "news": [
+    {
+      "id": 118,
+      "title": "Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
+      "content": "Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/ukrayna-devlet-baskani-zelenskiy-istanbulda-31-10-26",
+      "publish_date": "2026-10-31T18:19:56.776495",
+      "publish_date_formatted": "31 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 117,
+      "title": "Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
+      "content": "Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-ukrayna-devlet-baskani-zelenskiy-ile-ortak-basin-toplantisinda-konustu-31-10-26",
+      "publish_date": "2026-10-31T18:19:56.776196",
+      "publish_date_formatted": "31 Ekim 2026",
+      "is_verified": true
+    },
     {
       "id": 116,
       "title": "Cumhurbaşkanı Erdoğan, TÜSEB Aziz Sancar Bilim, Hizmet ve Teşvik Ödülleri Töreni’nde konuştu",
