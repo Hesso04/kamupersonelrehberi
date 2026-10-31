@@ -1,9 +1,51 @@
 {
   "meta": {
-    "generated_at": "2026-10-31T07:54:59.251131+00:00",
-    "total_news": 48
+    "generated_at": "2026-10-31T14:14:32.754414+00:00",
+    "total_news": 51
   },
   "news": [
+    {
+      "id": 116,
+      "title": "Cumhurbaşkanı Erdoğan, TÜSEB Aziz Sancar Bilim, Hizmet ve Teşvik Ödülleri Töreni’nde konuştu",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, TÜSEB Aziz Sancar Bilim, Hizmet ve Teşvik Ödülleri Töreni’nde konuştu",
+      "content": "Cumhurbaşkanı Erdoğan, TÜSEB Aziz Sancar Bilim, Hizmet ve Teşvik Ödülleri Töreni’nde konuştu",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-tuseb-aziz-sancar-bilim-hizmet-ve-tesvik-odulleri-toreninde-konustu-31-10-26",
+      "publish_date": "2026-10-31T13:09:11.532421",
+      "publish_date_formatted": "31 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 115,
+      "title": "📚 Millî Eğitim Bakanlığınca ortaöğretim öğrencilerinin İngilizce dil becerilerini ve okuma kültürlerini desteklemek amacıyla hazırlanan \"Young [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanlığınca ortaöğretim öğrencilerinin İngilizce dil becerilerini ve okuma kültürlerini desteklemek amacıyla hazırlanan \"Young [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanlığınca ortaöğretim öğrencilerinin İngilizce dil becerilerini ve okuma kültürlerini desteklemek amacıyla hazırlanan \"Young [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quotyoung-and-wisequot-dergisinin-dorduncu-sayisi-quotegitimquot-temasiyla-yayimlandi/haber/42362/tr",
+      "publish_date": "2026-10-31T13:09:09.528495",
+      "publish_date_formatted": "31 Ekim 2026",
+      "is_verified": true
+    },
+    {
+      "id": 114,
+      "title": "📚 \"YOUNG AND WISE\" DERGİSİNİN DÖRDÜNCÜ SAYISI \"EĞİTİM\" TEMASIYLA YAYIMLANDI",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: \"YOUNG AND WISE\" DERGİSİNİN DÖRDÜNCÜ SAYISI \"EĞİTİM\" TEMASIYLA YAYIMLANDI",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: \"YOUNG AND WISE\" DERGİSİNİN DÖRDÜNCÜ SAYISI \"EĞİTİM\" TEMASIYLA YAYIMLANDI",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quotyoung-and-wisequot-dergisinin-dorduncu-sayisi-quotegitimquot-temasiyla-yayimlandi/haber/42362/tr",
+      "publish_date": "2026-10-31T13:09:09.528345",
+      "publish_date_formatted": "31 Ekim 2026",
+      "is_verified": true
+    },
     {
       "id": 113,
       "title": "📰 Liseli şeflerin hazırladığı tabaklar Hırvatistan'dan 12 madalya getirdi",
