@@ -604,9 +604,7 @@ if menu == "📋 Onay Havuzu (Human-in-the-Loop)":
     with get_db() as db:
         from sqlalchemy.orm import defer
         query = db.query(JobAnnouncement).options(
-            defer(JobAnnouncement.raw_content),
-            defer(JobAnnouncement.social_post_text),
-            defer(JobAnnouncement.ai_summary)
+            defer(JobAnnouncement.raw_content)
         )
         if status_filter == "Onay Bekleyenler (Aktif Kuyruk)":
             query = query.filter(JobAnnouncement.status.in_([JobStatus.PENDING_APPROVAL, JobStatus.AI_PROCESSED]))
