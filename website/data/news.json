@@ -1,9 +1,51 @@
 {
   "meta": {
-    "generated_at": "2026-10-31T19:41:46.820660+00:00",
-    "total_news": 53
+    "generated_at": "2026-11-01T12:27:16.821227+00:00",
+    "total_news": 56
   },
   "news": [
+    {
+      "id": 121,
+      "title": "Türk Dünyası Diyalog Forumu tamamlandı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Türk Dünyası Diyalog Forumu tamamlandı",
+      "content": "Türk Dünyası Diyalog Forumu tamamlandı",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/turk-dunyasi-diyalog-forumu-tamamlandi",
+      "publish_date": "2026-11-01T12:24:15.059583",
+      "publish_date_formatted": "01 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 120,
+      "title": "İletişim Başkanı Duran’dan, Cumhurbaşkanı Erdoğan’ın Kore Cumhuriyeti ziyaretine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan, Cumhurbaşkanı Erdoğan’ın Kore Cumhuriyeti ziyaretine ilişkin açıklama",
+      "content": "İletişim Başkanı Duran’dan, Cumhurbaşkanı Erdoğan’ın Kore Cumhuriyeti ziyaretine ilişkin açıklama",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-cumhurbaskani-erdoganin-kore-cumhuriyeti-ziyaretine-iliskin-aciklama-01-11-26",
+      "publish_date": "2026-11-01T12:24:15.059438",
+      "publish_date_formatted": "01 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 119,
+      "title": "🎯 2026-KPSS Din Hizmetleri Alan Bilgisi (DHBT) Sınavı: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026-KPSS Din Hizmetleri Alan Bilgisi (DHBT) Sınavı: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı. Kılavuz ve başvuru ekranı erişime açılmıştır.",
+      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026-KPSS Din Hizmetleri Alan Bilgisi (DHBT) Sınavı: Temel Soru Kitapçıkları ve Cevap Anahtarları Yayımlandı. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+      "source_name": "ÖSYM Resmi Duyurular",
+      "source_url": "https://www.osym.gov.tr/2026-kpss-din-hizmetleri-alan-bilgisi-dhbt-sinavi-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
+      "publish_date": "2026-11-01T12:24:01.555197",
+      "publish_date_formatted": "01 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 118,
       "title": "Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
