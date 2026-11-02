@@ -1,9 +1,79 @@
 {
   "meta": {
-    "generated_at": "2026-11-01T20:03:55.111567+00:00",
-    "total_news": 51
+    "generated_at": "2026-11-02T14:21:29.181166+00:00",
+    "total_news": 56
   },
   "news": [
+    {
+      "id": 133,
+      "title": "🏠 Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/samsun-19-mayisda-370-sosyal-konutun-teslimati-basladi",
+      "publish_date": "2026-11-02T14:19:23.480871",
+      "publish_date_formatted": "02 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 132,
+      "title": "Cumhurbaşkanı Erdoğan, Kore Cumhuriyeti’nde",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Kore Cumhuriyeti’nde",
+      "content": "Cumhurbaşkanı Erdoğan, Kore Cumhuriyeti’nde",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-kore-cumhuriyetinde",
+      "publish_date": "2026-11-02T12:26:24.651563",
+      "publish_date_formatted": "02 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 131,
+      "title": "Cumhurbaşkanı Erdoğan, Yonhap Haber Ajansına mülakat verdi",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Yonhap Haber Ajansına mülakat verdi",
+      "content": "Cumhurbaşkanı Erdoğan, Yonhap Haber Ajansına mülakat verdi",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-yonhap-gazetesine-mulakat-verdi",
+      "publish_date": "2026-11-02T12:26:24.651252",
+      "publish_date_formatted": "02 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 130,
+      "title": "📚 Millî Eğitim Bakanlığı Talim ve Terbiye Kurulu Başkanlığının 100. kuruluş yıl dönümü dolayısıyla özel oturum gerçekleştirildi. Millî [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanlığı Talim ve Terbiye Kurulu Başkanlığının 100. kuruluş yıl dönümü dolayısıyla özel oturum gerçekleştirildi. Millî [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanlığı Talim ve Terbiye Kurulu Başkanlığının 100. kuruluş yıl dönümü dolayısıyla özel oturum gerçekleştirildi. Millî [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quottalim-ve-terbiye-kurulu-100-yil-ozel-oturumuquot-bakan-tekin-baskanliginda-yapildi/haber/42382/tr",
+      "publish_date": "2026-11-02T12:26:22.654294",
+      "publish_date_formatted": "02 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 129,
+      "title": "📚 \"TALİM VE TERBİYE KURULU 100. YIL ÖZEL OTURUMU\", BAKAN TEKİN BAŞKANLIĞINDA YAPILDI",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: \"TALİM VE TERBİYE KURULU 100. YIL ÖZEL OTURUMU\", BAKAN TEKİN BAŞKANLIĞINDA YAPILDI",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: \"TALİM VE TERBİYE KURULU 100. YIL ÖZEL OTURUMU\", BAKAN TEKİN BAŞKANLIĞINDA YAPILDI",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quottalim-ve-terbiye-kurulu-100-yil-ozel-oturumuquot-bakan-tekin-baskanliginda-yapildi/haber/42382/tr",
+      "publish_date": "2026-11-02T12:26:22.654149",
+      "publish_date_formatted": "02 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 128,
       "title": "Cumhurbaşkanı Erdoğan Kore Cumhuriyeti’ne gitti",
