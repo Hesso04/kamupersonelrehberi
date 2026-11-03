@@ -1,9 +1,65 @@
 {
   "meta": {
-    "generated_at": "2026-11-03T13:24:04.266556+00:00",
-    "total_news": 50
+    "generated_at": "2026-11-03T21:28:08.758019+00:00",
+    "total_news": 52
   },
   "news": [
+    {
+      "id": 170,
+      "title": "📚 Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/bakan-tekin-quotkitap-kurtlari-yarisiyorquot-programinin-tanitim-toplantisi039na-katildi/haber/42407/tr",
+      "publish_date": "2026-11-03T21:25:12.225755",
+      "publish_date_formatted": "03 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 169,
+      "title": "📚 BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/bakan-tekin-quotkitap-kurtlari-yarisiyorquot-programinin-tanitim-toplantisi039na-katildi/haber/42407/tr",
+      "publish_date": "2026-11-03T21:25:12.225718",
+      "publish_date_formatted": "03 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 168,
+      "title": "🏠 COP 31 için hazırlıklar tamamlandı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: COP 31 için hazırlıklar tamamlandı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: COP 31 için hazırlıklar tamamlandı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/cop-31-icin-hazirliklar-tamamlandi",
+      "publish_date": "2026-11-03T21:25:08.731838",
+      "publish_date_formatted": "03 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 167,
+      "title": "🎯 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu. Kılavuz ve başvuru ekranı erişime açılmıştır.",
+      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+      "source_name": "ÖSYM Resmi Duyurular",
+      "source_url": "https://dokuman.osym.gov.tr/web//2026/10/2026-ozel-yetenek-sinavi-ozyes-ek-tercih-kilavuzu-hcqb3z-27141254.pdf",
+      "publish_date": "2026-11-03T21:25:07.523042",
+      "publish_date_formatted": "03 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 166,
       "title": "📰 Liseli şeflerin hazırladığı tabaklar Hırvatistan'dan 12 madalya getirdi",
@@ -674,34 +730,6 @@
       "source_url": "https://www.osym.gov.tr/2026-kpss-din-hizmetleri-alan-bilgisi-dhbt-sinavi-temel-soru-kitapciklari-ve-cevap-anahtarlari-yayimlandi",
       "publish_date": "2026-11-01T12:24:01.555197",
       "publish_date_formatted": "01 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 118,
-      "title": "Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
-      "content": "Ukrayna Devlet Başkanı Zelenskiy, İstanbul’da",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/ukrayna-devlet-baskani-zelenskiy-istanbulda-31-10-26",
-      "publish_date": "2026-10-31T18:19:56.776495",
-      "publish_date_formatted": "31 Ekim 2026",
-      "is_verified": true
-    },
-    {
-      "id": 117,
-      "title": "Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
-      "content": "Cumhurbaşkanı Erdoğan, Ukrayna Devlet Başkanı Zelenskiy ile ortak basın toplantısında konuştu",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-ukrayna-devlet-baskani-zelenskiy-ile-ortak-basin-toplantisinda-konustu-31-10-26",
-      "publish_date": "2026-10-31T18:19:56.776196",
-      "publish_date_formatted": "31 Ekim 2026",
       "is_verified": true
     }
   ]
