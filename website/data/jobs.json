@@ -3,9 +3,9 @@
     "portal_name": "Kamu Personel Rehberi",
     "tagline": "Türkiye Cumhuriyeti Resmi Kamu Personel Alım İlanları Portalı",
     "domain": "kamupersonelrehberiniz.me",
-    "generated_at": "2026-11-04T13:35:08.614118+00:00",
-    "total_active_jobs": 1285,
-    "total_quotas": 32712,
+    "generated_at": "2026-11-04T21:42:38.214170+00:00",
+    "total_active_jobs": 1286,
+    "total_quotas": 32714,
     "active_visitors": 2140,
     "telegram_channel": "https://t.me/kamupersonelrehberi",
     "instagram_account": "https://instagram.com/kamupersonelrehberi",
@@ -24,7 +24,7 @@
       },
       {
         "name": "Belediye Başkanlıkları",
-        "count": 157
+        "count": 158
       },
       {
         "name": "Askeri & Emniyet Personeli",
@@ -52,6 +52,11 @@
         "name": "18 Aralık",
         "count": 1,
         "sort_key": 20261218
+      },
+      {
+        "name": "15 Aralık",
+        "count": 1,
+        "sort_key": 20261215
       },
       {
         "name": "14 Aralık",
@@ -594,6 +599,32 @@
     ]
   },
   "jobs": [
+    {
+      "id": 1289,
+      "institution": "KARABAĞLAR BELEDİYE BAŞKANLIĞI",
+      "title": "KARABAĞLAR BELEDİYE BAŞKANLIĞI - Çevre Mühendisi Alımı (2 Adet)",
+      "position": "Çevre Mühendisi",
+      "total_positions": 2,
+      "is_exact_quota": true,
+      "quota_display": "2 Kişi",
+      "category": "Belediye Başkanlıkları",
+      "category_slug": "belediye",
+      "category_icon": "🏛",
+      "date_interval": "Son Başvuru: 15 Aralık 2026",
+      "pub_date_group": "15 Aralık",
+      "sort_key": 20261215,
+      "end_date_str": "15 Aralık 2026",
+      "is_cancellation": false,
+      "status": "BAŞVURUYA AÇIK",
+      "education_level": "İlgili bölüm mezuniyeti",
+      "kpss_requirement": "Resmi ilanda belirtilen şartlar",
+      "city": "İlanda belirtilmiştir",
+      "source_name": "Kariyer Kapısı (CBİKO)",
+      "has_pdf": false,
+      "pdf_url": null,
+      "source_url": "https://kariyerkapisi.gov.tr/IlanDetay?i=9ff8772a-9434-42fb-84ad-f8080f79640d",
+      "is_featured": false
+    },
     {
       "id": 1288,
       "institution": "ZAFER KALKINMA AJANSI",
