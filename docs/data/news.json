@@ -1,9 +1,51 @@
 {
   "meta": {
-    "generated_at": "2026-11-05T13:48:35.791483+00:00",
-    "total_news": 54
+    "generated_at": "2026-11-05T21:45:49.246416+00:00",
+    "total_news": 56
   },
   "news": [
+    {
+      "id": 189,
+      "title": "🏠 Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/samsun-19-mayisda-370-sosyal-konutun-teslimati-basladi",
+      "publish_date": "2026-11-05T21:43:07.134736",
+      "publish_date_formatted": "05 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 188,
+      "title": "🏠 Hatay Antakya’da 688 Sosyal Konut Teslim Ediliyor",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: Hatay Antakya’da 688 Sosyal Konut Teslim Ediliyor. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: Hatay Antakya’da 688 Sosyal Konut Teslim Ediliyor. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/hatay-antakyada-688-sosyal-konut-teslim-ediliyor",
+      "publish_date": "2026-11-05T21:43:07.134203",
+      "publish_date_formatted": "05 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 187,
+      "title": "🎯 Aday İşlemleri Sistemi (AİS) Engelli Başvuru Kullanıcı Kılavuzu",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: Aday İşlemleri Sistemi (AİS) Engelli Başvuru Kullanıcı Kılavuzu. Kılavuz ve başvuru ekranı erişime açılmıştır.",
+      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: Aday İşlemleri Sistemi (AİS) Engelli Başvuru Kullanıcı Kılavuzu. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+      "source_name": "ÖSYM Resmi Duyurular",
+      "source_url": "https://dokuman.osym.gov.tr/web//2026/9/aday-slemleri-sistemi-as-engelli-basvuru-kullanici-kilavuzu-be7t83-22133957.pdf",
+      "publish_date": "2026-11-05T21:43:05.799771",
+      "publish_date_formatted": "05 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 186,
       "title": "İletişim Başkanı Duran, “Ortak Gelecekte Biriz İletişim Kampanyası“nın lansman programında konuştu",
@@ -744,20 +786,6 @@
       "source_url": "https://www.osym.gov.tr/2026-kpss-dhbt-2026-dus-2-donem-sinavi-ile-2026-sts-dis-hekimligi-2-donem-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
       "publish_date": "2026-11-03T13:20:30.508615",
       "publish_date_formatted": "03 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 133,
-      "title": "🏠 Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı",
-      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
-      "category": "SOSYAL_HAK_TOKI",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "TOKİ resmi duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
-      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: Samsun 19 Mayıs’da 370 Sosyal Konutun Teslimatı Başladı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
-      "source_name": "TOKİ Haber Portalı",
-      "source_url": "https://www.toki.gov.tr/haber/samsun-19-mayisda-370-sosyal-konutun-teslimati-basladi",
-      "publish_date": "2026-11-02T14:19:23.480871",
-      "publish_date_formatted": "02 Kasım 2026",
       "is_verified": true
     }
   ]

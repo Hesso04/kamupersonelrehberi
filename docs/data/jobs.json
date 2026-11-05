@@ -3,9 +3,9 @@
     "portal_name": "Kamu Personel Rehberi",
     "tagline": "Türkiye Cumhuriyeti Resmi Kamu Personel Alım İlanları Portalı",
     "domain": "kamupersonelrehberiniz.me",
-    "generated_at": "2026-11-05T13:48:34.630603+00:00",
-    "total_active_jobs": 1302,
-    "total_quotas": 32755,
+    "generated_at": "2026-11-05T21:45:48.203733+00:00",
+    "total_active_jobs": 1303,
+    "total_quotas": 32756,
     "active_visitors": 2140,
     "telegram_channel": "https://t.me/kamupersonelrehberi",
     "instagram_account": "https://instagram.com/kamupersonelrehberi",
@@ -16,7 +16,7 @@
       },
       {
         "name": "Kamu Personeli / Diğer",
-        "count": 421
+        "count": 422
       },
       {
         "name": "Memur & Genel İdari Kadrolar",
@@ -110,7 +110,7 @@
       },
       {
         "name": "23 Kasım",
-        "count": 4,
+        "count": 5,
         "sort_key": 20261123
       },
       {
@@ -599,6 +599,32 @@
     ]
   },
   "jobs": [
+    {
+      "id": 1306,
+      "institution": "SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI",
+      "title": "SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI - 2026/2 SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI - SOSYAL GÜVENLİK DENETMEN YARDIMCILIĞI / ( (Hukuk, Siyasal Bilgiler, İktisadi ve İdari Bilimler, İktisat, İşletme)",
+      "position": "/2 SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI",
+      "total_positions": 1,
+      "is_exact_quota": false,
+      "quota_display": "Resmi Kılavuzda",
+      "category": "Kamu Personeli / Diğer",
+      "category_slug": "diger",
+      "category_icon": "📋",
+      "date_interval": "Son Başvuru: 23 Kasım 2026",
+      "pub_date_group": "23 Kasım",
+      "sort_key": 20261123,
+      "end_date_str": "23 Kasım 2026",
+      "is_cancellation": false,
+      "status": "BAŞVURUYA AÇIK",
+      "education_level": "İlgili bölüm mezuniyeti",
+      "kpss_requirement": "Resmi ilanda belirtilen şartlar",
+      "city": "İlanda belirtilmiştir",
+      "source_name": "Kariyer Kapısı (CBİKO)",
+      "has_pdf": false,
+      "pdf_url": null,
+      "source_url": "https://kariyerkapisi.gov.tr/IlanDetay?i=724294dd-2cf3-4df3-8cd5-615baea623be",
+      "is_featured": false
+    },
     {
       "id": 1305,
       "institution": "TÜRKİYE ŞEKER FABRİKALARI A.Ş. GENEL MÜDÜRLÜĞÜ",
