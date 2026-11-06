@@ -1,9 +1,37 @@
 {
   "meta": {
-    "generated_at": "2026-11-06T13:33:05.715898+00:00",
-    "total_news": 50
+    "generated_at": "2026-11-06T21:14:47.470264+00:00",
+    "total_news": 52
   },
   "news": [
+    {
+      "id": 218,
+      "title": "İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
+      "content": "İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-trt-world-forum-2026-mesaji",
+      "publish_date": "2026-11-06T21:11:08.130140",
+      "publish_date_formatted": "06 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 217,
+      "title": "İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
+      "content": "İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskanligi-iletisim-baskani-duran-trt-world-forum-2026da-konustu",
+      "publish_date": "2026-11-06T21:11:08.130000",
+      "publish_date_formatted": "06 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 216,
       "title": "📰 Liseli şeflerin hazırladığı tabaklar Hırvatistan'dan 12 madalya getirdi",
