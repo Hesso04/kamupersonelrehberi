@@ -1,9 +1,51 @@
 {
   "meta": {
-    "generated_at": "2026-11-06T21:14:47.470264+00:00",
-    "total_news": 52
+    "generated_at": "2026-11-07T12:12:38.076730+00:00",
+    "total_news": 51
   },
   "news": [
+    {
+      "id": 221,
+      "title": "📚 Millî Eğitim Bakanı Yusuf Tekin, Diyarbakır'da düzenlenen İl Millî Eğitim Müdürleri Toplantısı'nda Bakanlık yöneticileri ve 81 ilin [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanı Yusuf Tekin, Diyarbakır'da düzenlenen İl Millî Eğitim Müdürleri Toplantısı'nda Bakanlık yöneticileri ve 81 ilin [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanı Yusuf Tekin, Diyarbakır'da düzenlenen İl Millî Eğitim Müdürleri Toplantısı'nda Bakanlık yöneticileri ve 81 ilin [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/il-milli-egitim-mudurleri-toplantisi-diyarbakir039da-gerceklesti/haber/42428/tr",
+      "publish_date": "2026-11-07T12:09:59.773650",
+      "publish_date_formatted": "07 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 220,
+      "title": "📚 İL MİLLÎ EĞİTİM MÜDÜRLERİ TOPLANTISI, DİYARBAKIR'DA GERÇEKLEŞTİ",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: İL MİLLÎ EĞİTİM MÜDÜRLERİ TOPLANTISI, DİYARBAKIR'DA GERÇEKLEŞTİ",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: İL MİLLÎ EĞİTİM MÜDÜRLERİ TOPLANTISI, DİYARBAKIR'DA GERÇEKLEŞTİ",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/il-milli-egitim-mudurleri-toplantisi-diyarbakir039da-gerceklesti/haber/42428/tr",
+      "publish_date": "2026-11-07T12:09:59.773613",
+      "publish_date_formatted": "07 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 219,
+      "title": "🏠 COP 31 için hazırlıklar tamamlandı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: COP 31 için hazırlıklar tamamlandı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: COP 31 için hazırlıklar tamamlandı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/cop-31-icin-hazirliklar-tamamlandi",
+      "publish_date": "2026-11-07T12:09:56.672414",
+      "publish_date_formatted": "07 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 218,
       "title": "İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
@@ -674,62 +716,6 @@
       "source_url": "https://www.osym.gov.tr/2026-kpss-lisans-sinavi-brans-bazinda-siralamalar",
       "publish_date": "2026-11-04T13:31:37.109069",
       "publish_date_formatted": "04 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 170,
-      "title": "📚 Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
-      "institution": "T.C. Millî Eğitim Bakanlığı",
-      "category": "ATAMA_KADRO",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
-      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanı Yusuf Tekin, Malatya'da Türkiye Gençlik Vakfı (TÜGVA) tarafından hayata geçirilen \"Kitap Kurtları Yarışıyor\" [...]",
-      "source_name": "MEB Haber Portalı",
-      "source_url": "https://www.meb.gov.tr/bakan-tekin-quotkitap-kurtlari-yarisiyorquot-programinin-tanitim-toplantisi039na-katildi/haber/42407/tr",
-      "publish_date": "2026-11-03T21:25:12.225755",
-      "publish_date_formatted": "03 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 169,
-      "title": "📚 BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
-      "institution": "T.C. Millî Eğitim Bakanlığı",
-      "category": "ATAMA_KADRO",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
-      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: BAKAN TEKİN \"KİTAP KURTLARI YARIŞIYOR\" PROGRAMININ TANITIM TOPLANTISI'NA KATILDI",
-      "source_name": "MEB Haber Portalı",
-      "source_url": "https://www.meb.gov.tr/bakan-tekin-quotkitap-kurtlari-yarisiyorquot-programinin-tanitim-toplantisi039na-katildi/haber/42407/tr",
-      "publish_date": "2026-11-03T21:25:12.225718",
-      "publish_date_formatted": "03 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 168,
-      "title": "🏠 COP 31 için hazırlıklar tamamlandı",
-      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
-      "category": "SOSYAL_HAK_TOKI",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "TOKİ resmi duyurusu: COP 31 için hazırlıklar tamamlandı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
-      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: COP 31 için hazırlıklar tamamlandı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
-      "source_name": "TOKİ Haber Portalı",
-      "source_url": "https://www.toki.gov.tr/haber/cop-31-icin-hazirliklar-tamamlandi",
-      "publish_date": "2026-11-03T21:25:08.731838",
-      "publish_date_formatted": "03 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 167,
-      "title": "🎯 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu",
-      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
-      "category": "ATAMA_KADRO",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu. Kılavuz ve başvuru ekranı erişime açılmıştır.",
-      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026 Özel Yetenek Sınavı (ÖZYES) Ek Tercih Kılavuzu. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
-      "source_name": "ÖSYM Resmi Duyurular",
-      "source_url": "https://dokuman.osym.gov.tr/web//2026/10/2026-ozel-yetenek-sinavi-ozyes-ek-tercih-kilavuzu-hcqb3z-27141254.pdf",
-      "publish_date": "2026-11-03T21:25:07.523042",
-      "publish_date_formatted": "03 Kasım 2026",
       "is_verified": true
     }
   ]
