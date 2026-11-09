@@ -1,9 +1,79 @@
 {
   "meta": {
-    "generated_at": "2026-11-09T14:48:38.795472+00:00",
-    "total_news": 53
+    "generated_at": "2026-11-09T23:58:55.081966+00:00",
+    "total_news": 56
   },
   "news": [
+    {
+      "id": 274,
+      "title": "Cumhurbaşkanı Erdoğan’ın, Nijer Cumhurbaşkanı Tchiani ile görüşmesine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan’ın, Nijer Cumhurbaşkanı Tchiani ile görüşmesine ilişkin açıklama",
+      "content": "Cumhurbaşkanı Erdoğan’ın, Nijer Cumhurbaşkanı Tchiani ile görüşmesine ilişkin açıklama",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdoganin-nijer-cumhurbaskani-tchiani-ile-gorusmesine-iliskin-aciklama-09-11-26",
+      "publish_date": "2026-11-09T23:55:46.597897",
+      "publish_date_formatted": "09 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 273,
+      "title": "İletişim Başkanı Duran’dan COP31 mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan COP31 mesajı",
+      "content": "İletişim Başkanı Duran’dan COP31 mesajı",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-cop31-mesaji",
+      "publish_date": "2026-11-09T23:55:46.597757",
+      "publish_date_formatted": "09 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 272,
+      "title": "📚 Millî Eğitim Bakanlığı tarafından Birleşmiş Milletler İklim Değişikliği Çerçeve Sözleşmesi 31. Taraflar Konferansı (COP31) kapsamında [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanlığı tarafından Birleşmiş Milletler İklim Değişikliği Çerçeve Sözleşmesi 31. Taraflar Konferansı (COP31) kapsamında [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanlığı tarafından Birleşmiş Milletler İklim Değişikliği Çerçeve Sözleşmesi 31. Taraflar Konferansı (COP31) kapsamında [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quotturkiye-iklim-okuluquot-cop31039de-kapilarini-acti/haber/42445/tr",
+      "publish_date": "2026-11-09T23:55:44.525090",
+      "publish_date_formatted": "09 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 271,
+      "title": "📚 \"TÜRKİYE İKLİM OKULU\", COP31'DE KAPILARINI AÇTI",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: \"TÜRKİYE İKLİM OKULU\", COP31'DE KAPILARINI AÇTI",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: \"TÜRKİYE İKLİM OKULU\", COP31'DE KAPILARINI AÇTI",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quotturkiye-iklim-okuluquot-cop31039de-kapilarini-acti/haber/42445/tr",
+      "publish_date": "2026-11-09T23:55:44.525034",
+      "publish_date_formatted": "09 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 270,
+      "title": "🏠 COP31 İklim Zirvesi Antalya'da Başladı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: COP31 İklim Zirvesi Antalya'da Başladı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: COP31 İklim Zirvesi Antalya'da Başladı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/cop31-iklim-zirvesi-antalyada-basladi",
+      "publish_date": "2026-11-09T23:55:41.030571",
+      "publish_date_formatted": "09 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 269,
       "title": "📰 Liseli şeflerin hazırladığı tabaklar Hırvatistan'dan 12 madalya getirdi",
@@ -716,34 +786,6 @@
       "source_url": "https://www.toki.gov.tr/haber/cop-31-icin-hazirliklar-tamamlandi",
       "publish_date": "2026-11-07T12:09:56.672414",
       "publish_date_formatted": "07 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 218,
-      "title": "İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
-      "content": "İletişim Başkanı Duran’dan, TRT World Forum 2026 mesajı",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-trt-world-forum-2026-mesaji",
-      "publish_date": "2026-11-06T21:11:08.130140",
-      "publish_date_formatted": "06 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 217,
-      "title": "İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
-      "content": "İletişim Başkanı Duran, TRT World Forum 2026’da konuştu",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskanligi-iletisim-baskani-duran-trt-world-forum-2026da-konustu",
-      "publish_date": "2026-11-06T21:11:08.130000",
-      "publish_date_formatted": "06 Kasım 2026",
       "is_verified": true
     }
   ]
