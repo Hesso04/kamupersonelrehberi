@@ -1,9 +1,79 @@
 {
   "meta": {
-    "generated_at": "2026-11-11T13:21:05.152711+00:00",
-    "total_news": 71
+    "generated_at": "2026-11-11T22:26:38.285464+00:00",
+    "total_news": 72
   },
   "news": [
+    {
+      "id": 307,
+      "title": "📚 Millî Eğitim Bakanlığınca COP31 kapsamında hayata geçirilen \"81 İlden 81 Genç İklim Delegesi\" projesinde yer alan öğrencilerin çevrenin [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanlığınca COP31 kapsamında hayata geçirilen \"81 İlden 81 Genç İklim Delegesi\" projesinde yer alan öğrencilerin çevrenin [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanlığınca COP31 kapsamında hayata geçirilen \"81 İlden 81 Genç İklim Delegesi\" projesinde yer alan öğrencilerin çevrenin [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quot81-ilden-81-genc-iklim-delegesiquotnin-cevreye-dair-mesajlari-quotetkilesimli-turkiye-haritasiquotnda/haber/42480/tr",
+      "publish_date": "2026-11-11T22:24:22.591804",
+      "publish_date_formatted": "11 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 306,
+      "title": "📚 \"81 İLDEN 81 GENÇ İKLİM DELEGESİ\"NİN ÇEVREYE DAİR MESAJLARI \"ETKİLEŞİMLİ TÜRKİYE HARİTASI\"NDA",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: \"81 İLDEN 81 GENÇ İKLİM DELEGESİ\"NİN ÇEVREYE DAİR MESAJLARI \"ETKİLEŞİMLİ TÜRKİYE HARİTASI\"NDA",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: \"81 İLDEN 81 GENÇ İKLİM DELEGESİ\"NİN ÇEVREYE DAİR MESAJLARI \"ETKİLEŞİMLİ TÜRKİYE HARİTASI\"NDA",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/quot81-ilden-81-genc-iklim-delegesiquotnin-cevreye-dair-mesajlari-quotetkilesimli-turkiye-haritasiquotnda/haber/42480/tr",
+      "publish_date": "2026-11-11T22:24:22.591749",
+      "publish_date_formatted": "11 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 305,
+      "title": "🏠 Bursa Nilüfer’de anahtar teslim heyecanı devam ediyor",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: Bursa Nilüfer’de anahtar teslim heyecanı devam ediyor. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: Bursa Nilüfer’de anahtar teslim heyecanı devam ediyor. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/bursa-niluferde-anahtar-teslim-heyecani-devam-ediyor",
+      "publish_date": "2026-11-11T22:24:19.714057",
+      "publish_date_formatted": "11 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 304,
+      "title": "🎯 2026 Elektronik İngilizce Yeterlik Sınavı (2026 e-TEP) Kılavuzu",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026 Elektronik İngilizce Yeterlik Sınavı (2026 e-TEP) Kılavuzu. Kılavuz ve başvuru ekranı erişime açılmıştır.",
+      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026 Elektronik İngilizce Yeterlik Sınavı (2026 e-TEP) Kılavuzu. Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+      "source_name": "ÖSYM Resmi Duyurular",
+      "source_url": "https://dokuman.osym.gov.tr/web//2026/10/2026-elektronik-ngilizce-yeterlik-sinavi-2026-e-tep-kilavuzu-s133xj-27095350.pdf",
+      "publish_date": "2026-11-11T22:24:18.438754",
+      "publish_date_formatted": "11 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 303,
+      "title": "🎯 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2)",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2). Kılavuz ve başvuru ekranı erişime açılmıştır.",
+      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2). Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
+      "source_name": "ÖSYM Resmi Duyurular",
+      "source_url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos2-sonuclari-aciklandiannouncement-of-the-results-of-the-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026-tr-yos2",
+      "publish_date": "2026-11-11T22:24:18.438448",
+      "publish_date_formatted": "11 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 302,
       "title": "Cumhurbaşkanı Erdoğan, COP31 Liderler Zirvesi’nin açılışında konuştu",
@@ -940,62 +1010,6 @@
       "source_url": "https://www.osym.gov.tr/2026-kpss-dhbt-2026-dus-2-donem-sinavi-ile-2026-sts-dis-hekimligi-2-donem-sinavi-icin-sinav-gunu-acik-tutulacak-ililce-nufus-mudurlukleri",
       "publish_date": "2026-11-09T14:46:27.056657",
       "publish_date_formatted": "09 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 235,
-      "title": "Türkiye Cumhuriyeti ve Irak Cumhuriyeti Ortak Basın Açıklaması",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Türkiye Cumhuriyeti ve Irak Cumhuriyeti Ortak Basın Açıklaması",
-      "content": "Türkiye Cumhuriyeti ve Irak Cumhuriyeti Ortak Basın Açıklaması",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/turkiye-cumhuriyeti-ve-irak-cumhuriyeti-ortak-basin-aciklamasi",
-      "publish_date": "2026-11-08T20:04:26.163427",
-      "publish_date_formatted": "08 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 234,
-      "title": "İletişim Başkanı Duran’dan COP31 ve Türkiye’nin iklim diplomasisi vizyonuna ilişkin açıklama",
-      "institution": "T.C. İletişim Başkanlığı",
-      "category": "RESMI_HABER",
-      "category_label": "🏛️ T.C. Resmi Duyurusu",
-      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: İletişim Başkanı Duran’dan COP31 ve Türkiye’nin iklim diplomasisi vizyonuna ilişkin açıklama",
-      "content": "İletişim Başkanı Duran’dan COP31 ve Türkiye’nin iklim diplomasisi vizyonuna ilişkin açıklama",
-      "source_name": "İletişim Başkanlığı Haber Portalı",
-      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/iletisim-baskani-durandan-cop31-ve-turkiyenin-iklim-diplomasisi-vizyonuna-iliskin-aciklama",
-      "publish_date": "2026-11-08T20:04:26.163302",
-      "publish_date_formatted": "08 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 233,
-      "title": "📚 Millî Eğitim Bakanlığı koordinasyonunda Millî Eğitim Bakan Yardımcısı Ömer Faruk Yelkenci başkanlığında gerçekleştirilen Merkez Yürütme [...]",
-      "institution": "T.C. Millî Eğitim Bakanlığı",
-      "category": "ATAMA_KADRO",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanlığı koordinasyonunda Millî Eğitim Bakan Yardımcısı Ömer Faruk Yelkenci başkanlığında gerçekleştirilen Merkez Yürütme [...]",
-      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanlığı koordinasyonunda Millî Eğitim Bakan Yardımcısı Ömer Faruk Yelkenci başkanlığında gerçekleştirilen Merkez Yürütme [...]",
-      "source_name": "MEB Haber Portalı",
-      "source_url": "https://www.meb.gov.tr/quot12-mart-istiklal-marsi039nin-kabulu-ve-mehmet-akif-ersoy039u-anma-gunuquot-etkinlikleri-quotakif039in-ulkusu-yuzyilin-oykusuquot-temasiyla-duzenlenecek/haber/42418/tr",
-      "publish_date": "2026-11-08T20:04:23.898819",
-      "publish_date_formatted": "08 Kasım 2026",
-      "is_verified": true
-    },
-    {
-      "id": 232,
-      "title": "🎯 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2)",
-      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
-      "category": "ATAMA_KADRO",
-      "category_label": "📢 Resmi Açıklama",
-      "summary": "ÖSYM Başkanlığı resmi duyurusu yayımlandı: 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2). Kılavuz ve başvuru ekranı erişime açılmıştır.",
-      "content": "Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM) tarafından yayımlanan resmi duyuru metni: 2026 Türkiye Yurt Dışından Öğrenci Kabul Sınavı (2026-TR-YÖS/2) Sonuçları Açıklandı/Announcement of the Results of the 2026 Exam for Foreign Students for Higher Education in Türkiye (2026-TR-YÖS/2). Adaylar AİS (ais.osym.gov.tr) üzerinden işlemlerini gerçekleştirebilirler.",
-      "source_name": "ÖSYM Resmi Duyurular",
-      "source_url": "https://www.osym.gov.tr/2026-turkiye-yurt-disindan-ogrenci-kabul-sinavi-2026-tr-yos2-sonuclari-aciklandiannouncement-of-the-results-of-the-2026-exam-for-foreign-students-for-higher-education-in-turkiye-2026-tr-yos2",
-      "publish_date": "2026-11-08T20:04:18.785062",
-      "publish_date_formatted": "08 Kasım 2026",
       "is_verified": true
     }
   ]
