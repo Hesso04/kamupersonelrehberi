@@ -173,6 +173,11 @@ input, select, textarea {
   margin: 0 auto;
   padding: 0 20px;
 }
+@media (max-width: 768px) {
+  .container {
+    padding: 0 14px;
+  }
+}
 
 /* Scrollbar Gizleme */
 .no-scrollbar::-webkit-scrollbar {
@@ -376,7 +381,7 @@ html.dark .sticky-nav-wrapper {
 }
 
 .nav-capsule {
-  max-width: 1120px;
+  max-width: 1240px;
   height: 52px;
   margin: 0 auto;
   border-radius: var(--radius-full);
@@ -398,10 +403,12 @@ html.dark .sticky-nav-wrapper {
   .nav-capsule {
     height: 48px;
     padding: 0 10px;
+    max-width: 100%;
   }
   .nav-brand-group {
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
+    flex-shrink: 1;
   }
   .nav-brand-logo {
     width: 28px;
@@ -429,6 +436,13 @@ html.dark .sticky-nav-wrapper {
     display: none;
   }
   .nav-cmd-badge {
+    display: none;
+  }
+  .nav-notify-btn {
+    padding: 6px 8px;
+    gap: 0;
+  }
+  .nav-notify-btn #nav-notify-label {
     display: none;
   }
   .nav-telegram-btn {
@@ -477,6 +491,10 @@ html.dark .nav-brand-logo {
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+}
+.nav-brand-title span:first-child {
+  white-space: nowrap;
 }
 
 .nav-badge-archive {
@@ -496,7 +514,7 @@ html.dark .nav-brand-logo {
 .nav-links-center {
   display: none;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
 @media (min-width: 900px) {
@@ -504,11 +522,17 @@ html.dark .nav-brand-logo {
     display: flex;
   }
 }
+@media (min-width: 1100px) {
+  .nav-links-center {
+    gap: 18px;
+  }
+}
 
 .nav-link-item {
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
+  white-space: nowrap;
   transition: color var(--transition-fast);
 }
 
@@ -840,6 +864,13 @@ html.dark .nav-telegram-btn {
   max-width: 740px;
   margin: 0 auto;
 }
+@media (max-width: 640px) {
+  .quick-pills-row {
+    padding-bottom: 8px;
+    max-width: 100%;
+  }
+}
+
 
 @media (min-width: 768px) {
   .quick-pills-row {
@@ -878,7 +909,7 @@ html.dark .nav-telegram-btn {
    ========================================================================== */
 .summary-bar-wrapper {
   margin: 16px auto 32px auto;
-  max-width: 1120px;
+  max-width: 1240px;
 }
 
 .summary-bar-card {
@@ -2692,4 +2723,44 @@ html.dark .modal-status-banner.open {
   border-left-color: #F59E0B;
   background: var(--warning-bg);
   color: var(--warning-text);
+}
+
+@media (max-width: 480px) {
+  .job-card-title {
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .job-card-org {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .job-tag {
+    font-size: 0.72rem;
+  }
+}
+
+/* === Mobile Summary Bar Fix === */
+@media (max-width: 640px) {
+  .summary-bar-card {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .summary-stat-col {
+    padding: 10px 12px !important;
+    border-left: none !important;
+    border-radius: var(--radius-md);
+    background: var(--glass-surface);
+  }
+  .summary-stat-value {
+    font-size: 1.5rem;
+  }
+  .summary-stat-sub {
+    font-size: 0.72rem;
+  }
 }
