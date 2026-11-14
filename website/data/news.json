@@ -1,9 +1,93 @@
 {
   "meta": {
-    "generated_at": "2026-11-13T21:48:47.043156+00:00",
-    "total_news": 66
+    "generated_at": "2026-11-14T12:49:03.669348+00:00",
+    "total_news": 72
   },
   "news": [
+    {
+      "id": 363,
+      "title": "Cumhurbaşkanı Erdoğan, Bolivya Cumhurbaşkanı Pereira ile görüşmesine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "category": "RESMI_HABER",
+      "category_label": "🏛️ T.C. Resmi Duyurusu",
+      "summary": "T.C. Cumhurbaşkanlığı İletişim Başkanlığı resmi açıklaması: Cumhurbaşkanı Erdoğan, Bolivya Cumhurbaşkanı Pereira ile görüşmesine ilişkin açıklama",
+      "content": "Cumhurbaşkanı Erdoğan, Bolivya Cumhurbaşkanı Pereira ile görüşmesine ilişkin açıklama",
+      "source_name": "İletişim Başkanlığı Haber Portalı",
+      "source_url": "https://www.iletisim.gov.tr/turkce/haberler/detay/cumhurbaskani-erdogan-bolivya-cumhurbaskani-pereira-ile-gorusmesine-iliskin-aciklama",
+      "publish_date": "2026-11-14T12:45:47.524405",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 362,
+      "title": "📚 \"Millî Eğitim Bakanlığı Ölçme ve Değerlendirme Yönetmeliği'nde Değişiklik Yapılmasına Dair Yönetmelik\" Resmi Gazete'de [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "MEVZUAT",
+      "category_label": "📜 Mevzuat Değişikliği",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: \"Millî Eğitim Bakanlığı Ölçme ve Değerlendirme Yönetmeliği'nde Değişiklik Yapılmasına Dair Yönetmelik\" Resmi Gazete'de [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: \"Millî Eğitim Bakanlığı Ölçme ve Değerlendirme Yönetmeliği'nde Değişiklik Yapılmasına Dair Yönetmelik\" Resmi Gazete'de [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/olcme-ve-degerlendirme-yonetmeligi039nde-degisiklik-resmi-gazete039de-yayimlandi/haber/42511/tr",
+      "publish_date": "2026-11-14T12:45:45.360938",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 361,
+      "title": "📚 ÖLÇME VE DEĞERLENDİRME YÖNETMELİĞİ'NDE DEĞİŞİKLİK RESMİ GAZETE'DE YAYIMLANDI",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: ÖLÇME VE DEĞERLENDİRME YÖNETMELİĞİ'NDE DEĞİŞİKLİK RESMİ GAZETE'DE YAYIMLANDI",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: ÖLÇME VE DEĞERLENDİRME YÖNETMELİĞİ'NDE DEĞİŞİKLİK RESMİ GAZETE'DE YAYIMLANDI",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/olcme-ve-degerlendirme-yonetmeligi039nde-degisiklik-resmi-gazete039de-yayimlandi/haber/42511/tr",
+      "publish_date": "2026-11-14T12:45:45.360896",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 360,
+      "title": "📚 Millî Eğitim Bakanı Yusuf Tekin, Türkiye Yüzyılı Maarif Modeli ile tabiatın ve gelecek kuşakların hakkını gözetmeyi kendi değerlerinin tabii [...]",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: Millî Eğitim Bakanı Yusuf Tekin, Türkiye Yüzyılı Maarif Modeli ile tabiatın ve gelecek kuşakların hakkını gözetmeyi kendi değerlerinin tabii [...]",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: Millî Eğitim Bakanı Yusuf Tekin, Türkiye Yüzyılı Maarif Modeli ile tabiatın ve gelecek kuşakların hakkını gözetmeyi kendi değerlerinin tabii [...]",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/bakan-tekin-cop31039de-duzenlenen-yuksek-duzeyli-bakanlar-acilis-oturumu039nda-hitap-etti/haber/42514/tr",
+      "publish_date": "2026-11-14T12:45:45.360827",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 359,
+      "title": "📚 BAKAN TEKİN, COP31'DE DÜZENLENEN YÜKSEK DÜZEYLİ BAKANLAR AÇILIŞ OTURUMU'NDA HİTAP ETTİ",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "category": "ATAMA_KADRO",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "Millî Eğitim Bakanlığı resmi duyurusu: BAKAN TEKİN, COP31'DE DÜZENLENEN YÜKSEK DÜZEYLİ BAKANLAR AÇILIŞ OTURUMU'NDA HİTAP ETTİ",
+      "content": "T.C. Millî Eğitim Bakanlığı tarafından yayımlanan güncel kamu bülteni: BAKAN TEKİN, COP31'DE DÜZENLENEN YÜKSEK DÜZEYLİ BAKANLAR AÇILIŞ OTURUMU'NDA HİTAP ETTİ",
+      "source_name": "MEB Haber Portalı",
+      "source_url": "https://www.meb.gov.tr/bakan-tekin-cop31039de-duzenlenen-yuksek-duzeyli-bakanlar-acilis-oturumu039nda-hitap-etti/haber/42514/tr",
+      "publish_date": "2026-11-14T12:45:45.360763",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
+    {
+      "id": 358,
+      "title": "🏠 TOKİ Başkan Yardımcısı Ahmet Kutluğ Gayretli, COP31'in inşa sürecini anlattı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "category": "SOSYAL_HAK_TOKI",
+      "category_label": "📢 Resmi Açıklama",
+      "summary": "TOKİ resmi duyurusu: TOKİ Başkan Yardımcısı Ahmet Kutluğ Gayretli, COP31'in inşa sürecini anlattı. Sosyal konut teslimleri, kura tarihleri ve başvuru süreci detayları.",
+      "content": "Toplu Konut İdaresi Başkanlığı (TOKİ) tarafından paylaşılan resmi kamu duyurusu: TOKİ Başkan Yardımcısı Ahmet Kutluğ Gayretli, COP31'in inşa sürecini anlattı. Detaylar ve takvim toki.gov.tr adresinde ilan edilmiştir.",
+      "source_name": "TOKİ Haber Portalı",
+      "source_url": "https://www.toki.gov.tr/haber/toki-baskan-yardimcisi-ahmet-kutlug-gayretli-cop31in-insa-surecini-anlatti",
+      "publish_date": "2026-11-14T12:45:43.034587",
+      "publish_date_formatted": "14 Kasım 2026",
+      "is_verified": true
+    },
     {
       "id": 357,
       "title": "Cumhurbaşkanı Erdoğan’ın, Katar Emiri Al Sani ile görüşmesine ilişkin açıklama",
