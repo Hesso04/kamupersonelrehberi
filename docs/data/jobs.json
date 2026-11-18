@@ -3,9 +3,9 @@
     "portal_name": "Kamu Personel Rehberi",
     "tagline": "Türkiye Cumhuriyeti Resmi Kamu Personel Alım İlanları Portalı",
     "domain": "kamupersonelrehberiniz.me",
-    "generated_at": "2026-11-18T14:54:36.782381+00:00",
-    "total_active_jobs": 1489,
-    "total_quotas": 33230,
+    "generated_at": "2026-11-18T22:51:19.587466+00:00",
+    "total_active_jobs": 1490,
+    "total_quotas": 33231,
     "active_visitors": 2140,
     "telegram_channel": "https://t.me/kamupersonelrehberi",
     "instagram_account": "https://instagram.com/kamupersonelrehberi",
@@ -20,7 +20,7 @@
       },
       {
         "name": "Memur & Genel İdari Kadrolar",
-        "count": 176
+        "count": 177
       },
       {
         "name": "Belediye Başkanlıkları",
@@ -60,7 +60,7 @@
       },
       {
         "name": "21 Aralık",
-        "count": 1,
+        "count": 2,
         "sort_key": 20261221
       },
       {
@@ -654,6 +654,32 @@
     ]
   },
   "jobs": [
+    {
+      "id": 1493,
+      "institution": "SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI",
+      "title": "SOSYAL GÜVENLİK KURUMU BAŞKANLIĞI - MÜFETTİŞ YARDIMCILIĞI GİRİŞ SINAVI DUYURUSU 2026",
+      "position": "MÜFETTİŞ YARDIMCILIĞI GİRİŞ SINAVI DUYURUSU 2026",
+      "total_positions": 1,
+      "is_exact_quota": false,
+      "quota_display": "Resmi Kılavuzda",
+      "category": "Memur & Genel İdari Kadrolar",
+      "category_slug": "memur",
+      "category_icon": "👔",
+      "date_interval": "Son Başvuru: 21 Aralık 2026",
+      "pub_date_group": "21 Aralık",
+      "sort_key": 20261221,
+      "end_date_str": "21 Aralık 2026",
+      "is_cancellation": false,
+      "status": "BAŞVURUYA AÇIK",
+      "education_level": "İlgili bölüm mezuniyeti",
+      "kpss_requirement": "Resmi ilanda belirtilen şartlar",
+      "city": "İlanda belirtilmiştir",
+      "source_name": "Kariyer Kapısı (CBİKO)",
+      "has_pdf": false,
+      "pdf_url": null,
+      "source_url": "https://kariyerkapisi.gov.tr/IlanDetay?i=6a34cb10-0ac0-41e0-a094-3ec83e29a644",
+      "is_featured": false
+    },
     {
       "id": 1492,
       "institution": "İstanbul Beykent Üniversitesi Rektörlüğünden",
