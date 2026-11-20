@@ -31,30 +31,33 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install beautifulsoup4 requests lxml feedparser Pillow pytz
 
-      - name: Kaynak Siteleri Tara (İlanlar & Resmi Haberler)
+      - name: Kaynak Siteleri Tara (İlanlar, Otonom AI Haber Merkezi & SSG)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.lxffirosgbrfptnbjvdg:BedirXaaN.04@aws-0-eu-west-1.pooler.supabase.com:6543/postgres' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://lxffirosgbrfptnbjvdg.supabase.co' }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9' }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: |
           echo "=== 1. Resmi Haberleri Tarama ==="
           python scrapers/official_news.py || true
           echo "=== 2. Kamu İlanlarını Tarama ==="
           python scrapers/manager.py || true
-          echo "=== 3. Web Sitesi Verilerini & Sitemap'i Dışa Aktarma ==="
+          echo "=== 3. Web Sitesi Verilerini Dışa Aktarma ==="
           python scripts/export_website_data.py || true
-          echo "=== 4. Docs ve Website Senkronizasyonu ==="
-          cp -rf website/data/* docs/data/ || true
-          cp -f website/sitemap.xml docs/sitemap.xml || true
+          echo "=== 4. 5 Ajanlı Otonom AI Haber & Görsel Pipeline ==="
+          python modules/editorial_pipeline.py || true
+          echo "=== 5. Çok Sayfalı Statik Site (SSG) & Temiz Sitemap Üretimi ==="
+          python scripts/ssg_builder.py || true
 
       - name: Değişiklikleri GitHub Pages & Repoya Pushla
         run: |
           git config --global user.name "KamuBot AutoSync"
           git config --global user.email "bot@kamupersonelrehberi.com"
-          git add website/data/ docs/data/ website/sitemap.xml docs/sitemap.xml data/
+          git add website/ docs/ data/
           if git diff --staged --quiet; then
             echo "Yeni ilan veya haber bulunamadı, değişiklik yok."
           else
-            git commit -m "bot: 2 saatlik otomatik kaynak taraması ve canlı veri güncellemesi [skip ci]"
+            git commit -m "bot: otomatik kaynak taraması, otonom haber merkezi ve SSG güncellemesi [skip ci]"
             git push origin main
           fi

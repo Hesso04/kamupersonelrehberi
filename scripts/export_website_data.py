@@ -350,12 +350,8 @@ def export_data(output_paths: List[Path]) -> None:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
             print(f"💾 JSON başarıyla kaydedildi: {out_path} ({len(exported_jobs)} ilan)")
 
-        # Google SEO & AI Arama (GEO) Site Haritasını Otomatik Oluştur
-        sitemap_paths = [
-            ROOT_DIR / "website" / "sitemap.xml",
-            ROOT_DIR / "docs" / "sitemap.xml"
-        ]
-        generate_sitemap(exported_jobs, sitemap_paths)
+        # Not: Temiz statik URL'lerden oluşan sitemap.xml artık scripts/ssg_builder.py tarafından üretilir.
+        # (Query string ?ilan= kopyaları Google AdSense politikası gereği devre dışı bırakıldı.)
 
         # Kamu Haberleri & Doğrulama Akışını İhraç Et
         news_paths = [
