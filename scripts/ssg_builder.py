@@ -18,6 +18,7 @@ ve temiz sitemap.xml üretir.
   - /sitemap.xml                     (Sadece gerçek, benzersiz statik URL'ler!)
 """
 
+import argparse
 import html
 import json
 import os
@@ -38,7 +39,7 @@ try:
 except Exception:
     pass
 
-from modules.editorial_pipeline import VisualCuratorAgent, slugify
+from modules.editorial_pipeline import VisualCuratorAgent, load_patron_config, slugify
 from modules.guides_data import GUIDES
 
 BASE_URL = "https://kamupersonelrehberiniz.me"
@@ -105,8 +106,8 @@ def render_page_shell(
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/portal.css?v=8.1.0">
-  <link rel="stylesheet" href="/assets/css/editorial.css?v=8.1.0">
+  <link rel="stylesheet" href="/assets/css/portal.css?v=8.2.0">
+  <link rel="stylesheet" href="/assets/css/editorial.css?v=8.2.0">
   {ld_script}
   <script>
     (function(){{
@@ -230,6 +231,31 @@ def render_page_shell(
           try {{ localStorage.setItem('kpr_theme', isDark ? 'dark' : 'light'); }} catch(e){{}}
         }});
       }}
+      // Hafif Canlı Analitik Takibi (Patron Paneli için Gerçek Sayfa İlgi Verisi)
+      try {{
+        var p = location.pathname || '/';
+        var cat = p.indexOf('/haber') === 0 ? 'Kamu Haberleri' : (p.indexOf('/rehber') === 0 ? 'İstihdam Rehberi' : (p.indexOf('/ilan') === 0 ? 'İlan Detay' : (p.indexOf('/araclar') === 0 ? 'KPSS Aracı' : 'Kurumsal')));
+        var ref = (document.referrer || '').toLowerCase();
+        var refLbl = ref.indexOf('t.me') !== -1 ? 'Telegram Kanalı' : (ref.indexOf('instagram') !== -1 ? 'Instagram' : (ref.indexOf('google.') !== -1 ? 'Google Arama' : (ref && ref.indexOf('kamupersonelrehberiniz.me') === -1 ? ref.replace(/^https?:\\/\\//,'').split('/')[0] : 'Doğrudan (Direct)')));
+        fetch('https://lxffirosgbrfptnbjvdg.supabase.co/rest/v1/site_analytics_events', {{
+          method: 'POST',
+          headers: {{
+            'apikey': 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9',
+            'Authorization': 'Bearer sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          }},
+          body: JSON.stringify({{
+            event_type: 'PAGEVIEW',
+            job_id: null,
+            job_title: document.title.slice(0, 160),
+            category: cat,
+            referrer: refLbl,
+            user_agent: (navigator.userAgent || '').slice(0, 240)
+          }}),
+          keepalive: true
+        }}).catch(function(){{}});
+      }} catch(e){{}}
     }})();
   </script>
   {extra_script}
@@ -565,7 +591,7 @@ def build_static_core_pages(website_dir: Path) -> List[Tuple[str, str, str]]:
 # =============================================================================
 # 2. REHBER MAKALELERİ (/rehber/ + /rehber/<slug>/)
 # =============================================================================
-def build_guides_pages(website_dir: Path, curator: VisualCuratorAgent) -> List[Tuple[str, str, str]]:
+def build_guides_pages(website_dir: Path, curator: VisualCuratorAgent, rebuild_covers: bool = False) -> List[Tuple[str, str, str]]:
     urls: List[Tuple[str, str, str]] = []
     today = datetime.now().strftime("%Y-%m-%d")
 
@@ -576,6 +602,7 @@ def build_guides_pages(website_dir: Path, curator: VisualCuratorAgent) -> List[T
             title=g["title"],
             institution="Kamu Personel Rehberi Editoryal Kurulu",
             category=g.get("category", "REHBER"),
+            force_regen=rebuild_covers,
         )
         g["cover_image"] = cover_url
         g["cover_alt"] = alt_text
@@ -718,7 +745,10 @@ def build_guides_pages(website_dir: Path, curator: VisualCuratorAgent) -> List[T
 # =============================================================================
 # 3. OTONOM HABER MERKEZİ SAYFALARI (/haberler/ + /haber/<slug>/)
 # =============================================================================
-def build_news_pages(website_dir: Path) -> List[Tuple[str, str, str]]:
+def build_news_pages(website_dir: Path, cfg: Optional[Dict[str, Any]] = None) -> List[Tuple[str, str, str]]:
+    cfg = cfg or load_patron_config()
+    hidden_slugs = set(cfg.get("hidden_news_slugs") or [])
+    featured_slugs = list(cfg.get("featured_news_slugs") or [])
     editorial_path = website_dir / "data" / "editorial_news.json"
     today = datetime.now().strftime("%Y-%m-%d")
     urls: List[Tuple[str, str, str]] = []
@@ -726,7 +756,21 @@ def build_news_pages(website_dir: Path) -> List[Tuple[str, str, str]]:
     articles: List[Dict[str, Any]] = []
     if editorial_path.exists():
         data = json.loads(editorial_path.read_text(encoding="utf-8"))
-        articles = data.get("articles", [])
+        articles = [a for a in data.get("articles", []) if a.get("slug") not in hidden_slugs]
+
+    # Öne çıkarılan haberleri en üste al
+    if featured_slugs:
+        feat_set = set(featured_slugs)
+        featured = [a for a in articles if a.get("slug") in feat_set]
+        others = [a for a in articles if a.get("slug") not in feat_set]
+        articles = featured + others
+
+    # Gizlenen haberlerin eski HTML klasörlerini temizle
+    haber_root = website_dir / "haber"
+    for hs in hidden_slugs:
+        hd = haber_root / hs
+        if hd.exists():
+            shutil.rmtree(hd, ignore_errors=True)
 
     cards_html = []
     for a in articles:
@@ -1073,16 +1117,40 @@ def sync_website_to_docs(website_dir: Path, docs_dir: Path) -> None:
     print("🔄 website/ -> docs/ senkronizasyonu tamamlandı.")
 
 
-def build_all(sync_docs: bool = True) -> None:
+def clean_orphan_non_ascii_covers(website_dir: Path, docs_dir: Path) -> int:
+    """Eski non-ASCII slug'lardan kalan millî-*.webp yetim kapak dosyalarını temizler."""
+    removed = 0
+    for d in [website_dir / "assets" / "img" / "covers", docs_dir / "assets" / "img" / "covers"]:
+        if not d.exists():
+            continue
+        for f in d.glob("*.webp"):
+            if not f.name.isascii():
+                try:
+                    f.unlink()
+                    removed += 1
+                except Exception:
+                    pass
+    if removed:
+        print(f"🧹 {removed} adet eski non-ASCII yetim kapak görseli temizlendi.")
+    return removed
+
+
+def build_all(sync_docs: bool = True, rebuild_covers: bool = False) -> None:
+    cfg = load_patron_config()
+    if not cfg.get("agents_enabled", {}).get("publisher", True):
+        print("⏸️ SSG Yayıncı Ajanı patron_config.json üzerinden duraklatılmış; atlanıyor.")
+        return
+
     website_dir = ROOT_DIR / "website"
     docs_dir = ROOT_DIR / "docs"
     covers_dir = website_dir / "assets" / "img" / "covers"
-    curator = VisualCuratorAgent(covers_dir)
+    clean_orphan_non_ascii_covers(website_dir, docs_dir)
+    curator = VisualCuratorAgent(covers_dir, cfg)
 
     all_urls: List[Tuple[str, str, str]] = []
     all_urls.extend(build_static_core_pages(website_dir))
-    all_urls.extend(build_guides_pages(website_dir, curator))
-    all_urls.extend(build_news_pages(website_dir))
+    all_urls.extend(build_guides_pages(website_dir, curator, rebuild_covers=rebuild_covers))
+    all_urls.extend(build_news_pages(website_dir, cfg))
     all_urls.extend(build_top_job_pages(website_dir, limit=60))
 
     write_clean_sitemap(website_dir, all_urls)
@@ -1092,4 +1160,7 @@ def build_all(sync_docs: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    build_all(sync_docs=True)
+    parser = argparse.ArgumentParser(description="Kamu Personel Rehberi SSG Builder")
+    parser.add_argument("--rebuild-covers", action="store_true", help="Rehber kapak görsellerini yeni motorla yenile")
+    args = parser.parse_args()
+    build_all(sync_docs=True, rebuild_covers=args.rebuild_covers)

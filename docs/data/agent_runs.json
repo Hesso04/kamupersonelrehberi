@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-20T22:55:24.975550+00:00",
-  "generated_at_tr": "21.11.2026 01:55",
+  "generated_at": "2026-11-20T23:23:14.134699+00:00",
+  "generated_at_tr": "21.11.2026 02:23",
   "schedule": "Günde 3 kez otomatik (09:00 / 14:00 / 19:00 TSİ — GitHub Actions)",
   "agents": [
     {
@@ -23,7 +23,7 @@
       "role": "NVIDIA Nemotron-3-Ultra-550B ile özgün Türkçe haber üretimi",
       "status": "active",
       "model": "nvidia/nemotron-3-ultra-550b-a55b",
-      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "last_run": "2026-11-20T23:23:08.609283+00:00",
       "metrics": {
         "Üretilen Makale": 33,
         "Ort. Kelime": 408,
@@ -34,13 +34,13 @@
       "id": "visual",
       "name": "Görsel Ajanı",
       "module": "VisualCuratorAgent",
-      "role": "1200x675 telifsiz WebP kapak üretimi ve SEO alt etiketi",
+      "role": "Stok kütüphanesi + blur/karartma ile 1200x675 WebP dergi kapağı üretimi",
       "status": "active",
-      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "last_run": "2026-11-20T23:23:08.609283+00:00",
       "metrics": {
-        "WebP Kapak": 64,
-        "Toplam Boyut": "2221.7 KB",
-        "Ort. Boyut": "34.7 KB"
+        "WebP Kapak": 58,
+        "Stok Havuzu": 24,
+        "Ort. Boyut": "36.6 KB"
       }
     },
     {
@@ -49,7 +49,7 @@
       "module": "QualityGateAgent",
       "role": "Kelime, kesik metin ([...]), encoding ve görsel yayın denetimi",
       "status": "active",
-      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "last_run": "2026-11-20T23:23:08.609283+00:00",
       "metrics": {
         "Onaylanan": 33,
         "Reddedilen": 2,
@@ -62,7 +62,7 @@
       "module": "SSGBuilder + PatronAIBriefing",
       "role": "Statik HTML derleme, temiz sitemap ve NVIDIA yönetici brifingi",
       "status": "active",
-      "last_run": "2026-11-20T22:43:44.353673+00:00",
+      "last_run": "2026-11-20T23:21:36.223210+00:00",
       "metrics": {
         "Statik Sayfa (Sitemap)": 112,
         "Aktif İlan": 1503,
@@ -72,7 +72,7 @@
   ],
   "recent_outputs": [
     {
-      "headline": "Millî Eğitim Bakanlığınca COP31 kapsamında oluşturulan Türkiye İklim Okulu, gençlerin, geliştirdikleri girişim fikirlerini jüri önünde sunduğu",
+      "headline": "MEB'den \"Türkiye İklim Okulu\" ile Genç Girişimcilik Çağrısı",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "milli-egitim-bakanliginca-cop31-kapsaminda-olusturulan-turkiye-iklim",
       "word_count": 321,
@@ -112,7 +112,7 @@
       "publish_date": "20 Kasım 2026"
     },
     {
-      "headline": "Millî Eğitim Bakanlığı, Anadolu'nun kültürel mirasını öğrencilere tanıtmak amacıyla hayata geçirdiği \"Dijital Anadolu Medeniyetleri",
+      "headline": "MEB, Anadolu Kültür Mirasını Dijital Ortama Taşıyan Yeni Projeyi Hayata Geçirdi",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "milli-egitim-bakanligi-anadolu-nun-kulturel-mirasini-ogrencilere",
       "word_count": 427,
@@ -120,7 +120,7 @@
       "publish_date": "20 Kasım 2026"
     },
     {
-      "headline": "Millî Eğitim Bakanlığınca öğrencilerin okul derslerine ve sınavlara hazırlık süreçlerini desteklemek amacıyla hayata geçirilen MEBİ Bireysel",
+      "headline": "MEBİ Bireysel Platformu Hayata Geçirildi: Öğrenci Destek Süreçleri Dijitalleşiyor",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "milli-egitim-bakanliginca-ogrencilerin-okul-derslerine-ve-sinavlara",
       "word_count": 351,
@@ -160,7 +160,7 @@
       "publish_date": "19 Kasım 2026"
     },
     {
-      "headline": "Türkiye'nin uluslararası öğrenci değerlendirmelerinde ortaya koyduğu gelişimin ve PISA 2025 sonuçlarında elde ettiği başarının ele",
+      "headline": "Türkiye, Uluslararası Değerlendirmelerde Kaydettiği Gelişimi ve PISA 2025 Başarısını Paylaştı",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "turkiye-nin-uluslararasi-ogrenci-degerlendirmelerinde-ortaya-koydugu",
       "word_count": 498,
@@ -168,7 +168,7 @@
       "publish_date": "19 Kasım 2026"
     },
     {
-      "headline": "COP31 kapsamında oluşturulan Türkiye İklim Okulunda, 30 ilde yaklaşık 1.500 öğrencinin katılımıyla hazırlanan \"Ulusal Gençlik İklim",
+      "headline": "Millî Eğitim Bakanlığı, COP31 Sürecinde Oluşturulan Türkiye İklim Okulu Çalışmalarını Tamamladı",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "cop31-kapsaminda-olusturulan-turkiye-iklim-okulunda-30-ilde-yaklasik-1",
       "word_count": 412,
@@ -176,7 +176,7 @@
       "publish_date": "19 Kasım 2026"
     },
     {
-      "headline": "COP31 kapsamında Türkiye İklim Okulunda gerçekleştirilen \"81 İl 81 İklim Delegesi Gençlik Paneli\", farklı illerden seçilen genç iklim",
+      "headline": "MEB'den COP31 Sürecine Gençlik Odaklı Güçlü Mesaj: 81 İlden Seçilen İklim Delegeleri Bir Araya Geldi",
       "institution": "T.C. Millî Eğitim Bakanlığı",
       "slug": "cop31-kapsaminda-turkiye-iklim-okulunda-gerceklestirilen-81-il-81-iklim",
       "word_count": 476,
@@ -200,7 +200,7 @@
       "publish_date": "19 Kasım 2026"
     },
     {
-      "headline": "Bakan Tekin: Çocuklarımızın insani değerlerini, devletle ve milletle bağını kaybetmesine müsaade etmeyeceğiz",
+      "headline": "Bakan Tekin: Çocuklarımızın Değerlerini Kaybetmesine Müsaade Etmeyeceğiz",
       "institution": "Anadolu Ajansı",
       "slug": "bakan-tekin-cocuklarimizin-insani-degerlerini-devletle-ve-milletle",
       "word_count": 464,

@@ -40,6 +40,7 @@ def build_agent_telemetry() -> Dict[str, Any]:
     editorial = _read_json(website_dir / "data" / "editorial_news.json")
     jobs = _read_json(website_dir / "data" / "jobs.json")
     briefing = _read_json(website_dir / "data" / "ai_briefing.json")
+    stock_manifest = _read_json(website_dir / "data" / "stock_library_manifest.json")
 
     raw_list = raw_news.get("news", [])
     articles = editorial.get("articles", [])
@@ -103,12 +104,12 @@ def build_agent_telemetry() -> Dict[str, Any]:
             "id": "visual",
             "name": "Görsel Ajanı",
             "module": "VisualCuratorAgent",
-            "role": "1200x675 telifsiz WebP kapak üretimi ve SEO alt etiketi",
+            "role": "Stok kütüphanesi + blur/karartma ile 1200x675 WebP dergi kapağı üretimi",
             "status": "active",
             "last_run": ed_meta.get("generated_at") or "",
             "metrics": {
                 "WebP Kapak": len(cover_files),
-                "Toplam Boyut": f"{total_cover_kb} KB",
+                "Stok Havuzu": stock_manifest.get("total_images", 0),
                 "Ort. Boyut": f"{round(total_cover_kb / len(cover_files), 1) if cover_files else 0} KB",
             },
         },

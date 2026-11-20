@@ -1,11 +1,32 @@
-name: Kamu Personel Rehberi - 2 Saatlik Otomatik Tarama ve Canlı Güncelleme
+name: Kamu Personel Rehberi - Otonom Ajan Tarama ve Yayın Merkezi
 
 on:
   schedule:
-    # Türkiye Saatiyle günde 3 kez (Sabah 09:00, Öğlen 14:00, Akşam 19:00 TSI -> UTC 6, 11, 16)
-    # Supabase Free plan veri kotasını korumak için optimize edildi
+    # Türkiye Saatiyle günde 3 kez (Sabah 09:00, Öğlen 14:00, Akşam 19:00 TSİ -> UTC 6, 11, 16)
     - cron: '0 6,11,16 * * *'
-  workflow_dispatch: # Elle tetiklemeye izin verir
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Çalışma Modu'
+        required: true
+        default: 'full_sync'
+        type: choice
+        options:
+          - full_sync
+          - editorial_only
+          - rebuild_covers
+          - custom_article
+          - briefing_only
+      custom_topic:
+        description: 'Özel Makale Konusu / Başlığı (sadece custom_article modunda)'
+        required: false
+        default: ''
+        type: string
+      custom_category:
+        description: 'Özel Makale Kategorisi'
+        required: false
+        default: 'RESMI_HABER'
+        type: string
 
 permissions:
   contents: write
@@ -31,7 +52,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install beautifulsoup4 requests lxml feedparser Pillow pytz
 
-      - name: Kaynak Siteleri Tara (İlanlar, Otonom AI Haber Merkezi & SSG)
+      - name: Otonom Ajanları Çalıştır (Mode -> ${{ github.event.inputs.mode || 'full_sync' }})
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.lxffirosgbrfptnbjvdg:BedirXaaN.04@aws-0-eu-west-1.pooler.supabase.com:6543/postgres' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://lxffirosgbrfptnbjvdg.supabase.co' }}
@@ -39,20 +60,38 @@ jobs:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
+          RUN_MODE: ${{ github.event.inputs.mode || 'full_sync' }}
+          CUSTOM_TOPIC: ${{ github.event.inputs.custom_topic || '' }}
+          CUSTOM_CATEGORY: ${{ github.event.inputs.custom_category || 'RESMI_HABER' }}
         run: |
-          echo "=== 1. Resmi Haberleri Tarama ==="
-          python scrapers/official_news.py || true
-          echo "=== 2. Kamu İlanlarını Tarama ==="
-          python scrapers/manager.py || true
-          echo "=== 3. Web Sitesi Verilerini Dışa Aktarma ==="
-          python scripts/export_website_data.py || true
-          echo "=== 4. 5 Ajanlı Otonom AI Haber & Görsel Pipeline ==="
-          python modules/editorial_pipeline.py || true
-          echo "=== 5. Çok Sayfalı Statik Site (SSG) & Temiz Sitemap Üretimi ==="
-          python scripts/ssg_builder.py || true
-          echo "=== 6. Patron Paneli NVIDIA AI Yönetici Brifingi & Ajan Telemetrisi ==="
-          python modules/patron_ai_briefing.py || true
-          python modules/agent_telemetry.py || true
+          echo "=== Çalışma Modu: $RUN_MODE ==="
+          if [ "$RUN_MODE" = "full_sync" ]; then
+            python scrapers/official_news.py || true
+            python scrapers/manager.py || true
+            python scripts/export_website_data.py || true
+            python modules/editorial_pipeline.py || true
+            python scripts/ssg_builder.py || true
+            python modules/patron_ai_briefing.py || true
+            python modules/agent_telemetry.py || true
+          elif [ "$RUN_MODE" = "editorial_only" ]; then
+            python modules/editorial_pipeline.py || true
+            python scripts/ssg_builder.py || true
+            python modules/agent_telemetry.py || true
+          elif [ "$RUN_MODE" = "rebuild_covers" ]; then
+            python modules/editorial_pipeline.py --repair-existing --rebuild-covers || true
+            python scripts/ssg_builder.py --rebuild-covers || true
+            python modules/agent_telemetry.py || true
+          elif [ "$RUN_MODE" = "custom_article" ]; then
+            if [ -n "$CUSTOM_TOPIC" ]; then
+              python modules/editorial_pipeline.py --custom-topic "$CUSTOM_TOPIC" --custom-category "$CUSTOM_CATEGORY" || true
+              python scripts/ssg_builder.py || true
+            fi
+            python modules/agent_telemetry.py || true
+          elif [ "$RUN_MODE" = "briefing_only" ]; then
+            python modules/patron_ai_briefing.py || true
+            python modules/agent_telemetry.py || true
+          fi
 
       - name: Değişiklikleri GitHub Pages & Repoya Pushla
         run: |
@@ -60,8 +99,9 @@ jobs:
           git config --global user.email "bot@kamupersonelrehberi.com"
           git add website/ docs/ data/
           if git diff --staged --quiet; then
-            echo "Yeni ilan veya haber bulunamadı, değişiklik yok."
+            echo "Yeni değişiklik bulunamadı."
           else
-            git commit -m "bot: otomatik kaynak taraması, otonom haber merkezi ve SSG güncellemesi [skip ci]"
+            git commit -m "bot: otonom ajan calismasi (${{ github.event.inputs.mode || 'full_sync' }}) [skip ci]"
+            git pull --rebase origin main || true
             git push origin main
           fi

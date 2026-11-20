@@ -47,6 +47,7 @@
     body { display: flex; overflow-x: hidden; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    input, select, textarea { font-family: inherit; }
 
     /* Login Overlay */
     #login-overlay {
@@ -63,44 +64,49 @@
     .login-sub { font-size: 12px; color: var(--text-3); }
     .field { margin-bottom: 14px; }
     .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
-    .input {
-      width: 100%; height: 38px; padding: 0 12px; border-radius: 6px;
+    .input, .select, .textarea {
+      width: 100%; padding: 8px 12px; border-radius: 6px;
       background: var(--bg); border: 1px solid var(--border);
-      color: var(--text); font-size: 13.5px; outline: none; transition: border-color 140ms;
+      color: var(--text); font-size: 13px; outline: none; transition: border-color 140ms;
     }
-    .input:focus { border-color: var(--text-2); }
+    .input, .select { height: 36px; }
+    .textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+    .input:focus, .select:focus, .textarea:focus { border-color: var(--text-2); }
 
-    /* Buttons (Vercel Monokrom) */
+    /* Buttons */
     .btn-white {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       height: 36px; padding: 0 14px; border-radius: 6px;
       background: #FAFAFA; color: #09090B; font-size: 13px; font-weight: 600;
-      transition: background 140ms;
+      transition: background 140ms; white-space: nowrap;
     }
     .btn-white:hover { background: #E4E4E7; }
+    .btn-white:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-outline {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       height: 36px; padding: 0 13px; border-radius: 6px;
       background: var(--surface); color: var(--text); border: 1px solid var(--border);
-      font-size: 13px; font-weight: 500; transition: background 140ms, border-color 140ms;
+      font-size: 13px; font-weight: 500; transition: background 140ms, border-color 140ms; white-space: nowrap;
     }
     .btn-outline:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+    .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
 
     /* Sidebar */
     .sidebar {
-      width: 240px; flex-shrink: 0; background: var(--surface);
+      width: 248px; flex-shrink: 0; background: var(--surface);
       border-right: 1px solid var(--border); display: flex; flex-direction: column;
       height: 100vh; position: sticky; top: 0;
     }
     .sb-head {
-      display: flex; align-items: center; gap: 10px; padding: 16px 16px;
+      display: flex; align-items: center; gap: 10px; padding: 16px;
       border-bottom: 1px solid var(--border);
     }
     .sb-head img { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
     .sb-title { font-size: 13.5px; font-weight: 600; line-height: 1.2; }
     .sb-sub { font-size: 11px; color: var(--text-3); }
 
-    .sb-nav { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .sb-nav { flex: 1; padding: 10px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
     .sb-group { font-size: 11px; font-weight: 600; color: var(--text-3); padding: 12px 10px 4px 10px; text-transform: uppercase; letter-spacing: 0.06em; }
     .nav-item {
       width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -118,10 +124,10 @@
     .dot-ok { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; }
 
     /* Main Workspace */
-    .workspace { flex: 1; min-width: 0; padding: 24px 28px 48px 28px; overflow-y: auto; }
+    .workspace { flex: 1; min-width: 0; padding: 24px 28px 56px 28px; overflow-y: auto; }
     .ws-header {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-      gap: 12px; padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--border);
+      gap: 12px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
     }
     .ws-h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
     .ws-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
@@ -148,16 +154,17 @@
 
     .card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 18px 20px;
+      padding: 18px 20px; margin-bottom: 14px;
     }
-    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+    .grid-2 .card, .grid-2-eq .card { margin-bottom: 0; }
+    .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
     .card-title { font-size: 14px; font-weight: 600; }
     .card-sub { font-size: 12px; color: var(--text-3); }
     .chart-box { position: relative; height: 240px; width: 100%; }
 
     /* Tables */
     .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .tbl th, .tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    .tbl th, .tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .tbl th { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
     .tbl tr:last-child td { border-bottom: none; }
     .mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -165,9 +172,11 @@
     .badge {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 2px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 500;
-      background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); white-space: nowrap;
     }
     .badge-ok { color: #86EFAC; border-color: rgba(34, 197, 94, 0.25); background: rgba(34, 197, 94, 0.08); }
+    .badge-warn { color: #FDE047; border-color: rgba(234, 179, 8, 0.25); background: rgba(234, 179, 8, 0.08); }
+    .badge-err { color: #FCA5A5; border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.08); }
 
     /* Funnel */
     .bar-row { margin-bottom: 12px; }
@@ -176,7 +185,7 @@
     .bar-fill { height: 100%; background: #FAFAFA; border-radius: 99px; transition: width 400ms ease; }
 
     /* Agents Grid */
-    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 16px; }
     .agent-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
@@ -190,39 +199,58 @@
       padding-top: 10px; border-top: 1px solid var(--border);
     }
     .am-lbl { font-size: 10.5px; color: var(--text-3); display: block; }
-    .am-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text); }
+    .am-val { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--text); }
 
     /* Live AI Chat */
     .briefing-strip {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px 18px; margin-bottom: 14px;
+      padding: 14px 18px; margin-bottom: 14px;
     }
     .briefing-strip summary {
       cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text);
       display: flex; align-items: center; justify-content: space-between; list-style: none;
     }
+    .ai-drawer {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 14px; display: none;
+    }
+    .ai-drawer.open { display: block; }
+    .ai-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; align-items: end; }
+
     .chat-box {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      display: flex; flex-direction: column; height: 540px; overflow: hidden;
+      display: flex; flex-direction: column; height: 530px; overflow: hidden;
+    }
+    .chat-topbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2);
     }
     .chat-log {
       flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px;
     }
     .msg {
-      max-width: 82%; padding: 11px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.6;
-      white-space: pre-wrap; word-wrap: break-word;
+      max-width: 85%; padding: 12px 15px; border-radius: 8px; font-size: 13.5px; line-height: 1.62;
+      word-wrap: break-word;
     }
     .msg.assistant { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
     .msg.user { align-self: flex-end; background: #FAFAFA; color: #09090B; font-weight: 500; }
-    .msg-meta { font-size: 10.5px; color: var(--text-3); margin-top: 4px; }
+    .msg p { margin-bottom: 8px; }
+    .msg p:last-child { margin-bottom: 0; }
+    .msg ul { margin: 6px 0 8px 18px; }
+    .msg li { margin-bottom: 3px; }
+    .msg code { font-family: var(--font-mono); font-size: 12px; background: var(--bg); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+    .msg table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12.5px; }
+    .msg th, .msg td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+    .msg th { background: var(--bg); }
+    .msg-error-box { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; }
+
     .chat-prompts {
       display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px;
       border-top: 1px solid var(--border); background: var(--bg);
     }
     .prompt-btn {
       font-size: 12px; color: var(--text-2); background: var(--surface);
-      border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px;
-      transition: all 120ms;
+      border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; transition: all 120ms;
     }
     .prompt-btn:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-2); }
     .chat-form {
@@ -234,13 +262,50 @@
     }
     .chat-form input:focus { border-color: var(--border-strong); }
 
+    /* Stock Gallery & News Thumbnails */
+    .stock-theme-block { margin-bottom: 18px; }
+    .stock-theme-title { font-size: 12.5px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .stock-item {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .stock-item img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .stock-item-cap { padding: 6px 8px; font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .news-thumb { width: 88px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); }
+
+    /* Switches */
+    .switch-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .switch-row:last-child { border-bottom: none; }
+    .switch-lbl { font-weight: 500; font-size: 13px; }
+    .switch-desc { font-size: 11.5px; color: var(--text-3); }
+    input[type="checkbox"].toggle {
+      appearance: none; width: 38px; height: 22px; border-radius: 99px; background: var(--border);
+      position: relative; cursor: pointer; transition: background 150ms; flex-shrink: 0;
+    }
+    input[type="checkbox"].toggle::after {
+      content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--text); transition: transform 150ms;
+    }
+    input[type="checkbox"].toggle:checked { background: #FAFAFA; }
+    input[type="checkbox"].toggle:checked::after { background: #09090B; transform: translateX(16px); }
+
+    /* Toast */
+    #toast {
+      position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+      background: #FAFAFA; color: #09090B; font-size: 13px; font-weight: 600;
+      padding: 10px 16px; border-radius: 6px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
     @media (max-width: 860px) {
       body { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; }
       .sb-nav { flex-direction: row; overflow-x: auto; padding: 8px; }
       .sb-group, .sb-foot { display: none; }
       .nav-item { width: auto; white-space: nowrap; }
-      .workspace { padding: 16px 14px 40px 14px; }
+      .workspace { padding: 16px 14px 48px 14px; }
     }
   </style>
 </head>
@@ -282,12 +347,13 @@
     <nav class="sb-nav">
       <div class="sb-group">Analitik</div>
       <button class="nav-item active" onclick="switchTab('tab-overview', this)"><span>Genel Bakış</span></button>
-      <button class="nav-item" onclick="switchTab('tab-ai', this)"><span>AI Site Asistanı</span><span class="nav-count">CANLI</span></button>
+      <button class="nav-item" onclick="switchTab('tab-ai', this)"><span>AI Site Asistanı</span><span class="nav-count" id="sb-ai-badge">CANLI</span></button>
       <button class="nav-item" onclick="switchTab('tab-traffic', this)"><span>Trafik &amp; Aramalar</span></button>
 
-      <div class="sb-group">Operasyon</div>
-      <button class="nav-item" onclick="switchTab('tab-agents', this)"><span>Ajan Takibi</span><span class="nav-count" id="sb-agent-cnt">5</span></button>
-      <button class="nav-item" onclick="switchTab('tab-inventory', this)"><span>Envanter &amp; Sistem</span></button>
+      <div class="sb-group">Operasyon &amp; İçerik</div>
+      <button class="nav-item" onclick="switchTab('tab-agents', this)"><span>Ajan Takibi &amp; Komuta</span><span class="nav-count" id="sb-agent-cnt">5</span></button>
+      <button class="nav-item" onclick="switchTab('tab-content', this)"><span>İçerik &amp; Stok Görsel</span><span class="nav-count" id="sb-stock-cnt">-</span></button>
+      <button class="nav-item" onclick="switchTab('tab-system', this)"><span>Sistem &amp; Ayarlar</span></button>
     </nav>
 
     <div class="sb-foot">
@@ -301,10 +367,10 @@
     <div class="ws-header">
       <div>
         <h1 class="ws-h1" id="ws-title">Genel Bakış</h1>
-        <p class="ws-sub" id="ws-sub">Gerçek zamanlı Supabase analitik, otonom ajan ve içerik verileri</p>
+        <p class="ws-sub" id="ws-sub">Gerçek zamanlı Supabase analitik, trafik ve dönüşüm metrikleri</p>
       </div>
       <div class="ws-actions">
-        <button class="btn-outline" onclick="refreshAllData()">Yenile</button>
+        <button class="btn-outline" onclick="refreshAllData()">Verileri Yenile</button>
         <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-outline">Search Console ↗</a>
         <a href="https://adsense.google.com/" target="_blank" rel="noopener noreferrer" class="btn-white">AdSense ↗</a>
       </div>
@@ -340,7 +406,7 @@
           <div class="card-head">
             <div>
               <div class="card-title">Son 7 Günlük Etkileşim</div>
-              <div class="card-sub">Günlük toplam gerçek olay sayısı</div>
+              <div class="card-sub">Günlük toplam gerçek Supabase olay sayısı</div>
             </div>
           </div>
           <div class="chart-box"><canvas id="chart-trend"></canvas></div>
@@ -349,8 +415,8 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <div class="card-title">Trafik Kaynakları</div>
-              <div class="card-sub">Ziyaretçilerin geldiği kanallar</div>
+              <div class="card-title">Ziyaretçiler Nereden Geliyor?</div>
+              <div class="card-sub">Gerçek referrer kanalları</div>
             </div>
           </div>
           <div class="chart-box"><canvas id="chart-referrers"></canvas></div>
@@ -370,8 +436,8 @@
         <div class="card">
           <div class="card-head"><div class="card-title">En Çok İlgi Gören Sayfa &amp; İlanlar</div></div>
           <table class="tbl">
-            <thead><tr><th>İçerik</th><th style="text-align:right;">Tıklama</th></tr></thead>
-            <tbody id="top-pages-tbody"><tr><td colspan="2" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
+            <thead><tr><th>Sayfa / İlan</th><th>Tür</th><th style="text-align:right;">Görüntüleme</th></tr></thead>
+            <tbody id="top-pages-tbody"><tr><td colspan="3" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -381,7 +447,7 @@
     <section class="tab-pane" id="tab-ai">
       <details class="briefing-strip" open>
         <summary>
-          <span>NVIDIA Nemotron-3-Ultra-550B — Son Otomatik Yönetici Brifingi</span>
+          <span>NVIDIA Nemotron-3-Ultra-550B — Otomatik Yönetici Brifingi</span>
           <span class="mono" style="color:var(--text-3);" id="briefing-ts">-</span>
         </summary>
         <div id="briefing-body" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);line-height:1.65;">
@@ -389,16 +455,60 @@
         </div>
       </details>
 
+      <!-- API Sağlayıcı Ayar Çekmecesi -->
+      <div class="ai-drawer" id="ai-drawer">
+        <div class="ai-drawer-grid">
+          <div class="field" style="margin-bottom:0;">
+            <label for="ai-provider-sel">Yapay Zeka Sağlayıcısı</label>
+            <select id="ai-provider-sel" class="select" onchange="onProviderChange()">
+              <option value="pollinations_key">Pollinations Pro API (sk_...)</option>
+              <option value="groq">Groq Cloud API (gsk_...)</option>
+              <option value="openrouter">OpenRouter API (sk-or-...)</option>
+              <option value="custom">Özel / NVIDIA Köprü URL</option>
+              <option value="pollinations_free">Ücretsiz Anonim (Kısıtlı Kota)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="ai-model-inp">Model</label>
+            <input type="text" id="ai-model-inp" class="input" placeholder="openai/gpt-5.4-nano">
+          </div>
+          <div class="field" style="margin-bottom:0;" id="ai-key-wrap">
+            <label for="ai-key-inp">API Anahtarı (Tarayıcıda Saklanır)</label>
+            <input type="password" id="ai-key-inp" class="input" placeholder="sk_... veya gsk_...">
+          </div>
+          <div class="field" style="margin-bottom:0;display:none;" id="ai-url-wrap">
+            <label for="ai-url-inp">Endpoint URL</label>
+            <input type="text" id="ai-url-inp" class="input" placeholder="http://127.0.0.1:8787/v1/chat/completions">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="btn-white" onclick="saveAISettings(true)">Kaydet &amp; Test Et</button>
+            <button type="button" class="btn-outline" onclick="toggleAIDrawer()">Kapat</button>
+          </div>
+        </div>
+        <p id="ai-test-status" style="margin-top:8px;font-size:12px;color:var(--text-3);"></p>
+      </div>
+
       <div class="chat-box">
+        <div class="chat-topbar">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge" id="chat-provider-badge">Sağlayıcı: Kontrol ediliyor...</span>
+            <span class="mono" style="color:var(--text-3);" id="chat-model-badge">-</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="btn-outline btn-sm" onclick="toggleAIDrawer()">API Ayarı</button>
+            <button type="button" class="btn-outline btn-sm" onclick="clearChat()">Yeni Sohbet</button>
+          </div>
+        </div>
+
         <div class="chat-log" id="chat-log">
-          <div class="msg assistant">Merhaba. Sitenin canlı Supabase analitik verilerine, aktif ilan envanterine, ajan çıktılarına ve son NVIDIA brifingine doğrudan erişimim var. İstediğin her konuda doğal biçimde sorabilirsin.</div>
+          <div class="msg assistant">Merhaba. Sitenin canlı Supabase analitik verilerine, 1.500+ aktif ilan envanterine, 5 otonom ajanın çalışma verilerine ve NVIDIA Nemotron-550B brifingine doğrudan erişimim var. İstediğin her soruyu sorabilirsin.</div>
         </div>
 
         <div class="chat-prompts">
           <button class="prompt-btn" onclick="sendPrompt('Bugünkü genel durumu kısa ve net özetle')">Günlük özet</button>
-          <button class="prompt-btn" onclick="sendPrompt('Ziyaretçiler hangi kanallardan geliyor ve hangisini büyütmeliyiz?')">Trafik kaynak analizi</button>
-          <button class="prompt-btn" onclick="sendPrompt('En çok ilgi gören ilanlar ve aramalar hangileri?')">En popüler içerikler</button>
-          <button class="prompt-btn" onclick="sendPrompt('Otonom ajanların son çalışma performansı nasıl?')">Ajan performansı</button>
+          <button class="prompt-btn" onclick="sendPrompt('Ziyaretçiler hangi kanallardan geliyor ve hangisini büyütmeliyiz?')">Trafik analizi</button>
+          <button class="prompt-btn" onclick="sendPrompt('En çok ilgi gören sayfalar, ilanlar ve aramalar hangileri?')">En popüler içerikler</button>
+          <button class="prompt-btn" onclick="sendPrompt('5 otonom ajanın son durumu ve üretim kalitesi nasıl?')">Ajan performansı</button>
           <button class="prompt-btn" onclick="sendPrompt('Google AdSense onayı için şu an en kritik 3 adım ne?')">AdSense stratejisi</button>
         </div>
 
@@ -409,42 +519,138 @@
       </div>
     </section>
 
-    <!-- 3. AJAN TAKİBİ (5 OTONOM AJAN) -->
+    <!-- 3. AJAN TAKİBİ & KOMUTA MERKEZİ -->
     <section class="tab-pane" id="tab-agents">
-      <div class="card" style="margin-bottom:14px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;">
-        <div>
-          <div class="card-title">Otonom İçerik &amp; Yayın Ajanları</div>
-          <div class="card-sub" id="agent-schedule-text">Yükleniyor...</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
+      <div class="card">
+        <div class="card-head" style="margin-bottom:12px;">
+          <div>
+            <div class="card-title">Bulut Komuta Merkezi (GitHub Actions)</div>
+            <div class="card-sub" id="agent-schedule-text">Günde 3 kez otomatik + panelden anlık komut</div>
+          </div>
           <span class="mono" style="color:var(--text-3);" id="agent-last-sync">-</span>
-          <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">GitHub Actions Logları ↗</a>
         </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+          <button class="btn-white" onclick="triggerWorkflow('full_sync')">Tam Tarama + Yayın Çalıştır</button>
+          <button class="btn-outline" onclick="triggerWorkflow('editorial_only')">Sadece AI Haber/Görsel Üret</button>
+          <button class="btn-outline" onclick="triggerWorkflow('rebuild_covers')">Tüm Kapakları Stokla Yenile</button>
+          <button class="btn-outline" onclick="triggerWorkflow('briefing_only')">NVIDIA Brifing Güncelle</button>
+          <button class="btn-outline" onclick="switchTab('tab-system', document.querySelectorAll('.nav-item')[5])">GitHub Token Bağla</button>
+        </div>
+
+        <!-- Özel AI Haber Yazdır -->
+        <div style="padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(150px,0.7fr) auto;gap:8px;align-items:center;">
+          <input type="text" id="custom-topic-inp" class="input" placeholder="NVIDIA Nemotron-550B'ye özel haber/rehber konusu yazdır (örn: 2026 KPSS Tercih Takvimi)...">
+          <select id="custom-cat-sel" class="select">
+            <option value="RESMI_HABER">Resmi Gündem</option>
+            <option value="ATAMA_KADRO">Atama &amp; Kadro</option>
+            <option value="SINAV_KPSS">KPSS &amp; Sınavlar</option>
+            <option value="MEVZUAT_MAAS">Mevzuat &amp; Özlük</option>
+          </select>
+          <button class="btn-white" onclick="triggerCustomArticle()">AI ile Yaz &amp; Yayınla</button>
+        </div>
+        <p id="cmd-status" style="margin-top:8px;font-size:12px;color:var(--text-3);"></p>
       </div>
 
       <div class="agents-grid" id="agents-grid">
-        <div class="agent-card"><span style="color:var(--text-3);">Ajan verileri yükleniyor...</span></div>
+        <div class="agent-card"><span style="color:var(--text-3);">Ajan telemetrisi yükleniyor...</span></div>
+      </div>
+
+      <div class="grid-2-eq">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Canlı GitHub Actions Çalışma Geçmişi</div>
+              <div class="card-sub">Son 8 bulut çalışması (gerçek GitHub API)</div>
+            </div>
+            <button class="btn-outline btn-sm" onclick="fetchGitHubRuns()">Yenile</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl">
+              <thead><tr><th>Durum</th><th>İş Akışı / Tetikleyici</th><th style="text-align:right;">Zaman</th><th style="text-align:right;">Log</th></tr></thead>
+              <tbody id="gh-runs-tbody"><tr><td colspan="4" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Editör Ajanı Son Üretimler</div>
+              <div class="card-sub">Kalite kapısından geçen son makaleler</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl">
+              <thead><tr><th>Başlık</th><th>Model</th><th style="text-align:right;">Kelime</th></tr></thead>
+              <tbody id="agent-outputs-tbody"><tr><td colspan="3" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. İÇERİK & STOK GÖRSEL YÖNETİMİ -->
+    <section class="tab-pane" id="tab-content">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Kapak Görseli Tasarım Ayarları</div>
+            <div class="card-sub">Haber ve rehber kapaklarındaki stok fotoğraf blur/karartma parametreleri</div>
+          </div>
+          <button class="btn-white btn-sm" onclick="saveCoverSettingsAndRebuild()">Kaydet &amp; Kapakları Yenile</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:center;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Arka Plan Blur (<span class="mono" id="val-blur">2.2</span> px)</label>
+            <input type="range" id="cfg-blur" min="0" max="5" step="0.2" value="2.2" style="width:100%;" oninput="document.getElementById('val-blur').textContent=this.value">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Karartma Yoğunluğu (<span class="mono" id="val-scrim">86</span>%)</label>
+            <input type="range" id="cfg-scrim" min="55" max="95" step="1" value="86" style="width:100%;" oninput="document.getElementById('val-scrim').textContent=this.value">
+          </div>
+          <div class="switch-row" style="border:none;padding:0;">
+            <span class="switch-lbl">Stok Kütüphanesi Kullan</span>
+            <input type="checkbox" class="toggle" id="cfg-use-stock" checked>
+          </div>
+          <div class="switch-row" style="border:none;padding:0;">
+            <span class="switch-lbl">Domain Filigranı</span>
+            <input type="checkbox" class="toggle" id="cfg-watermark" checked>
+          </div>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title">Editör Ajanının Ürettiği Son Makaleler</div>
-            <div class="card-sub">Kalite kapısından geçip yayına alınan gerçek içerikler</div>
+            <div class="card-title">Yayındaki Haber Yönetimi</div>
+            <div class="card-sub">Öne çıkarma, gizleme/kaldırma ve kapak önizlemesi</div>
           </div>
+          <span class="badge" id="news-manage-count">-</span>
         </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
-            <thead><tr><th>Makale Başlığı</th><th>Kurum</th><th>Model / Motor</th><th style="text-align:right;">Kelime</th><th style="text-align:right;">Tarih</th></tr></thead>
-            <tbody id="agent-outputs-tbody"><tr><td colspan="5" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
+            <thead><tr><th>Kapak</th><th>Başlık &amp; Kurum</th><th>Kategori</th><th style="text-align:right;">Kelime</th><th style="text-align:right;">İşlem</th></tr></thead>
+            <tbody id="news-manage-tbody"><tr><td colspan="5" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
           </table>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Küratörlü Tematik Stok Görsel Kütüphanesi</div>
+            <div class="card-sub">Görsel Ajanı'nın kapak üretirken kullandığı 1200×675 WebP telifsiz fotoğraf havuzu</div>
+          </div>
+          <span class="badge" id="stock-summary-badge">-</span>
+        </div>
+        <div id="stock-gallery-wrap" style="color:var(--text-3);">Yükleniyor...</div>
+      </div>
     </section>
 
-    <!-- 4. TRAFİK & ARAMALAR -->
+    <!-- 5. TRAFİK & ARAMALAR -->
     <section class="tab-pane" id="tab-traffic">
-      <div class="grid-2-eq">
+      <div class="grid-2-eq" style="margin-bottom:16px;">
         <div class="card">
           <div class="card-head"><div class="card-title">Kaynak (Referrer) Dağılımı</div></div>
           <table class="tbl">
@@ -473,55 +679,109 @@
       </div>
     </section>
 
-    <!-- 5. ENVANTER & SİSTEM -->
-    <section class="tab-pane" id="tab-inventory">
-      <div class="kpi-grid">
-        <div class="kpi"><span class="kpi-label">Aktif Kamu İlanı</span><div class="kpi-val" id="inv-jobs">-</div><div class="kpi-foot">jobs.json canlı veri</div></div>
-        <div class="kpi"><span class="kpi-label">Açık Kontenjan</span><div class="kpi-val" id="inv-quota">-</div><div class="kpi-foot">Teyitli toplam</div></div>
-        <div class="kpi"><span class="kpi-label">PDF Kılavuz Oranı</span><div class="kpi-val" id="inv-pdf-pct">-</div><div class="kpi-foot" id="inv-pdf-sub">-</div></div>
-        <div class="kpi"><span class="kpi-label">Yayındaki AI Haber</span><div class="kpi-val" id="inv-news">-</div><div class="kpi-foot">editorial_news.json</div></div>
+    <!-- 6. SİSTEM & AYARLAR -->
+    <section class="tab-pane" id="tab-system">
+      <div class="grid-2-eq" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">GitHub Yönetici Token Kasası</div>
+              <div class="card-sub">Yalnızca bu tarayıcının localStorage alanında saklanır; repoya kaydedilmez.</div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="gh-token-inp">GitHub Personal Access Token (Actions: Read/Write &amp; Contents: Read/Write)</label>
+            <input type="password" id="gh-token-inp" class="input" placeholder="github_pat_... veya ghp_...">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-white" onclick="saveGitHubToken()">Token'ı Doğrula &amp; Kaydet</button>
+            <button class="btn-outline" onclick="clearGitHubToken()">Temizle</button>
+            <span id="gh-token-status" style="font-size:12px;color:var(--text-3);"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Otonom Ajan Kontrolleri (patron_config.json)</div>
+              <div class="card-sub">Buluttaki Python ajanlarının davranışını buradan yönetin.</div>
+            </div>
+            <button class="btn-white btn-sm" onclick="saveRemoteConfig(false)">GitHub'a Kaydet</button>
+          </div>
+          <div class="switch-row"><div><div class="switch-lbl">Muhabir Ajanı (Fetcher)</div><div class="switch-desc">Resmi kaynaklardan tam metin toplama</div></div><input type="checkbox" class="toggle" id="ag-fetcher" checked></div>
+          <div class="switch-row"><div><div class="switch-lbl">Editör Ajanı (NVIDIA LLM)</div><div class="switch-desc">Özgün 400+ kelimelik makale yazımı</div></div><input type="checkbox" class="toggle" id="ag-editor" checked></div>
+          <div class="switch-row"><div><div class="switch-lbl">Görsel Ajanı (Visual)</div><div class="switch-desc">Stok kütüphanesi &amp; WebP kapak üretimi</div></div><input type="checkbox" class="toggle" id="ag-visual" checked></div>
+          <div class="switch-row"><div><div class="switch-lbl">Kalite Kapısı Ajanı (QA)</div><div class="switch-desc">Halüsinasyon ve kelime denetimi</div></div><input type="checkbox" class="toggle" id="ag-qa" checked></div>
+          <div class="switch-row"><div><div class="switch-lbl">SSG Yayıncı &amp; Brifing</div><div class="switch-desc">Statik HTML, temiz sitemap &amp; yönetici brifingi</div></div><input type="checkbox" class="toggle" id="ag-publisher" checked></div>
+        </div>
       </div>
 
       <div class="grid-2-eq">
         <div class="card">
-          <div class="card-head"><div class="card-title">Resmi Kaynak (Scraper) Dağılımı</div></div>
-          <table class="tbl">
-            <thead><tr><th>Kaynak</th><th style="text-align:right;">İlan</th></tr></thead>
-            <tbody id="source-health-tbody"></tbody>
-          </table>
+          <div class="card-head"><div class="card-title">Editör Model &amp; Talimat Ayarları</div></div>
+          <div class="field">
+            <label for="cfg-nv-model">Bulut NVIDIA NIM Modeli</label>
+            <select id="cfg-nv-model" class="select">
+              <option value="nvidia/nemotron-3-ultra-550b-a55b">nvidia/nemotron-3-ultra-550b-a55b (En Kaliteli)</option>
+              <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">nvidia/nemotron-3.5-super-vl-120b-a12b (Hızlı)</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field"><label for="cfg-min-words">Min. Kelime Eşiği</label><input type="number" id="cfg-min-words" class="input" value="200"></div>
+            <div class="field"><label for="cfg-max-art">Çalışma Başı Max Haber</label><input type="number" id="cfg-max-art" class="input" value="35"></div>
+          </div>
+          <div class="field">
+            <label for="cfg-extra-prompt">Editör Ajanına Ek Yönetici Talimatı</label>
+            <textarea id="cfg-extra-prompt" class="textarea" placeholder="Örn: Başvurularla ilgili uyarı kutusunu mutlaka ekle..."></textarea>
+          </div>
+          <button class="btn-white" onclick="saveRemoteConfig(false)">Yapılandırmayı GitHub'a Kaydet</button>
         </div>
 
         <div class="card">
-          <div class="card-head"><div class="card-title">Sistem &amp; Senkronizasyon</div></div>
+          <div class="card-head"><div class="card-title">Veri Kaynakları &amp; Senkronizasyon</div></div>
           <table class="tbl">
-            <tbody>
-              <tr><td>İlan Verisi (jobs.json)</td><td class="mono" style="text-align:right;" id="sys-jobs-ts">-</td></tr>
-              <tr><td>AI Haberler (editorial_news.json)</td><td class="mono" style="text-align:right;" id="sys-news-ts">-</td></tr>
-              <tr><td>NVIDIA Brifing (ai_briefing.json)</td><td class="mono" style="text-align:right;" id="sys-ai-ts">-</td></tr>
-              <tr><td>Ajan Telemetrisi (agent_runs.json)</td><td class="mono" style="text-align:right;" id="sys-agent-ts">-</td></tr>
-            </tbody>
+            <thead><tr><th>Resmi Kaynak</th><th style="text-align:right;">Aktif İlan</th></tr></thead>
+            <tbody id="source-health-tbody"></tbody>
           </table>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
-            <a href="https://kamupersonelrehberiniz.me/" target="_blank" rel="noopener noreferrer" class="btn-outline">Canlı Site ↗</a>
-            <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">Actions ↗</a>
-            <a href="https://github.com/Hesso04/kamupersonelrehberi/settings/secrets/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">Secrets ↗</a>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);display:grid;gap:4px;">
+            <div>İlanlar (jobs.json): <span class="mono" id="sys-jobs-ts">-</span></div>
+            <div>AI Haberler (editorial_news.json): <span class="mono" id="sys-news-ts">-</span></div>
+            <div>NVIDIA Brifing: <span class="mono" id="sys-ai-ts">-</span></div>
+            <div>Ajan Telemetrisi: <span class="mono" id="sys-agent-ts">-</span></div>
           </div>
         </div>
       </div>
     </section>
   </main>
 
+  <div id="toast"></div>
+
   <script>
     const SUPABASE_URL = 'https://lxffirosgbrfptnbjvdg.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
+    const GH_REPO = 'Hesso04/kamupersonelrehberi';
+    const GH_WORKFLOW = 'auto_sync_jobs.yml';
+
+    // Mevcut SHA-256 Yönetici Giriş Hash'leri
     const _AUTH_U = 'd9bf4c8f7292dd3faa9a1c0da0f9ca8116f0eca051ac775332692c70922f97b5';
     const _AUTH_K = 'e7c85779263d48cdad9fcc3704a218e156056b013fe8ab5d3c6f3c9ebe932315';
 
-    let STATE = { events: [], jobsData: null, newsData: null, aiBriefing: null, agentRuns: null, computed: null };
+    let STATE = {
+      events: [], jobsData: null, newsData: null, aiBriefing: null,
+      agentRuns: null, stockManifest: null, config: null, computed: null
+    };
     let CHAT_HISTORY = [];
     let trendChart = null, refChart = null;
+    let ghPollTimer = null;
 
     const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
 
     async function _digest(t) {
       const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
@@ -534,7 +794,7 @@
       if (u === _AUTH_U && p === _AUTH_K) {
         sessionStorage.setItem('kpr_patron_auth', 'token_' + p.slice(0, 16));
         document.getElementById('login-overlay').style.display = 'none';
-        refreshAllData();
+        initPanel();
       } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('patron-password').value = '';
@@ -547,21 +807,23 @@
 
     const TITLES = {
       'tab-overview': ['Genel Bakış', 'Gerçek zamanlı Supabase analitik, trafik ve dönüşüm metrikleri'],
-      'tab-ai': ['AI Site Asistanı', 'Canlı site verilerine bağlı gerçek yapay zeka sohbeti ve NVIDIA brifingi'],
-      'tab-agents': ['Ajan Takibi', '5 otonom ajanın çalışma durumu, ürettiği makaleler ve kalite kapısı verileri'],
-      'tab-traffic': ['Trafik & Aramalar', 'Referrer kanalları, aranan kelimeler ve son 25 canlı ziyaretçi hareketi'],
-      'tab-inventory': ['Envanter & Sistem', 'Resmi ilan kaynakları, PDF sağlık oranı ve senkronizasyon durumu']
+      'tab-ai': ['AI Site Asistanı', 'Canlı verilere bağlı yapay zeka sohbeti ve NVIDIA Nemotron-550B brifingi'],
+      'tab-traffic': ['Trafik & Aramalar', 'Referrer kanalları, site içi aramalar ve son 25 canlı hareket'],
+      'tab-agents': ['Ajan Takibi & Komuta Merkezi', '5 otonom ajanın canlı durumu, özel makale üretimi ve GitHub Actions'],
+      'tab-content': ['İçerik & Stok Görsel Yönetimi', 'Yayındaki AI haberler, kapak blur/karartma ayarları ve stok kütüphanesi'],
+      'tab-system': ['Sistem & Ayarlar', 'Ajan anahtarları, GitHub token kasası ve resmi kaynak sağlığı']
     };
 
     function switchTab(id, btn) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       document.getElementById(id)?.classList.add('active');
-      btn?.classList.add('active');
+      if (btn) btn.classList.add('active');
       if (TITLES[id]) {
         document.getElementById('ws-title').textContent = TITLES[id][0];
         document.getElementById('ws-sub').textContent = TITLES[id][1];
       }
+      if (id === 'tab-agents') fetchGitHubRuns();
     }
 
     function detectDevice(ua) {
@@ -573,32 +835,45 @@
       return 'Diğer';
     }
 
+    function initPanel() {
+      loadAISettingsToUI();
+      loadGitHubTokenToUI();
+      refreshAllData();
+      fetchGitHubRuns();
+    }
+
     async function refreshAllData() {
       try {
         const ts = Date.now();
-        const [evR, jR, nR, aiR, agR] = await Promise.all([
+        const [evR, jR, nR, aiR, agR, stR, cfR] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/site_analytics_events?select=id,event_type,job_id,job_title,category,referrer,user_agent,created_at&order=created_at.desc&limit=2000`, {
             headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
           }),
           fetch('/data/jobs.json?t=' + ts),
           fetch('/data/editorial_news.json?t=' + ts),
           fetch('/data/ai_briefing.json?t=' + ts).catch(() => null),
-          fetch('/data/agent_runs.json?t=' + ts).catch(() => null)
+          fetch('/data/agent_runs.json?t=' + ts).catch(() => null),
+          fetch('/data/stock_library_manifest.json?t=' + ts).catch(() => null),
+          fetch('/data/patron_config.json?t=' + ts).catch(() => null)
         ]);
         STATE.events = evR.ok ? await evR.json() : [];
         STATE.jobsData = jR.ok ? await jR.json() : { jobs: [], meta: {} };
         STATE.newsData = nR.ok ? await nR.json() : { articles: [], meta: {} };
         STATE.aiBriefing = (aiR && aiR.ok) ? await aiR.json() : null;
         STATE.agentRuns = (agR && agR.ok) ? await agR.json() : null;
+        STATE.stockManifest = (stR && stR.ok) ? await stR.json() : null;
+        STATE.config = (cfR && cfR.ok) ? await cfR.json() : null;
 
         computeAnalytics();
         renderOverview();
         renderAgentsTab();
+        renderContentTab();
         renderTrafficTab();
-        renderInventoryTab();
+        renderSystemTab();
         renderBriefing();
       } catch (e) {
         console.error(e);
+        toast('Veri yenileme sırasında hata oluştu.');
       }
     }
 
@@ -626,9 +901,13 @@
         byRef[ref] = (byRef[ref] || 0) + 1;
         const dev = detectDevice(ev.user_agent);
         byDev[dev] = (byDev[dev] || 0) + 1;
+
         if (ev.job_title) {
           if (t === 'SEARCH') bySearch[ev.job_title] = (bySearch[ev.job_title] || 0) + 1;
-          else byPage[ev.job_title] = (byPage[ev.job_title] || 0) + 1;
+          else {
+            const pKey = ev.job_title + '|||' + (ev.category || (t === 'JOB_VIEW' ? 'İlan' : 'Sayfa'));
+            byPage[pKey] = (byPage[pKey] || 0) + 1;
+          }
         }
       });
 
@@ -652,39 +931,21 @@
       document.getElementById('kpi-pdf-rate').textContent = `Oran: %${jv ? ((pdf/jv)*100).toFixed(1) : '0.0'}`;
       document.getElementById('kpi-apply-rate').textContent = `Dönüşüm: %${jv ? ((ap/jv)*100).toFixed(1) : '0.0'}`;
 
-      // Monokrom Bar Chart
       const tCtx = document.getElementById('chart-trend').getContext('2d');
       if (trendChart) trendChart.destroy();
       trendChart = new Chart(tCtx, {
         type: 'bar',
-        data: {
-          labels: Object.keys(c.byDay),
-          datasets: [{ data: Object.values(c.byDay), backgroundColor: '#E4E4E7', hoverBackgroundColor: '#FFFFFF', borderRadius: 4 }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#71717A', font: { size: 11 } } },
-            y: { grid: { color: '#27272A' }, ticks: { color: '#71717A', font: { size: 11 } } }
-          }
-        }
+        data: { labels: Object.keys(c.byDay), datasets: [{ data: Object.values(c.byDay), backgroundColor: '#E4E4E7', hoverBackgroundColor: '#FFFFFF', borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#71717A', font: { size: 11 } } }, y: { grid: { color: '#27272A' }, ticks: { color: '#71717A', font: { size: 11 } } } } }
       });
 
-      // Monokrom Doughnut
       const rCtx = document.getElementById('chart-referrers').getContext('2d');
       if (refChart) refChart.destroy();
       const topR = c.referrers.slice(0, 6);
       refChart = new Chart(rCtx, {
         type: 'doughnut',
-        data: {
-          labels: topR.map(x => x[0]),
-          datasets: [{ data: topR.map(x => x[1]), backgroundColor: ['#FAFAFA','#A1A1AA','#71717A','#52525B','#3F3F46','#27272A'], borderWidth: 1, borderColor: '#111113' }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false, cutout: '66%',
-          plugins: { legend: { position: 'right', labels: { color: '#A1A1AA', boxWidth: 10, font: { size: 11 } } } }
-        }
+        data: { labels: topR.map(x => x[0]), datasets: [{ data: topR.map(x => x[1]), backgroundColor: ['#FAFAFA','#A1A1AA','#71717A','#52525B','#3F3F46','#27272A'], borderWidth: 1, borderColor: '#111113' }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { position: 'right', labels: { color: '#A1A1AA', boxWidth: 10, font: { size: 11 } } } } }
       });
 
       const maxV = Math.max(pv, jv, 1);
@@ -699,8 +960,11 @@
       ).join('');
 
       document.getElementById('top-pages-tbody').innerHTML = c.topPages.length
-        ? c.topPages.map(([t, n]) => `<tr><td>${esc(t)}</td><td class="mono" style="text-align:right;">${n}</td></tr>`).join('')
-        : '<tr><td colspan="2" style="color:var(--text-3);">Kayıt yok.</td></tr>';
+        ? c.topPages.map(([key, n]) => {
+            const [t, cat] = key.split('|||');
+            return `<tr><td>${esc(t)}</td><td><span class="badge">${esc(cat)}</span></td><td class="mono" style="text-align:right;">${n}</td></tr>`;
+          }).join('')
+        : '<tr><td colspan="3" style="color:var(--text-3);">Kayıt yok.</td></tr>';
     }
 
     function renderAgentsTab() {
@@ -718,10 +982,11 @@
           `<div><span class="am-lbl">${esc(k)}</span><span class="am-val">${esc(v)}</span></div>`
         ).join('');
         const ts = a.last_run ? new Date(a.last_run).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-';
+        const enabled = STATE.config?.agents_enabled?.[a.id] !== false;
         return `<div class="agent-card">
           <div class="agent-top">
             <div><div class="agent-name">${esc(a.name)}</div><div class="agent-mod">${esc(a.module)}</div></div>
-            <span class="badge badge-ok">Aktif • ${ts}</span>
+            <span class="badge ${enabled ? 'badge-ok' : 'badge-warn'}">${enabled ? 'Aktif' : 'Duraklatıldı'} • ${ts}</span>
           </div>
           <div class="agent-role">${esc(a.role)}</div>
           <div class="agent-metrics">${mets}</div>
@@ -730,14 +995,75 @@
 
       const outs = ag.recent_outputs || [];
       document.getElementById('agent-outputs-tbody').innerHTML = outs.length
-        ? outs.map(o => `<tr>
+        ? outs.slice(0, 10).map(o => `<tr>
             <td><a href="/haber/${esc(o.slug)}/" target="_blank" style="text-decoration:underline;text-underline-offset:3px;">${esc(o.headline)}</a></td>
-            <td style="color:var(--text-2);">${esc(o.institution)}</td>
             <td class="mono" style="color:var(--text-3);">${esc(o.generated_by)}</td>
             <td class="mono" style="text-align:right;">${o.word_count}</td>
-            <td class="mono" style="text-align:right;color:var(--text-3);">${esc(o.publish_date)}</td>
           </tr>`).join('')
-        : '<tr><td colspan="5" style="color:var(--text-3);">Henüz üretilmiş makale yok.</td></tr>';
+        : '<tr><td colspan="3" style="color:var(--text-3);">Henüz makale yok.</td></tr>';
+    }
+
+    function renderContentTab() {
+      const articles = (STATE.newsData && STATE.newsData.articles) || [];
+      const hidden = new Set(STATE.config?.hidden_news_slugs || []);
+      const featured = new Set(STATE.config?.featured_news_slugs || []);
+      document.getElementById('news-manage-count').textContent = `${articles.length} makale • ${hidden.size} gizli`;
+
+      document.getElementById('news-manage-tbody').innerHTML = articles.length
+        ? articles.map(a => {
+            const isH = hidden.has(a.slug), isF = featured.has(a.slug);
+            return `<tr>
+              <td><img src="${esc(a.cover_image || '/assets/img/og-banner.png')}" alt="" class="news-thumb" loading="lazy"></td>
+              <td>
+                <a href="/haber/${esc(a.slug)}/" target="_blank" style="font-weight:600;display:block;${isH ? 'opacity:0.45;text-decoration:line-through;' : ''}">${esc(a.headline)} ↗</a>
+                <span style="font-size:11.5px;color:var(--text-3);">${esc(a.institution)} • ${esc(a.publish_date_formatted)}</span>
+              </td>
+              <td><span class="badge">${esc(a.category_label || a.category)}</span></td>
+              <td class="mono" style="text-align:right;">${a.word_count || '-'}</td>
+              <td style="text-align:right;white-space:nowrap;">
+                <button class="btn-outline btn-sm" onclick="toggleNewsFlag('featured','${esc(a.slug)}')">${isF ? 'Sabit ✓' : 'Öne Çıkar'}</button>
+                <button class="btn-outline btn-sm" onclick="toggleNewsFlag('hidden','${esc(a.slug)}')">${isH ? 'Göster' : 'Gizle'}</button>
+              </td>
+            </tr>`;
+          }).join('')
+        : '<tr><td colspan="5" style="color:var(--text-3);">Makale bulunamadı.</td></tr>';
+
+      // Kapak ayarlarını formdan senkronize et
+      const cs = STATE.config?.cover_settings || {};
+      if (cs.blur_radius !== undefined) {
+        document.getElementById('cfg-blur').value = cs.blur_radius;
+        document.getElementById('val-blur').textContent = cs.blur_radius;
+      }
+      if (cs.scrim_strength !== undefined) {
+        const pct = Math.round(cs.scrim_strength * 100);
+        document.getElementById('cfg-scrim').value = pct;
+        document.getElementById('val-scrim').textContent = pct;
+      }
+      document.getElementById('cfg-use-stock').checked = cs.use_stock_library !== false;
+      document.getElementById('cfg-watermark').checked = cs.show_domain_watermark !== false;
+
+      // Stok kütüphanesi galerisi
+      const sm = STATE.stockManifest;
+      const wrap = document.getElementById('stock-gallery-wrap');
+      if (!sm || !sm.themes) {
+        wrap.textContent = 'Stok kütüphanesi manifesti bulunamadı.';
+        return;
+      }
+      document.getElementById('sb-stock-cnt').textContent = sm.total_images || 0;
+      document.getElementById('stock-summary-badge').textContent = `${sm.total_themes} tema • ${sm.total_images} WebP (${sm.resolution})`;
+      wrap.innerHTML = Object.entries(sm.themes).map(([key, t]) => `
+        <div class="stock-theme-block">
+          <div class="stock-theme-title"><span>${esc(t.label)} <span class="mono" style="color:var(--text-3);">(${esc(key)})</span></span><span class="mono">${t.count} görsel</span></div>
+          <div class="stock-grid">
+            ${(t.images || []).map(img => `
+              <div class="stock-item">
+                <img src="${esc(img.url)}" alt="${esc(img.label)}" loading="lazy">
+                <div class="stock-item-cap" title="${esc(img.label)}">${esc(img.label)} • ${img.size_kb} KB</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderTrafficTab() {
@@ -755,16 +1081,8 @@
       }).join('');
     }
 
-    function renderInventoryTab() {
+    function renderSystemTab() {
       const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
-      const news = (STATE.newsData && STATE.newsData.articles) || [];
-      const withPdf = jobs.filter(j => j.has_pdf || j.pdf_url).length;
-      document.getElementById('inv-jobs').textContent = jobs.length.toLocaleString('tr-TR');
-      document.getElementById('inv-quota').textContent = ((STATE.jobsData?.meta?.total_quota) || 0).toLocaleString('tr-TR') + '+';
-      document.getElementById('inv-pdf-pct').textContent = `%${jobs.length ? ((withPdf/jobs.length)*100).toFixed(1) : '0'}`;
-      document.getElementById('inv-pdf-sub').textContent = `${withPdf} / ${jobs.length} ilanda PDF`;
-      document.getElementById('inv-news').textContent = news.length;
-
       const bySrc = {};
       jobs.forEach(j => { const s = j.source_name || 'Diğer'; bySrc[s] = (bySrc[s] || 0) + 1; });
       document.getElementById('source-health-tbody').innerHTML = Object.entries(bySrc).sort((a,b) => b[1]-a[1]).map(([s, n]) =>
@@ -776,6 +1094,19 @@
       document.getElementById('sys-news-ts').textContent = fmt(STATE.newsData?.meta?.generated_at);
       document.getElementById('sys-ai-ts').textContent = STATE.aiBriefing?.generated_at_tr || '-';
       document.getElementById('sys-agent-ts').textContent = STATE.agentRuns?.generated_at_tr || '-';
+
+      if (STATE.config) {
+        const ae = STATE.config.agents_enabled || {};
+        ['fetcher','editor','visual','qa','publisher'].forEach(k => {
+          const el = document.getElementById('ag-' + k);
+          if (el) el.checked = ae[k] !== false;
+        });
+        const es = STATE.config.editor_settings || {};
+        if (es.nvidia_model) document.getElementById('cfg-nv-model').value = es.nvidia_model;
+        if (es.min_word_count) document.getElementById('cfg-min-words').value = es.min_word_count;
+        if (es.max_articles_per_run) document.getElementById('cfg-max-art').value = es.max_articles_per_run;
+        document.getElementById('cfg-extra-prompt').value = es.extra_instructions || '';
+      }
     }
 
     function renderBriefing() {
@@ -792,13 +1123,306 @@
     }
 
     /* =====================================================================
-       GERÇEK CANLI LLM SOHBET MOTORU (Hazır şablon YOK!)
-       Canlı Supabase + İlan + Haber + Ajan verisi sistem bağlamına verilir.
+       GITHUB ACTIONS CANLI GEÇMİŞ & UZAKTAN KOMUTA (patron_config.json)
        ===================================================================== */
-    function buildLiveContextForLLM() {
+    function loadGitHubTokenToUI() {
+      const tok = localStorage.getItem('kpr_gh_token') || '';
+      document.getElementById('gh-token-inp').value = tok;
+      document.getElementById('gh-token-status').textContent = tok ? 'Token kayıtlı (tarayıcıda güvenli).' : 'Bağlı değil (komuta butonları için gerekli).';
+    }
+
+    async function saveGitHubToken() {
+      const tok = document.getElementById('gh-token-inp').value.trim();
+      if (!tok) { toast('Token alanı boş.'); return; }
+      const st = document.getElementById('gh-token-status');
+      st.textContent = 'Doğrulanıyor...';
+      try {
+        const r = await fetch(`https://api.github.com/repos/${GH_REPO}`, { headers: { Authorization: `Bearer ${tok}` } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        localStorage.setItem('kpr_gh_token', tok);
+        st.textContent = 'Doğrulandı ve kaydedildi ✓';
+        toast('GitHub token doğrulandı!');
+        fetchGitHubRuns();
+      } catch (e) {
+        st.textContent = 'Geçersiz token veya yetki hatası (' + e.message + ')';
+      }
+    }
+
+    function clearGitHubToken() {
+      localStorage.removeItem('kpr_gh_token');
+      document.getElementById('gh-token-inp').value = '';
+      document.getElementById('gh-token-status').textContent = 'Temizlendi.';
+    }
+
+    async function fetchGitHubRuns() {
+      const tbody = document.getElementById('gh-runs-tbody');
+      try {
+        const tok = localStorage.getItem('kpr_gh_token');
+        const headers = tok ? { Authorization: `Bearer ${tok}` } : {};
+        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs?per_page=8`, { headers });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        const runs = data.workflow_runs || [];
+        let hasActive = false;
+        tbody.innerHTML = runs.length ? runs.map(run => {
+          if (run.status !== 'completed') hasActive = true;
+          const cls = run.status !== 'completed' ? 'badge-warn' : (run.conclusion === 'success' ? 'badge-ok' : 'badge-err');
+          const lbl = run.status !== 'completed' ? 'Çalışıyor' : (run.conclusion === 'success' ? 'Başarılı' : run.conclusion);
+          const dt = new Date(run.created_at).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+          return `<tr>
+            <td><span class="badge ${cls}">${esc(lbl)}</span></td>
+            <td>${esc((run.name || run.display_title || '').slice(0, 42))}</td>
+            <td class="mono" style="text-align:right;color:var(--text-3);">${dt}</td>
+            <td style="text-align:right;"><a href="${esc(run.html_url)}" target="_blank" rel="noopener noreferrer" class="btn-outline btn-sm">Log ↗</a></td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="4" style="color:var(--text-3);">Çalışma bulunamadı.</td></tr>';
+
+        clearTimeout(ghPollTimer);
+        if (hasActive) ghPollTimer = setTimeout(fetchGitHubRuns, 15000);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-3);">GitHub Actions geçmişi okunamadı (${esc(e.message)}).</td></tr>`;
+      }
+    }
+
+    async function triggerWorkflow(mode, extraInputs = {}) {
+      const tok = localStorage.getItem('kpr_gh_token');
+      const st = document.getElementById('cmd-status');
+      if (!tok) {
+        toast('Önce Sistem & Ayarlar sekmesinden GitHub Token bağlayın.');
+        switchTab('tab-system', document.querySelectorAll('.nav-item')[5]);
+        return;
+      }
+      st.textContent = `Buluta komut gönderiliyor (${mode})...`;
+      try {
+        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: 'main', inputs: { mode, ...extraInputs } })
+        });
+        if (r.status === 204 || r.ok) {
+          st.textContent = `Komut başarıyla kuyruğa alındı (${mode}). GitHub Actions birkaç saniye içinde başlayacak.`;
+          toast('Ajanlara komut gönderildi!');
+          setTimeout(fetchGitHubRuns, 4000);
+        } else {
+          const errTxt = await r.text();
+          throw new Error(`HTTP ${r.status} ${errTxt.slice(0, 80)}`);
+        }
+      } catch (e) {
+        st.textContent = 'Komut gönderilemedi: ' + e.message;
+        toast('GitHub dispatch hatası.');
+      }
+    }
+
+    function triggerCustomArticle() {
+      const topic = document.getElementById('custom-topic-inp').value.trim();
+      const cat = document.getElementById('custom-cat-sel').value;
+      if (topic.length < 6) { toast('Lütfen en az 6 karakterlik bir haber/rehber konusu girin.'); return; }
+      triggerWorkflow('custom_article', { custom_topic: topic, custom_category: cat });
+    }
+
+    async function commitFileToGitHub(repoPath, contentStr, message) {
+      const tok = localStorage.getItem('kpr_gh_token');
+      if (!tok) throw new Error('GitHub Token bağlı değil');
+      const getR = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${repoPath}`, {
+        headers: { Authorization: `Bearer ${tok}` }
+      });
+      let sha = undefined;
+      if (getR.ok) { sha = (await getR.json()).sha; }
+      const b64 = btoa(unescape(encodeURIComponent(contentStr)));
+      const putR = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${repoPath}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, content: b64, sha, branch: 'main' })
+      });
+      if (!putR.ok) throw new Error('GitHub yazma hatası HTTP ' + putR.status);
+    }
+
+    function collectConfigFromUI() {
+      const base = STATE.config ? JSON.parse(JSON.stringify(STATE.config)) : { version: '1.0', agents_enabled: {}, editor_settings: {}, cover_settings: {}, hidden_news_slugs: [], featured_news_slugs: [] };
+      ['fetcher','editor','visual','qa','publisher'].forEach(k => {
+        const el = document.getElementById('ag-' + k);
+        if (el) base.agents_enabled[k] = el.checked;
+      });
+      base.agents_enabled.briefing = base.agents_enabled.publisher;
+      base.editor_settings.nvidia_model = document.getElementById('cfg-nv-model').value;
+      base.editor_settings.min_word_count = parseInt(document.getElementById('cfg-min-words').value, 10) || 200;
+      base.editor_settings.max_articles_per_run = parseInt(document.getElementById('cfg-max-art').value, 10) || 35;
+      base.editor_settings.extra_instructions = document.getElementById('cfg-extra-prompt').value.trim();
+
+      base.cover_settings.blur_radius = parseFloat(document.getElementById('cfg-blur').value) || 2.2;
+      base.cover_settings.scrim_strength = (parseInt(document.getElementById('cfg-scrim').value, 10) || 86) / 100;
+      base.cover_settings.use_stock_library = document.getElementById('cfg-use-stock').checked;
+      base.cover_settings.show_domain_watermark = document.getElementById('cfg-watermark').checked;
+      return base;
+    }
+
+    async function saveRemoteConfig(rebuildAfter = false) {
+      const tok = localStorage.getItem('kpr_gh_token');
+      if (!tok) { toast('Ayarları kaydetmek için Sistem & Ayarlar sekmesinden GitHub Token bağlayın.'); return; }
+      try {
+        const cfg = collectConfigFromUI();
+        const jsonStr = JSON.stringify(cfg, null, 2) + '\n';
+        await commitFileToGitHub('website/data/patron_config.json', jsonStr, 'chore(patron): panel yapilandirmasi guncellendi');
+        await commitFileToGitHub('docs/data/patron_config.json', jsonStr, 'chore(patron): docs config senkronize edildi');
+        STATE.config = cfg;
+        toast('Ayarlar GitHub deposuna kaydedildi ✓');
+        if (rebuildAfter) await triggerWorkflow('rebuild_covers');
+      } catch (e) {
+        toast('Kayıt hatası: ' + e.message);
+      }
+    }
+
+    function saveCoverSettingsAndRebuild() { saveRemoteConfig(true); }
+
+    async function toggleNewsFlag(type, slug) {
+      const tok = localStorage.getItem('kpr_gh_token');
+      if (!tok) { toast('Önce Sistem & Ayarlar sekmesinden GitHub Token bağlayın.'); return; }
+      const cfg = collectConfigFromUI();
+      const key = type === 'hidden' ? 'hidden_news_slugs' : 'featured_news_slugs';
+      const arr = new Set(cfg[key] || []);
+      if (arr.has(slug)) arr.delete(slug); else arr.add(slug);
+      cfg[key] = Array.from(arr);
+      STATE.config = cfg;
+      renderContentTab();
+      await saveRemoteConfig(false);
+      await triggerWorkflow('editorial_only');
+    }
+
+    /* =====================================================================
+       ÇOKLU SAĞLAYICILI CANLI AI SİTE ASİSTANI (HTTP 402 ÇÖZÜLMÜŞ + MARKDOWN)
+       ===================================================================== */
+    const PROVIDER_DEFAULTS = {
+      pollinations_key: { label: 'Pollinations Pro', url: 'https://gen.pollinations.ai/v1/chat/completions', model: 'openai/gpt-5.4-nano', needsKey: true, needsUrl: false },
+      groq:             { label: 'Groq Cloud',       url: 'https://api.groq.com/openai/v1/chat/completions',  model: 'llama-3.3-70b-versatile', needsKey: true, needsUrl: false },
+      openrouter:       { label: 'OpenRouter',       url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-3.3-70b-instruct:free', needsKey: true, needsUrl: false },
+      custom:           { label: 'NVIDIA Köprü/Özel', url: 'http://127.0.0.1:8787/v1/chat/completions',      model: 'nvidia/nemotron-3-ultra-550b-a55b', needsKey: false, needsUrl: true },
+      pollinations_free:{ label: 'Ücretsiz Anonim',  url: 'https://text.pollinations.ai/openai',           model: 'openai', needsKey: false, needsUrl: false }
+    };
+
+    function getAIConfig() {
+      const prov = localStorage.getItem('kpr_ai_provider') || 'pollinations_free';
+      const def = PROVIDER_DEFAULTS[prov] || PROVIDER_DEFAULTS.pollinations_free;
+      return {
+        provider: prov,
+        label: def.label,
+        url: prov === 'custom' ? (localStorage.getItem('kpr_ai_url') || def.url) : def.url,
+        model: localStorage.getItem('kpr_ai_model') || def.model,
+        key: localStorage.getItem('kpr_ai_key') || ''
+      };
+    }
+
+    function loadAISettingsToUI() {
+      const cfg = getAIConfig();
+      document.getElementById('ai-provider-sel').value = cfg.provider;
+      document.getElementById('ai-model-inp').value = cfg.model;
+      document.getElementById('ai-key-inp').value = cfg.key;
+      document.getElementById('ai-url-inp').value = cfg.url;
+      onProviderChange(false);
+      updateChatBadges();
+    }
+
+    function onProviderChange(resetModel = true) {
+      const prov = document.getElementById('ai-provider-sel').value;
+      const def = PROVIDER_DEFAULTS[prov] || PROVIDER_DEFAULTS.pollinations_free;
+      document.getElementById('ai-key-wrap').style.display = (def.needsKey || prov === 'custom') ? 'block' : 'none';
+      document.getElementById('ai-url-wrap').style.display = def.needsUrl ? 'block' : 'none';
+      if (resetModel) {
+        document.getElementById('ai-model-inp').value = def.model;
+        if (def.needsUrl && !document.getElementById('ai-url-inp').value) {
+          document.getElementById('ai-url-inp').value = def.url;
+        }
+      }
+    }
+
+    function updateChatBadges() {
+      const cfg = getAIConfig();
+      document.getElementById('chat-provider-badge').textContent = `Sağlayıcı: ${cfg.label}`;
+      document.getElementById('chat-model-badge').textContent = cfg.model;
+      document.getElementById('sb-ai-badge').textContent = cfg.key ? 'PRO' : 'CANLI';
+    }
+
+    function toggleAIDrawer(forceOpen) {
+      const d = document.getElementById('ai-drawer');
+      if (forceOpen === true) d.classList.add('open');
+      else d.classList.toggle('open');
+    }
+
+    async function saveAISettings(testNow) {
+      const prov = document.getElementById('ai-provider-sel').value;
+      const model = document.getElementById('ai-model-inp').value.trim() || PROVIDER_DEFAULTS[prov].model;
+      const key = document.getElementById('ai-key-inp').value.trim();
+      const url = document.getElementById('ai-url-inp').value.trim();
+      localStorage.setItem('kpr_ai_provider', prov);
+      localStorage.setItem('kpr_ai_model', model);
+      localStorage.setItem('kpr_ai_key', key);
+      if (url) localStorage.setItem('kpr_ai_url', url);
+      updateChatBadges();
+
+      const st = document.getElementById('ai-test-status');
+      if (!testNow) { st.textContent = 'Kaydedildi.'; return; }
+      st.textContent = 'Bağlantı test ediliyor...';
+      try {
+        const res = await callLLMAPI([{ role: 'user', content: 'Sadece "Bağlantı hazır." yaz.' }], 0.2);
+        st.textContent = 'Test başarılı ✓ Yanıt: ' + res.slice(0, 80);
+        toast('AI Sağlayıcısı doğrulandı!');
+      } catch (e) {
+        st.textContent = 'Test başarısız: ' + e.message;
+      }
+    }
+
+    /* XSS-Güvenli Markdown Renderer */
+    function renderSafeMarkdown(raw) {
+      let safe = esc(raw).replace(/\r\n/g, '\n');
+      safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      const lines = safe.split('\n');
+      let out = [], inList = false, inTable = false;
+
+      const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
+      const closeTable = () => { if (inTable) { out.push('</tbody></table>'); inTable = false; } };
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) { closeList(); closeTable(); continue; }
+
+        if (line.startsWith('|') && line.endsWith('|')) {
+          closeList();
+          if (/^\|[\s:-]+\|$/.test(line.replace(/\|/g, '|').replace(/[^|:\s-]/g, ''))) continue;
+          const cells = line.slice(1, -1).split('|').map(c => c.trim());
+          if (!inTable) {
+            out.push('<table><thead><tr>' + cells.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>');
+            inTable = true;
+          } else {
+            out.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
+          }
+          continue;
+        } else { closeTable(); }
+
+        if (/^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+          if (!inList) { out.push('<ul>'); inList = true; }
+          out.push('<li>' + line.replace(/^([-*•]|\d+\.)\s+/, '') + '</li>');
+        } else {
+          closeList();
+          out.push('<p>' + line + '</p>');
+        }
+      }
+      closeList(); closeTable();
+      return out.join('');
+    }
+
+    function buildLiveContext(compact = false) {
       const c = STATE.computed || {};
       const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
       const news = (STATE.newsData && STATE.newsData.articles) || [];
+      if (compact) {
+        return JSON.stringify({
+          olaylar: c.counts || {}, son24s: c.counts24 || {},
+          kaynaklar: (c.referrers || []).slice(0, 4),
+          populer: (c.topPages || []).slice(0, 4).map(x => [x[0].split('|||')[0], x[1]]),
+          ilan: jobs.length, haber: news.length, stok: STATE.stockManifest?.total_images || 0
+        });
+      }
       return JSON.stringify({
         site: 'kamupersonelrehberiniz.me',
         toplam_olay: c.totalEvents || 0,
@@ -811,16 +1435,50 @@
         aktif_ilan_sayisi: jobs.length,
         toplam_kontenjan: STATE.jobsData?.meta?.total_quota || 0,
         ai_haber_sayisi: news.length,
+        stok_gorsel_sayisi: STATE.stockManifest?.total_images || 0,
         ajanlar: (STATE.agentRuns?.agents || []).map(a => ({ ad: a.name, durum: a.status, metrikler: a.metrics })),
         son_nvidia_brifingi: STATE.aiBriefing?.briefing || null
       });
     }
 
-    function appendMsg(role, text) {
+    async function callLLMAPI(messages, temp = 0.4) {
+      const cfg = getAIConfig();
+      const headers = { 'Content-Type': 'application/json' };
+      if (cfg.key) headers['Authorization'] = `Bearer ${cfg.key}`;
+      const r = await fetch(cfg.url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ model: cfg.model, messages, temperature: temp })
+      });
+      if (!r.ok) {
+        const err = new Error('HTTP ' + r.status);
+        err.status = r.status;
+        throw err;
+      }
+      const data = await r.json();
+      return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
+    }
+
+    function buildLocalInstantSnapshot(question) {
+      const c = STATE.computed;
+      if (!c) return 'Veriler henüz yüklenmedi.';
+      const q = question.toLocaleLowerCase('tr-TR');
+      const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
+      const news = (STATE.newsData && STATE.newsData.articles) || [];
+      if (q.includes('nereden') || q.includes('trafik') || q.includes('kaynak')) {
+        return '**Canlı Trafik Kaynakları (Supabase):**\n' + c.referrers.slice(0, 6).map(([r, n]) => `- **${r}:** ${n} etkileşim`).join('\n');
+      }
+      if (q.includes('ajan')) {
+        return '**Otonom Ajan Durumu:**\n' + (STATE.agentRuns?.agents || []).map(a => `- **${a.name}:** ${Object.entries(a.metrics||{}).map(([k,v])=>`${k}: ${v}`).join(', ')}`).join('\n');
+      }
+      return `**Canlı Yönetici Özeti (${c.totalEvents} olay analiz edildi):**\n- **Sayfa Görüntüleme:** ${c.counts.PAGEVIEW} (Son 24s: +${c.counts24.PAGEVIEW})\n- **İlan İnceleme:** ${c.counts.JOB_VIEW} | **PDF:** ${c.counts.PDF_DOWNLOAD} | **Başvuru:** ${c.counts.APPLY_CLICK}\n- **Lider Kanal:** ${c.referrers[0]?.[0] || '-'} (${c.referrers[0]?.[1] || 0})\n- **En Popüler İçerik:** ${c.topPages[0]?.[0]?.split('|||')[0] || '-'}\n- **Envanter:** ${jobs.length} ilan, ${news.length} AI haber, ${STATE.stockManifest?.total_images || 0} stok görsel`;
+    }
+
+    function appendMsg(role, contentHtml) {
       const log = document.getElementById('chat-log');
       const div = document.createElement('div');
       div.className = 'msg ' + role;
-      div.textContent = text;
+      div.innerHTML = contentHtml;
       log.appendChild(div);
       log.scrollTop = log.scrollHeight;
       return div;
@@ -828,38 +1486,51 @@
 
     async function sendPrompt(userText) {
       const btn = document.getElementById('chat-send-btn');
-      appendMsg('user', userText);
-      const thinkingEl = appendMsg('assistant', 'Düşünüyor...');
+      appendMsg('user', esc(userText));
+      const thinkingEl = appendMsg('assistant', '<span style="color:var(--text-3);">Analiz ediliyor...</span>');
       btn.disabled = true;
 
+      const cfg = getAIConfig();
+      const compact = (cfg.provider === 'pollinations_free');
       const sysPrompt =
-        'Sen Kamu Personel Rehberi (kamupersonelrehberiniz.me) yönetici panelindeki kıdemli, ciddi ve profesyonel Türkçe AI Site Asistanısın. ' +
-        'Kullanıcı gündelik bir şey sorarsa (örn. "naber", "selam") doğal, kısa ve profesyonelce karşılık ver; veri isterse ASLA rakam uydurma, sadece aşağıdaki canlı JSON verilerini kullan. ' +
-        'Cevapların net, doğrudan ve sade Türkçe olsun (gereksiz süsleme veya robotik şablon kullanma).\n\nCANLI SİTE VERİSİ:\n' +
-        buildLiveContextForLLM();
+        'Sen Kamu Personel Rehberi (kamupersonelrehberiniz.me) yönetici konsolundaki ciddi, profesyonel Türkçe AI Site Asistanısın. ' +
+        'Kullanıcı selam verirse kısa ve doğal cevap ver; veri isterse sadece aşağıdaki canlı JSON verilerini kullan ve rakam uydurma. Yanıtını net Markdown formatında yaz.\n\nCANLI VERİ:\n' +
+        buildLiveContext(compact);
 
       CHAT_HISTORY.push({ role: 'user', content: userText });
-      const messages = [{ role: 'system', content: sysPrompt }, ...CHAT_HISTORY.slice(-8)];
+      const messages = [{ role: 'system', content: sysPrompt }, ...CHAT_HISTORY.slice(-6)];
 
       try {
-        const resp = await fetch('https://text.pollinations.ai/openai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'openai', messages, temperature: 0.4 })
-        });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
-        const reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
+        const reply = await callLLMAPI(messages, 0.4);
         if (!reply) throw new Error('Boş yanıt');
-        thinkingEl.textContent = reply;
+        thinkingEl.innerHTML = renderSafeMarkdown(reply);
         CHAT_HISTORY.push({ role: 'assistant', content: reply });
       } catch (err) {
-        thinkingEl.textContent = 'Canlı AI servisine şu an ulaşılamadı (' + err.message + '). Birkaç saniye sonra tekrar deneyin.';
+        if (err.status === 402 || err.status === 401 || err.status === 429) {
+          thinkingEl.innerHTML =
+            `<p><strong>Anonim/Kota Sınırı (${esc(err.message)}):</strong> Ücretsiz anonim katman anlık kota sınırına ulaştı. Pollinations Pro (<code>sk_...</code>), Groq veya kendi API anahtarınızı bağlayarak kesintisiz devam edebilirsiniz.</p>` +
+            `<div class="msg-error-box">` +
+              `<button type="button" class="btn-white btn-sm" onclick="toggleAIDrawer(true)">API Anahtarı Bağla</button>` +
+              `<button type="button" class="btn-outline btn-sm" onclick="this.parentElement.parentElement.innerHTML = renderSafeMarkdown(buildLocalInstantSnapshot(${JSON.stringify(userText)}))">Canlı Veriden Anlık Özet Göster</button>` +
+            `</div>`;
+        } else {
+          thinkingEl.innerHTML =
+            `<p><strong>Bağlantı Hatası (${esc(err.message)}):</strong> Dış yapay zeka servisine ulaşılamadı.</p>` +
+            `<div class="msg-error-box">` +
+              `<button type="button" class="btn-outline btn-sm" onclick="toggleAIDrawer(true)">Sağlayıcı Ayarları</button>` +
+              `<button type="button" class="btn-outline btn-sm" onclick="this.parentElement.parentElement.innerHTML = renderSafeMarkdown(buildLocalInstantSnapshot(${JSON.stringify(userText)}))">Canlı Veriden Anlık Özet Göster</button>` +
+            `</div>`;
+        }
       } finally {
         btn.disabled = false;
         const log = document.getElementById('chat-log');
         log.scrollTop = log.scrollHeight;
       }
+    }
+
+    function clearChat() {
+      CHAT_HISTORY = [];
+      document.getElementById('chat-log').innerHTML = '<div class="msg assistant">Yeni sohbet başlatıldı. Canlı site verileri hakkında dilediğiniz soruyu sorabilirsiniz.</div>';
     }
 
     function handleChatSubmit() {
@@ -872,7 +1543,7 @@
 
     if (sessionStorage.getItem('kpr_patron_auth')) {
       document.getElementById('login-overlay').style.display = 'none';
-      refreshAllData();
+      initPanel();
     }
   </script>
 </body>

@@ -1,40 +1,40 @@
 {
-  "generated_at": "2026-11-20T22:43:44.353673+00:00",
-  "generated_at_tr": "21.11.2026 01:43",
+  "generated_at": "2026-11-20T23:21:36.223210+00:00",
+  "generated_at_tr": "21.11.2026 02:21",
   "model": "nvidia/nemotron-3-ultra-550b-a55b",
   "briefing": {
-    "executive_summary": "Son 24 saatte 880 etkileşimle trafik yoğun, Telegram kanalı (567) tek başına trafiğin %64'ünü oluşturuyor. APPLY_CLICK/JOB_VIEW oranı %50 (141/281) ve iş başvuru niyeti son derece güçlü. Ancak NEWS_VIEW (1) ve PDF_DOWNLOAD (75) düşük kalıyor, içerik tüketimi iş ilanlarına odaklanmış durumda.",
-    "traffic_insight": "Trafik %64 Telegram, %23 Doğrudan, %15 Google, %10 Instagram'dan geliyor; organik arama payı nispeten düşük. Cihazlarda Mobil Android %39, Masaüstü %30, Instagram Uygulama İçi %26, iOS %19; mobil toplam %84 ve Instagram içi tarayıcı payı yüksek, bu sayfaların mobil/uygulama içi performansının kritik olduğunu gösteriyor.",
-    "content_insight": "En çok görüntülenen ilan 'Memur ve İtfaiye Eri Alımı' (33), kategori bazında 'Kamu Personeli / Diğer' (72) ve 'Memur & Genel İdari Kadrolar' (33) öne çıkıyor. Aramalarda 'Ambulans' (7), 'Çocuk/Çocuk gelişimi' (10 toplam), 'Sağlık Bakanlığı' (5) ve 'Memur' (5) terimleri sağlık ve memurluk odaklı talebi kanıtlıyor.",
+    "executive_summary": "Son 24 saatte 1.000 olay analiz edildi; 148 başvuru tıklaması (APPLY_CLICK) ve 292 ilan görüntülemesi (JOB_VIEW) ile başvuru/ilan görüntüleme oranı %50.7 seviyesinde güçlü bir dönüşüm performansı sergileniyor. Toplam 1.612 aktif ilan ve 33 onaylı haber ile içerik envanteri zengin, ancak toplam kontenjan verisi (0) eksik girişi işaret ediyor. Telegram kanalı trafiğin %55'ini tek başına karşılayarak tek kanala bağımlılık riski yaratıyor.",
+    "traffic_insight": "Trafiğin %55.6'sı Telegram Kanalı'ndan, %20.6'sı doğrudan girişten gelirken organik arama (Google) sadece %13.2 payda sahip; bu da marka bilinirliğinin güçlü, SEO'nun ise zayıf olduğunu gösteriyor. Cihaz dağılımında Mobil (Android %33.6 + iOS %16 = %49.6) ve Instagram Uygulama İçi (%23.6) birleşimiyle mobil trafik %73.2'ye çıkıyor; masaüstü (%26.5) ikincil rol oynuyor.",
+    "content_insight": "\"Memur ve İtfaiye Eri Alımı\" (29 görüntüleme) ve SGK/Emeklilik Kurumu ilanı (20) en çok ilgi gören işler; kategori bazında \"Kamu Personeli / Diğer\" (%78) baskınken \"Memur & Genel İdari\" (%31) ikinci sırada. Arama sorgularında \"Ambulans\" (7), \"Çocuk/Çocuk gelişimi\" (10 toplam) ve \"Sağlık Bakanlığı\" (5) ile sağlık alanlı kadrolara yoğun talep görülüyor.",
     "action_items": [
-      "Google organik trafiğini artırmak için en çok aranan 'Sağlık Bakanlığı', 'Ambulans', 'Çocuk Gelişimi' anahtar kelimeleriyle sayfa başlıklarını, meta description'ları ve şema verilerini optimize et.",
-      "Instagram Uygulama İçi (%26) ve Mobil (%84) trafiği için başvuru butonlarını (APPLY_CLICK) sticky yap, form alanlarını azalt ve sayfa yükleme hızını (LCP/CLS) iyileştir.",
-      "Düşük NEWS_VIEW (1) ve PDF_DOWNLOAD (75) için: haberleri ilan sayfalarına 'İlgili Haberler' bloğu ile entegre et, PDF indirme butonlarını ilan detay sayfasında daha görünür konuma taşı ve 'İndir -> Başvur' akışını tek tıkla birleştir."
+      "Toplam kontenjan verisinin (0) sıfırlanması/doğrulanması için veri giriş süreçlerini acil denetle; boş kontenjanlı ilanlar başvuruya kapalıysa filtrele.",
+      "Telegram'a %55+ bağımlılığı kırılmak için SEO stratejisi (şema markup, uzun kuyruklu \"sağlık bakanlığı memur alımı\" odaklı içerikler) ve e-posta bülteni/SEO trafiğini artırıcı kampanyalar başlat.",
+      "Mobil/%73 ve Instagram In-App/%23.6 trafiği için AMP sayfalar, sticky \"Başvur\" butonu ve anlık bildirim (Web Push) entegrasyonu ile mobil dönüşüm hunisini optimize et."
     ],
     "model": "nvidia/nemotron-3-ultra-550b-a55b"
   },
   "snapshot": {
     "total_events_analyzed": 1000,
     "event_counts": {
-      "PAGEVIEW": 244,
-      "APPLY_CLICK": 150,
-      "JOB_VIEW": 299,
+      "APPLY_CLICK": 153,
+      "JOB_VIEW": 306,
+      "PAGEVIEW": 243,
       "PDF_DOWNLOAD": 80,
-      "SEARCH": 223,
-      "NEWS_VIEW": 4
+      "SEARCH": 216,
+      "NEWS_VIEW": 2
     },
     "last_24h_counts": {
-      "PAGEVIEW": 201,
-      "APPLY_CLICK": 141,
-      "JOB_VIEW": 281,
-      "PDF_DOWNLOAD": 75,
+      "APPLY_CLICK": 148,
+      "JOB_VIEW": 292,
+      "PAGEVIEW": 209,
+      "PDF_DOWNLOAD": 76,
       "SEARCH": 181,
       "NEWS_VIEW": 1
     },
     "top_referrers": [
       [
         "Telegram Kanalı",
-        567
+        556
       ],
       [
         "Doğrudan (Direct)",
@@ -42,29 +42,33 @@
       ],
       [
         "Google Arama",
-        134
+        132
       ],
       [
         "Instagram Bio",
-        93
+        87
+      ],
+      [
+        "Instagram",
+        19
       ]
     ],
     "device_breakdown": [
       [
         "Mobil (Android)",
-        340
+        336
       ],
       [
         "Masaüstü",
-        260
+        265
       ],
       [
         "Instagram Uygulama İçi",
-        229
+        236
       ],
       [
         "Mobil (iOS)",
-        168
+        160
       ],
       [
         "Diğer",
@@ -74,7 +78,7 @@
     "top_jobs": [
       [
         "Memur ve İtfaiye Eri Alımı",
-        33
+        29
       ],
       [
         "SİGORTACILIK VE ÖZEL EMEKLİLİK DÜZENLEME VE DENETLEME KURUMU - 10 Sekreter, Şoför, Hizmetli Alımı",
@@ -85,15 +89,15 @@
         18
       ],
       [
-        "Antalya Gündoğmuş Belediyesi Memur Alım İlanı 05.01.2027",
-        17
-      ],
-      [
         "Kamu Kurumu - 38 Sağlık bakanlığı 38 bin hekim dışı Personeli Alımı",
-        17
+        16
       ],
       [
         "Şile Belediye Başkanlığı - 8 Zabıta Memuru Alımı",
+        14
+      ],
+      [
+        "Antalya Gündoğmuş Belediyesi Memur Alım İlanı 05.01.2027",
         14
       ],
       [
@@ -108,26 +112,26 @@
     "top_categories": [
       [
         "Kamu Personeli / Diğer",
-        72
+        78
       ],
       [
         "Memur & Genel İdari Kadrolar",
-        33
+        31
       ],
       [
         "Belediye Başkanlıkları",
-        14
+        17
       ],
       [
         "Akademik Kadrolar",
-        12
+        13
       ],
       [
-        "Sürekli İşçi Alımları",
+        "Ana Sayfa",
         9
       ],
       [
-        "Sözleşmeli Personel",
+        "Sürekli İşçi Alımları",
         9
       ]
     ],
@@ -168,11 +172,11 @@
     "jobs_meta": {
       "total_jobs": 1612,
       "total_quota": 0,
-      "generated_at": "2026-11-20T14:44:29.594613+00:00"
+      "generated_at": "2026-11-20T22:30:19.872223+00:00"
     },
     "news_meta": {
-      "total_approved_news": 15,
-      "generated_at": "2026-11-20T21:57:53.134845+00:00"
+      "total_approved_news": 33,
+      "generated_at": "2026-11-20T23:21:15.984966+00:00"
     }
   }
 }

@@ -1,0 +1,236 @@
+{
+  "total_themes": 10,
+  "total_images": 24,
+  "resolution": "1200x675",
+  "format": "WEBP",
+  "themes": {
+    "egitim": {
+      "label": "Eğitim & MEB",
+      "count": 3,
+      "images": [
+        {
+          "file": "egitim_01.webp",
+          "url": "/assets/img/stock_library/egitim/egitim_01.webp",
+          "label": "Sınıf ve Eğitim Ortamı",
+          "source": "local",
+          "size_kb": 63.2
+        },
+        {
+          "file": "egitim_02.webp",
+          "url": "/assets/img/stock_library/egitim/egitim_02.webp",
+          "label": "Üniversite Kampüsü",
+          "source": "local",
+          "size_kb": 145.2
+        },
+        {
+          "file": "egitim_03.webp",
+          "url": "/assets/img/stock_library/egitim/egitim_03.webp",
+          "label": "Eğitim ve Akademik Çalışma",
+          "source": "local",
+          "size_kb": 157.1
+        }
+      ]
+    },
+    "sinav_kpss": {
+      "label": "KPSS & Sınavlar",
+      "count": 3,
+      "images": [
+        {
+          "file": "sinav_kpss_01.webp",
+          "url": "/assets/img/stock_library/sinav_kpss/sinav_kpss_01.webp",
+          "label": "Sınav ve Kariyer Planlama",
+          "source": "local",
+          "size_kb": 50.7
+        },
+        {
+          "file": "sinav_kpss_02.webp",
+          "url": "/assets/img/stock_library/sinav_kpss/sinav_kpss_02.webp",
+          "label": "Kütüphane ve Sınav Hazırlığı",
+          "source": "url",
+          "size_kb": 46.0
+        },
+        {
+          "file": "sinav_kpss_03.webp",
+          "url": "/assets/img/stock_library/sinav_kpss/sinav_kpss_03.webp",
+          "label": "KPSS Hazırlık ve Kaynaklar",
+          "source": "local",
+          "size_kb": 157.1
+        }
+      ]
+    },
+    "konut_toki": {
+      "label": "TOKİ & Konut",
+      "count": 3,
+      "images": [
+        {
+          "file": "konut_toki_01.webp",
+          "url": "/assets/img/stock_library/konut_toki/konut_toki_01.webp",
+          "label": "Modern Toplu Konut Projeleri",
+          "source": "local",
+          "size_kb": 36.7
+        },
+        {
+          "file": "konut_toki_02.webp",
+          "url": "/assets/img/stock_library/konut_toki/konut_toki_02.webp",
+          "label": "Kentsel Mimari Yapılar",
+          "source": "local",
+          "size_kb": 115.3
+        },
+        {
+          "file": "konut_toki_03.webp",
+          "url": "/assets/img/stock_library/konut_toki/konut_toki_03.webp",
+          "label": "Yeni Konut ve Yaşam Alanları",
+          "source": "url",
+          "size_kb": 89.3
+        }
+      ]
+    },
+    "iklim_cevre": {
+      "label": "İklim & Çevre",
+      "count": 2,
+      "images": [
+        {
+          "file": "iklim_cevre_01.webp",
+          "url": "/assets/img/stock_library/iklim_cevre/iklim_cevre_01.webp",
+          "label": "Doğa, Su ve Orman Ekosistemi",
+          "source": "local",
+          "size_kb": 173.2
+        },
+        {
+          "file": "iklim_cevre_02.webp",
+          "url": "/assets/img/stock_library/iklim_cevre/iklim_cevre_02.webp",
+          "label": "Yeşil Doğa ve Çevre",
+          "source": "local",
+          "size_kb": 31.0
+        }
+      ]
+    },
+    "belediye_sehir": {
+      "label": "Yerel Yönetim & Belediye",
+      "count": 2,
+      "images": [
+        {
+          "file": "belediye_sehir_01.webp",
+          "url": "/assets/img/stock_library/belediye_sehir/belediye_sehir_01.webp",
+          "label": "Belediye ve Şehir Yönetimi",
+          "source": "local",
+          "size_kb": 152.6
+        },
+        {
+          "file": "belediye_sehir_02.webp",
+          "url": "/assets/img/stock_library/belediye_sehir/belediye_sehir_02.webp",
+          "label": "Modern Şehir ve Yerel İdare",
+          "source": "local",
+          "size_kb": 115.3
+        }
+      ]
+    },
+    "saglik": {
+      "label": "Sağlık & Kamu",
+      "count": 2,
+      "images": [
+        {
+          "file": "saglik_01.webp",
+          "url": "/assets/img/stock_library/saglik/saglik_01.webp",
+          "label": "Sağlık Hizmetleri ve Hastane",
+          "source": "local",
+          "size_kb": 183.0
+        },
+        {
+          "file": "saglik_02.webp",
+          "url": "/assets/img/stock_library/saglik/saglik_02.webp",
+          "label": "Tıp ve Sağlık Personeli",
+          "source": "local",
+          "size_kb": 34.3
+        }
+      ]
+    },
+    "bilisim": {
+      "label": "Bilişim & Teknoloji",
+      "count": 2,
+      "images": [
+        {
+          "file": "bilisim_01.webp",
+          "url": "/assets/img/stock_library/bilisim/bilisim_01.webp",
+          "label": "Yazılım, Veri ve Teknoloji",
+          "source": "local",
+          "size_kb": 48.3
+        },
+        {
+          "file": "bilisim_02.webp",
+          "url": "/assets/img/stock_library/bilisim/bilisim_02.webp",
+          "label": "Dijital Altyapı ve Sistemler",
+          "source": "url",
+          "size_kb": 104.5
+        }
+      ]
+    },
+    "adalet_mevzuat": {
+      "label": "Mevzuat & Özlük",
+      "count": 2,
+      "images": [
+        {
+          "file": "adalet_mevzuat_01.webp",
+          "url": "/assets/img/stock_library/adalet_mevzuat/adalet_mevzuat_01.webp",
+          "label": "Hukuk, Mevzuat ve Adalet",
+          "source": "local",
+          "size_kb": 138.8
+        },
+        {
+          "file": "adalet_mevzuat_02.webp",
+          "url": "/assets/img/stock_library/adalet_mevzuat/adalet_mevzuat_02.webp",
+          "label": "Resmi Sözleşme ve Kanun",
+          "source": "local",
+          "size_kb": 24.3
+        }
+      ]
+    },
+    "savunma_enerji": {
+      "label": "Savunma & Enerji",
+      "count": 2,
+      "images": [
+        {
+          "file": "savunma_enerji_01.webp",
+          "url": "/assets/img/stock_library/savunma_enerji/savunma_enerji_01.webp",
+          "label": "Savunma ve Güvenlik",
+          "source": "local",
+          "size_kb": 59.1
+        },
+        {
+          "file": "savunma_enerji_02.webp",
+          "url": "/assets/img/stock_library/savunma_enerji/savunma_enerji_02.webp",
+          "label": "Stratejik Güvenlik ve Enerji",
+          "source": "local",
+          "size_kb": 42.8
+        }
+      ]
+    },
+    "kamu_resmi": {
+      "label": "Resmi Gündem",
+      "count": 3,
+      "images": [
+        {
+          "file": "kamu_resmi_01.webp",
+          "url": "/assets/img/stock_library/kamu_resmi/kamu_resmi_01.webp",
+          "label": "Kamu Kurumu ve Resmi Bina",
+          "source": "local",
+          "size_kb": 169.7
+        },
+        {
+          "file": "kamu_resmi_02.webp",
+          "url": "/assets/img/stock_library/kamu_resmi/kamu_resmi_02.webp",
+          "label": "Ekonomi, Bütçe ve Kamu İdaresi",
+          "source": "local",
+          "size_kb": 150.3
+        },
+        {
+          "file": "kamu_resmi_03.webp",
+          "url": "/assets/img/stock_library/kamu_resmi/kamu_resmi_03.webp",
+          "label": "Resmi Çalışma Ofisi",
+          "source": "local",
+          "size_kb": 38.8
+        }
+      ]
+    }
+  }
+}

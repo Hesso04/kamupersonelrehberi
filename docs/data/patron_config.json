@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "agents_enabled": {
+    "fetcher": true,
+    "editor": true,
+    "visual": true,
+    "qa": true,
+    "publisher": true,
+    "briefing": true
+  },
+  "editor_settings": {
+    "nvidia_model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "min_word_count": 200,
+    "max_articles_per_run": 35,
+    "extra_instructions": ""
+  },
+  "cover_settings": {
+    "use_stock_library": true,
+    "blur_radius": 2.2,
+    "scrim_strength": 0.86,
+    "show_domain_watermark": true
+  },
+  "hidden_news_slugs": [],
+  "featured_news_slugs": []
+}
