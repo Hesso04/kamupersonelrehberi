@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://kamupersonelrehberiniz.me/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/hakkimizda/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/iletisim/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/gizlilik-politikasi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/kullanim-kosullari/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/sss/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/araclar/kpss-puan-hesaplama/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -116,9 +116,27 @@
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/rehber/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/milli-egitim-bakanliginca-cop31-kapsaminda-olusturulan-turkiye-iklim/</loc>
+    <lastmod>2026-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/toki-baskan-yardimcisi-ahmet-kutlug-gayretli-cop31-in-insa-surecini/</loc>
+    <lastmod>2026-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/istanbul-tuzla-da-632-sosyal-konut-teslim-ediliyor/</loc>
+    <lastmod>2026-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/haber/iletisim-baskani-duran-dan-dunya-cocuk-haklari-gunu-mesaji/</loc>
@@ -211,356 +229,446 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/engelli-kamu-personeli-secme-sinavi-yapildi/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/bakan-tekin-evlatlarimizin-guvenligi-konusunda-en-kucuk-bir-tavize-izin/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/osym-hafta-sonu-4-sinav-duzenleyecek/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/ogretmenlerin-il-ici-istege-bagli-yer-degistirme-duyurusu-yayimlandi/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/ozel-program-ve-proje-uygulayan-okullara-ogretmen-atamasi-ve-yonetici/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/meb-velileri-izinsiz-faaliyet-gosteren-ozel-ogretim-kurumlarina-karsi/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/milli-egitim-bakani-tekin-egitim-meselesini-milli-varligimizin-ve/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/kamu-gorevlileri-ve-sozlesmeli-personel-mevzuatinda-guncel-degisiklikler/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/04-ekim-2026-sozlesmeli-bilisim-personeli-alim-ilani-duyuru-detayi-icin/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/26-ekim-2026-sozlesmeli-bilisim-personeli-sozlu-uygulamali-sinav/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/cumhurbaskanligi-iletisim-baskanligindan-pakistan-da-stratejik-is/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/toki-baskan-yardimcisi-murat-aydin-cop31-de-direncli-sehirler-i-anlatti/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/burdur-cavdir-da-308-sosyal-konut-teslim-ediliyor/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/istanbul-maltepe-de-anahtar-teslim-heyecani-devam-ediyor/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kamupersonelrehberiniz.me/haber/toki-baskani-m-levent-sungur-sehirleri-sanatci-edasiyla-dokuduk-tarihi/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://kamupersonelrehberiniz.me/haberler/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/antalya-gundogmus-belediyesi-antalya-gundogmus-belediyesi-memur-1375/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/antalya-akseki-belediyesi-antalya-akseki-belediyesi-memur-1374/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/cumhurbaskanligi-cumhurbaskanligi-savunma-sanayii-baskanligi-proje-bazli/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/ula-belediye-baskanligi-zabita-memuru-1567/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/gundogmus-belediye-baskanligi-memur-1564/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/akseki-belediye-baskanligi-memur-1563/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bozkoy-belediye-baskanligi-itfaiye-eri-1560/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/sosyal-guvenlik-kurumu-baskanligi-mufettis-yardimciligi-giris-sinavi-duyurusu/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/sosyal-guvenlik-kurumu-sosyal-guvenlik-kurumu-mufettis-yardimciligi-sinav/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/konya-karatay-belediyesi-zabita-konya-karatay-belediyesi-zabita-memuru-1260/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/tanoba-belediye-baskanligi-memur-1566/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/adli-tip-kurumu-baskanligi-2-sozlesmeli-personel-1599/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/karabaglar-belediye-baskanligi-cevre-muhendisi-1289/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/yuksekogretim-kalite-kurulu-baskanligi-yuksekogretim-kalite-kurulu-baskanligi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/karatay-belediye-baskanligi-memur-1196/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/mudurnu-belediye-baskanligi-sozlesmeli-personel-1527/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/zafer-kalkinma-ajansi-uzman-personel-1288/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bergama-belediye-baskanligi-memur-1201/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/eleskirt-belediye-baskanligi-memur-1568/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/afet-ve-acil-durum-yonetimi-baskanligi-afad-afet-ve-acil-durum-yonetimi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/afet-ve-acil-durum-yonetimi-baskanligi-afad-afet-ve-acil-durum-yonetimi-uzman/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/sosyal-guvenlik-kurumu-baskanligi-mufettis-yardimcisi-1581/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/gaziosmanpasa-belediye-baskanligi-zabita-memuru-1190/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/eyyubiye-belediye-baskanligi-memur-1187/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/icisleri-bakanligi-icisleri-bakanligi-kaymakam-adayligi-sinav-ilani-07-12/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/hazine-ve-maliye-bakanligi-yili-stajyer-hazine-kontrolorlugu-giris-sinavi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/dogu-karadeniz-kalkinma-ajansi-personel-1232/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/adalet-bakanligi-adalet-bakanligi-adli-tip-kurumu-baskanligi-sozlesmeli/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bartin-universitesi-rektorlugu-sozlesmeli-personel-1600/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/istanbul-universitesi-cerrahpasa-rektorlugunden-istanbul-universitesi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/balikesir-universitesi-rektorlugunden-balikesir-universitesi-rektorlugunden/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bartin-universitesi-rektorlugunden-bartin-universitesi-rektorlugunden-1596/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/abdullah-gul-universitesi-abdullah-gul-universitesi-rektorlugunden-1595/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/adalet-bakanligi-adalet-bakanligi-adli-tip-kurumu-baskanligindan-1594/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/mardin-artuklu-universitesi-mardin-artuklu-universitesi-rektorlugunden-1593/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/beykoz-universitesi-rektorlugunden-beykoz-universitesi-rektorlugunden-1592/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/savunma-sanayii-baskanligi-proje-bazli-sozlesmeli-personel-1405/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/hazine-ve-maliye-bakanligi-hazine-ve-maliye-bakanligi-stajyer-hazine/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/turkiye-turizm-tanitim-ve-gelistirme-ajansi-turkiye-turizm-tanitim-ve/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/dicle-kalkinma-ajansi-sozlesmeli-uzman-personel-1505/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/ankara-buyuksehir-belediyesi-ankara-buyuksehir-belediyesi-mufettis-yardimcisi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/mardin-artuklu-universitesi-mardin-artuklu-universitesi-ogretim-uyesi-1615/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/mardin-artuklu-universitesi-mardin-artuklu-universitesi-ogretim-gorevlisi-1614/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/necmettin-erbakan-universitesi-rektorlugu-necmettin-erbakan-universitesi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/istanbul-universitesi-cerrahpasa-rektorlugu-istanbul-universitesi-cerrahpasa/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bartin-universitesi-rektorlugu-bartin-universitesi-rektorlugu-ogretim-elemani/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/hasan-kalyoncu-universitesi-hasan-kalyoncu-universitesi-ogretim-uyesi-1609/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/beykoz-universitesi-rektorlugu-beykoz-universitesi-rektorlugu-ogretim-uyesi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/ataturk-universitesi-ataturk-universitesi-ogretim-uyesi-1606/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bartin-universitesi-rektorlugu-bartin-universitesi-rektorlugu-sozlesmeli/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/balikesir-universitesi-balikesir-universitesi-ogretim-uyesi-1604/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/balikesir-universitesi-balikesir-universitesi-ogretim-elemani-1603/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bartin-universitesi-rektorlugu-bartin-universitesi-rektorlugu-ogretim-uyesi/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/istanbul-atlas-universitesi-istanbul-atlas-universitesi-rektorlugunden-1498/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/enerji-ve-tabii-kaynaklar-bakanligi-enerji-ve-tabii-kaynaklar-bakanligi-eti/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/istanbul-medipol-universitesi-istanbul-medipol-universitesi-rektorlugunden/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/bolu-ili-mudurnu-belediye-baskanligi-bolu-ili-mudurnu-belediye-baskanligindan/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kamupersonelrehberiniz.me/ilan/icisleri-bakanligi-icisleri-bakanligindan-1494/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
