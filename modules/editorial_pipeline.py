@@ -209,43 +209,81 @@ class EditorialWriterAgent:
     """
 
     def __init__(self):
+        # Yerel .env dosyasından anahtarları güvenli yükle (varsa)
+        env_path = ROOT_DIR / ".env"
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                if "=" in line and not line.strip().startswith("#"):
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip().strip('"').strip("'")
+                    if k and v and k not in os.environ:
+                        os.environ[k] = v
+
+        self.nvidia_key = os.getenv("NVIDIA_API_KEY", "").strip()
+        self.nvidia_model = os.getenv("NVIDIA_MODEL", "nvidia/nemotron-3-ultra-550b-a55b").strip()
         self.groq_key = os.getenv("GROQ_API_KEY", "").strip()
         self.groq_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
-        self.nvidia_key = os.getenv("NVIDIA_API_KEY", "").strip()
+
+    @property
+    def has_llm(self) -> bool:
+        return bool(self.nvidia_key or self.groq_key)
 
     def _call_llm(self, prompt: str) -> Optional[str]:
+        sys_msg = (
+            "Sen deneyimli bir Türk kamu personeli ve mevzuat editörüsün. "
+            "Resmi kurum duyurularını adayların kolayca anlayacağı, %100 özgün, "
+            "tarafsız, doğrulanmış ve akıcı Türkçe haber makalesi olarak yazarsın. "
+            "Uydurma tarih, sayı veya şart ekleme; yalnızca verilen kaynak metne ve "
+            "genel kamu personel rehberliğine dayan. Çıktıyı sadece saf HTML gövdesi olarak ver "
+            "(markdown kod bloğu ```html kullanma)."
+        )
+        endpoints = []
+        if self.nvidia_key:
+            endpoints.append((
+                "NVIDIA NIM",
+                "https://integrate.api.nvidia.com/v1/chat/completions",
+                self.nvidia_key,
+                self.nvidia_model,
+            ))
         if self.groq_key:
+            endpoints.append((
+                "Groq Cloud",
+                "https://api.groq.com/openai/v1/chat/completions",
+                self.groq_key,
+                self.groq_model,
+            ))
+
+        for name, url, api_key, model in endpoints:
             try:
+                body: Dict[str, Any] = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": sys_msg},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.45,
+                    "max_tokens": 1600,
+                }
+                if name == "NVIDIA NIM":
+                    body["chat_template_kwargs"] = {"enable_thinking": False}
                 r = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
+                    url,
                     headers={
-                        "Authorization": f"Bearer {self.groq_key}",
+                        "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json",
                     },
-                    json={
-                        "model": self.groq_model,
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": (
-                                    "Sen deneyimli bir Türk kamu personeli ve mevzuat editörüsün. "
-                                    "Resmi kurum duyurularını adayların kolayca anlayacağı, %100 özgün, "
-                                    "tarafsız, doğrulanmış ve akıcı Türkçe haber makalesi olarak yazarsın. "
-                                    "Uydurma tarih, sayı veya şart ekleme; yalnızca verilen kaynak metne ve "
-                                    "genel kamu personel rehberliğine dayan."
-                                ),
-                            },
-                            {"role": "user", "content": prompt},
-                        ],
-                        "temperature": 0.45,
-                        "max_tokens": 1400,
-                    },
-                    timeout=25,
+                    json=body,
+                    timeout=45,
                 )
                 if r.status_code == 200:
-                    return r.json()["choices"][0]["message"]["content"].strip()
-            except Exception:
-                pass
+                    text = (r.json()["choices"][0]["message"].get("content") or "").strip()
+                    # Olası ```html ... ``` sarmalayıcılarını temizle
+                    text = re.sub(r"^```(?:html)?\s*", "", text, flags=re.I)
+                    text = re.sub(r"\s*```$", "", text)
+                    if text:
+                        return text.strip()
+            except Exception as e:
+                print(f"  ⚠️ {name} LLM çağrısı başarısız: {e}")
         return None
 
     def write_article(self, item: Dict[str, Any], full_source_text: str) -> Dict[str, Any]:
@@ -256,26 +294,31 @@ class EditorialWriterAgent:
         source_url = item.get("source_url") or ""
         category = item.get("category") or "RESMI_HABER"
 
-        # 1) LLM mevcutsa ve kaynak metin varsa AI Editör ile yaz
-        if self.groq_key and len(full_source_text.split()) >= 40:
+        # 1) LLM mevcutsa (NVIDIA NIM Nemotron-3-Ultra-550B veya Groq) AI Editör ile özgün makale yaz
+        #    Kaynak tam metni kısaysa (ÖSYM/MEB kısa duyurusu gibi) başlık + özet üzerinden
+        #    uydurma sayı/tarih eklemeden aday rehberliği odaklı haber üretir.
+        source_context = full_source_text.strip() or clean_whitespace(item.get("summary") or item.get("content") or title)
+        if self.has_llm and len(title) >= 18:
             prompt = f"""
-Aşağıdaki resmi kurum duyurusundan kamu personeli ve memur adayları için 450-650 kelimelik özgün bir haber makalesi yaz.
-Çıktıyı saf HTML gövdesi olarak ver (sadece <h2>, <h3>, <p>, <ul>, <li>, <strong> kullan; <html> veya <h1> kullanma).
+Aşağıdaki resmi kamu duyurusundan Türkiye'deki kamu personeli ve memur adayları için 420-620 kelimelik %100 özgün, akıcı ve bilgilendirici bir Türkçe haber makalesi yaz.
+Çıktıyı sadece saf HTML gövdesi olarak ver (yalnızca <h2>, <h3>, <p>, <ul>, <li>, <strong> kullan; <html>, <body>, <h1> veya markdown kullanma).
 
 Kurallar:
-- İlk paragraf güçlü bir haber spotu olsun.
-- En az 3 adet anlamlı <h2> alt başlığı kullan (örn: Duyurunun Detayları, Adayları ve Kamu Personelini Nasıl Etkiliyor?, Resmi Takvim ve Dikkat Edilmesi Gerekenler).
-- Madde işaretli bir özet listesi (<ul>) ekle.
-- Kesinlikle uydurma sayı/tarih ekleme.
+- İlk paragraf güçlü, net bir haber spotu olsun.
+- En az 3 adet anlamlı <h2> alt başlığı kullan (ör. Duyurunun Kapsamı ve Öne Çıkanlar, Adaylar ve Kamu Personeli İçin Ne Anlama Geliyor?, Resmi Süreç ve Takip Adımları).
+- Madde işaretli (<ul><li>...</li></ul>) pratik bir özet listesi ekle.
+- Kesinlikle uydurma tarih, saat, kontenjan veya puan ekleme; kaynakta olmayan teknik ayrıntılar için "ilgili kurumun resmi kılavuzunda yer alan" ifadesini kullan.
+- Kesik metin ([...]) asla kullanma.
 
 Başlık: {title}
 Kurum: {institution}
 Tarih: {pub_date}
+Resmi Kaynak: {source_name}
 Kaynak Metin:
-{full_source_text[:3500]}
+{source_context[:3500]}
 """
             llm_html = self._call_llm(prompt)
-            if llm_html and len(BeautifulSoup(llm_html, "html.parser").get_text().split()) >= 280:
+            if llm_html and len(BeautifulSoup(llm_html, "html.parser").get_text().split()) >= 250:
                 lead = BeautifulSoup(llm_html, "html.parser").find("p")
                 lead_text = clean_whitespace(lead.get_text(" ")) if lead else title
                 return {
@@ -283,7 +326,7 @@ Kaynak Metin:
                     "meta_description": lead_text[:158],
                     "excerpt": lead_text[:220],
                     "body_html": llm_html,
-                    "generated_by": "llm_editorial_agent",
+                    "generated_by": "nvidia_nemotron_550b_agent",
                 }
 
         # 2) LLM anahtarı yoksa ama resmi kurumdan gerçek tam metin çekildiyse

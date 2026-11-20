@@ -36,6 +36,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.lxffirosgbrfptnbjvdg:BedirXaaN.04@aws-0-eu-west-1.pooler.supabase.com:6543/postgres' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://lxffirosgbrfptnbjvdg.supabase.co' }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9' }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: |

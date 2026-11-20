@@ -69,7 +69,7 @@ def render_page_shell(
         ld_script = f'<script type="application/ld+json">\n{ld_json}\n</script>'
 
     def nav_cls(key: str) -> str:
-        return ' class="nav-link-item active"' if active_nav == key else ' class="nav-link-item"'
+        return ' class="header-nav-link active"' if active_nav == key else ' class="header-nav-link"'
 
     return f"""<!DOCTYPE html>
 <html lang="tr" prefix="og: https://ogp.me/ns#">
@@ -81,8 +81,7 @@ def render_page_shell(
   <meta name="description" content="{esc(description)}">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
   <meta name="author" content="Kamu Personel Rehberi Editoryal Kurulu">
-  <meta name="theme-color" content="#F7F6F2" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#133B5C">
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT}" crossorigin="anonymous"></script>
@@ -105,15 +104,14 @@ def render_page_shell(
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=7.0.0">
-  <link rel="stylesheet" href="/assets/css/editorial.css?v=7.0.0">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/portal.css?v=8.0.0">
+  <link rel="stylesheet" href="/assets/css/editorial.css?v=8.0.0">
   {ld_script}
   <script>
     (function(){{
       try {{
-        var saved = localStorage.getItem('kpr_theme');
-        if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+        if (localStorage.getItem('kpr_theme') === 'dark') {{
           document.documentElement.classList.add('dark');
         }}
       }} catch(e){{}}
@@ -121,41 +119,47 @@ def render_page_shell(
   </script>
 </head>
 <body>
-  <header class="sticky-nav-wrapper">
-    <nav class="nav-capsule apple-glass" aria-label="Ana Navigasyon">
-      <a href="/" class="nav-brand-group">
-        <div class="nav-brand-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <div class="nav-brand-title">
-          <span>Kamu Personel Rehberi</span>
-          <span class="nav-badge-archive">TEYİTLİ ARŞİV</span>
-        </div>
-      </a>
-
-      <div class="nav-links-center">
-        <a href="/"{nav_cls("home")}>İlan Listesi</a>
-        <a href="/haberler/"{nav_cls("haberler")}>Kamu Haberleri</a>
-        <a href="/rehber/"{nav_cls("rehber")}>İstihdam Rehberi</a>
-        <a href="/araclar/kpss-puan-hesaplama/"{nav_cls("kpss")}>KPSS Hesapla</a>
-        <a href="/sss/"{nav_cls("sss")}>S.S.S.</a>
-        <a href="/hakkimizda/"{nav_cls("hakkimizda")}>Hakkımızda</a>
-        <a href="/iletisim/"{nav_cls("iletisim")}>İletişim</a>
+  <div class="top-ticker-bar">
+    <div class="portal-container top-ticker-inner">
+      <span class="ticker-badge"><span class="ticker-dot"></span> GÜNCEL MEMUR ALIMLARI</span>
+      <div class="ticker-viewport">
+        <span class="ticker-item">T.C. Resmi Gazete, SBB Kamu İlan Portalı ve Kariyer Kapısı teyitli güncel alım duyuruları</span>
       </div>
+      <span class="ticker-date">{datetime.now().strftime("%d.%m.%Y")}</span>
+    </div>
+  </div>
 
-      <div class="nav-actions-right">
-        <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="nav-telegram-btn" title="Resmi Telegram Kanalı">
-          <span>Telegram</span>
+  <header class="site-header">
+    <div class="portal-container">
+      <div class="header-main-row">
+        <a href="/" class="brand-lockup">
+          <div class="brand-emblem" aria-hidden="true">KPR</div>
+          <div class="brand-text-wrap">
+            <span class="brand-name">Kamu Personel Rehberi</span>
+            <span class="brand-tagline">Kamu İlanlarının Güncel Adresi | KPSS'siz Alım, Atama &amp; Rehber</span>
+          </div>
         </a>
-        <button class="nav-theme-btn" id="theme-toggle-btn" aria-label="Temayı Değiştir" title="Açık / Koyu Tema">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-          </svg>
-        </button>
+        <div class="header-right-tools">
+          <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="header-tg-btn" title="Telegram İlan Kanalı">
+            <span>Telegram</span>
+          </a>
+          <button class="icon-tool-btn" id="theme-toggle-btn" aria-label="Temayı Değiştir" title="Açık / Koyu Tema">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="header-nav-bar" aria-label="Ana Navigasyon">
+      <div class="portal-container">
+        <div class="header-nav-list">
+          <a href="/"{nav_cls("home")}>Güncel İlanlar</a>
+          <a href="/haberler/"{nav_cls("haberler")}>Kamu Haberleri</a>
+          <a href="/rehber/"{nav_cls("rehber")}>İstihdam Rehberi</a>
+          <a href="/araclar/kpss-puan-hesaplama/"{nav_cls("kpss")}>KPSS Hesapla</a>
+          <a href="/sss/"{nav_cls("sss")}>S.S.S.</a>
+          <a href="/hakkimizda/"{nav_cls("hakkimizda")}>Hakkımızda</a>
+          <a href="/iletisim/"{nav_cls("iletisim")}>İletişim</a>
+        </div>
       </div>
     </nav>
   </header>
@@ -166,39 +170,48 @@ def render_page_shell(
     </div>
   </main>
 
-  <footer class="editorial-footer">
-    <div class="container">
-      <div class="footer-top-grid">
+  <footer class="portal-footer">
+    <div class="portal-container">
+      <div class="portal-footer-grid">
         <div>
-          <div class="footer-brand-title font-editorial">KAMU PERSONEL REHBERİ</div>
-          <p class="footer-brand-desc">
-            Türkiye Cumhuriyeti kamu kurum ve kuruluşları tarafından yayımlanan güncel personel alımlarını, resmi haberleri ve mevzuat rehberlerini teyitli kaynaklarla sunan bağımsız kariyer portalı.
+          <div class="footer-brand">Kamu Personel Rehberi</div>
+          <p class="footer-desc">
+            T.C. Resmi Gazete, SBB Kamu İlan Portalı, Kariyer Kapısı ve resmi bakanlık duyurularını tek merkezde sunan bağımsız kamu istihdam ve kariyer rehberlik portalı.
           </p>
         </div>
         <div>
-          <div class="footer-col-title">İçerik & Araçlar</div>
-          <ul class="footer-links">
-            <li><a href="/" class="footer-link-item">Güncel Kamu İlanları</a></li>
-            <li><a href="/haberler/" class="footer-link-item">Resmi Kamu Haberleri</a></li>
-            <li><a href="/rehber/" class="footer-link-item">KPSS & İstihdam Rehberi</a></li>
-            <li><a href="/araclar/kpss-puan-hesaplama/" class="footer-link-item">KPSS Puan Hesaplama Aracı</a></li>
-            <li><a href="/sss/" class="footer-link-item">Sıkça Sorulan Sorular</a></li>
+          <div class="footer-col-h">İçerik &amp; Araçlar</div>
+          <ul class="footer-col-list">
+            <li><a href="/">Güncel Kamu İlanları</a></li>
+            <li><a href="/haberler/">Resmi Kamu Haberleri</a></li>
+            <li><a href="/rehber/">KPSS &amp; İstihdam Rehberi</a></li>
+            <li><a href="/araclar/kpss-puan-hesaplama/">KPSS Puan Hesaplama</a></li>
+            <li><a href="/sss/">Sıkça Sorulan Sorular</a></li>
           </ul>
         </div>
         <div>
-          <div class="footer-col-title">Kurumsal & Yasal</div>
-          <ul class="footer-links">
-            <li><a href="/hakkimizda/" class="footer-link-item">Hakkımızda & Künye</a></li>
-            <li><a href="/iletisim/" class="footer-link-item">İletişim & Düzeltme</a></li>
-            <li><a href="/gizlilik-politikasi/" class="footer-link-item">Gizlilik Politikası & KVKK</a></li>
-            <li><a href="/kullanim-kosullari/" class="footer-link-item">Kullanım Koşulları & Yasal Uyarı</a></li>
-            <li><a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="footer-link-item">Telegram Kanalımız</a></li>
+          <div class="footer-col-h">Popüler Rehberler</div>
+          <ul class="footer-col-list">
+            <li><a href="/rehber/2026-kpss-4b-sozlesmeli-personel-alim-sartlari/">2026 KPSS 4/B Şartları</a></li>
+            <li><a href="/rehber/kariyer-kapisi-basvuru-rehberi-adim-adim/">Kariyer Kapısı Rehberi</a></li>
+            <li><a href="/rehber/kpss-sartsiz-kamu-personeli-ve-isci-alimi-nasil-yapilir/">KPSS Şartsız Alımlar</a></li>
+            <li><a href="/rehber/guvenlik-sorusturmasi-ve-arsiv-arastirmasi-rehberi/">Güvenlik Soruşturması</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-h">Kurumsal &amp; Yasal</div>
+          <ul class="footer-col-list">
+            <li><a href="/hakkimizda/">Hakkımızda &amp; Künye</a></li>
+            <li><a href="/iletisim/">İletişim &amp; Düzeltme</a></li>
+            <li><a href="/gizlilik-politikasi/">Gizlilik Politikası &amp; KVKK</a></li>
+            <li><a href="/kullanim-kosullari/">Kullanım Koşulları</a></li>
+            <li><a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer">Telegram Kanalımız</a></li>
           </ul>
         </div>
       </div>
-      <div class="footer-bottom-bar">
+      <div class="footer-bottom">
         <div>© 2026 Kamu Personel Rehberi (kamupersonelrehberiniz.me) — Tüm Hakları Saklıdır.</div>
-        <div>Resmi Gazete & SBB Kamu İlan Portalı teyitli bağımsız bilgilendirme platformu.</div>
+        <div>Resmi Gazete &amp; SBB Kamu İlan Portalı teyitli bağımsız bilgilendirme platformu.</div>
       </div>
     </div>
   </footer>
@@ -1031,7 +1044,7 @@ def sync_website_to_docs(website_dir: Path, docs_dir: Path) -> None:
     dirs_to_sync = [
         "hakkimizda", "iletisim", "gizlilik-politikasi", "kullanim-kosullari",
         "sss", "araclar", "rehber", "haberler", "haber", "ilan",
-        "assets/css", "assets/img/covers", "data",
+        "assets/css", "assets/js", "assets/img/covers", "assets/img/categories", "data",
     ]
     for rel in dirs_to_sync:
         src = website_dir / rel
