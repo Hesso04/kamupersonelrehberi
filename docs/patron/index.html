@@ -3,328 +3,354 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kamu Personel Rehberi — Patron Yönetici Konsolu &amp; AI Asistan</title>
+  <title>Kamu Personel Rehberi — Yönetici Konsolu</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
+    /* ========================================================================
+       MONOKROM KURUMSAL YÖNETİCİ KONSOLU (Linear / Vercel / Stripe Estetiği)
+       Saf Siyah-Kömür (#09090B), Zinc Kartlar (#111113), 1px Sınırlar (#27272A)
+       Sıfır neon, sıfır glow, sıfır sahte veri.
+       ======================================================================== */
     :root {
-      --bg-base: #0A111A;
-      --bg-sidebar: #0E1724;
-      --bg-card: #121D2D;
-      --bg-card-2: #162438;
-      --bg-input: #0D1622;
-      --border: rgba(148, 163, 184, 0.14);
-      --border-strong: rgba(56, 189, 248, 0.35);
+      --bg: #09090B;
+      --surface: #111113;
+      --surface-2: #18181B;
+      --surface-hover: #1F1F23;
+      --border: #27272A;
+      --border-strong: #3F3F46;
 
-      --text-main: #F1F5F9;
-      --text-sec: #94A3B8;
-      --text-dim: #64748B;
+      --text: #FAFAFA;
+      --text-2: #A1A1AA;
+      --text-3: #71717A;
 
-      --navy: #1D5B8C;
-      --blue: #3882C4;
-      --sky: #38BDF8;
-      --emerald: #10B981;
-      --amber: #F59E0B;
-      --red: #EF4444;
+      --ok: #22C55E;
+      --warn: #EAB308;
+      --err: #EF4444;
 
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 8px;
+      --radius-lg: 10px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: var(--bg-base); color: var(--text-main); font-family: var(--font-sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    html, body {
+      height: 100%; background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
     body { display: flex; overflow-x: hidden; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
     /* Login Overlay */
     #login-overlay {
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(8, 13, 21, 0.96); backdrop-filter: blur(14px);
+      position: fixed; inset: 0; z-index: 9999; background: var(--bg);
       display: flex; align-items: center; justify-content: center; padding: 20px;
     }
-    .login-card {
-      width: 100%; max-width: 400px; background: var(--bg-card);
-      border: 1px solid var(--border); border-radius: var(--radius-lg);
-      padding: 36px 32px; text-align: center;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    .login-box {
+      width: 100%; max-width: 380px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 28px;
     }
-    .login-logo { width: 64px; height: 64px; margin: 0 auto 14px auto; border-radius: 50%; }
-    .login-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; }
-    .login-sub { font-size: 0.84rem; color: var(--text-sec); margin-bottom: 24px; }
-    .form-group { text-align: left; margin-bottom: 14px; }
-    .form-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
-    .form-input {
-      width: 100%; padding: 11px 14px; border-radius: var(--radius-sm);
-      background: var(--bg-input); border: 1px solid var(--border);
-      color: var(--text-main); font-size: 0.92rem; outline: none;
+    .login-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .login-head img { width: 40px; height: 40px; border-radius: 50%; }
+    .login-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .login-sub { font-size: 12px; color: var(--text-3); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+    .input {
+      width: 100%; height: 38px; padding: 0 12px; border-radius: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-size: 13.5px; outline: none; transition: border-color 140ms;
     }
-    .form-input:focus { border-color: var(--sky); }
-    .btn-primary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: var(--navy); color: #fff; font-weight: 700; font-size: 0.88rem;
-      padding: 10px 18px; border-radius: var(--radius-sm); transition: background 150ms, transform 120ms;
+    .input:focus { border-color: var(--text-2); }
+
+    /* Buttons (Vercel Monokrom) */
+    .btn-white {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      height: 36px; padding: 0 14px; border-radius: 6px;
+      background: #FAFAFA; color: #09090B; font-size: 13px; font-weight: 600;
+      transition: background 140ms;
     }
-    .btn-primary:hover { background: var(--blue); }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-ghost {
-      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-      background: var(--bg-card-2); color: var(--text-main); border: 1px solid var(--border);
-      font-weight: 600; font-size: 0.84rem; padding: 9px 14px; border-radius: var(--radius-sm);
-      transition: border-color 150ms;
+    .btn-white:hover { background: #E4E4E7; }
+    .btn-outline {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      height: 36px; padding: 0 13px; border-radius: 6px;
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      font-size: 13px; font-weight: 500; transition: background 140ms, border-color 140ms;
     }
-    .btn-ghost:hover { border-color: var(--sky); }
+    .btn-outline:hover { background: var(--surface-hover); border-color: var(--border-strong); }
 
     /* Sidebar */
     .sidebar {
-      width: 256px; flex-shrink: 0; background: var(--bg-sidebar);
+      width: 240px; flex-shrink: 0; background: var(--surface);
       border-right: 1px solid var(--border); display: flex; flex-direction: column;
       height: 100vh; position: sticky; top: 0;
     }
-    .sb-brand {
-      display: flex; align-items: center; gap: 11px; padding: 20px 18px;
+    .sb-head {
+      display: flex; align-items: center; gap: 10px; padding: 16px 16px;
       border-bottom: 1px solid var(--border);
     }
-    .sb-brand img { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; }
-    .sb-brand-name { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
-    .sb-brand-sub { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; color: var(--sky); text-transform: uppercase; }
+    .sb-head img { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+    .sb-title { font-size: 13.5px; font-weight: 600; line-height: 1.2; }
+    .sb-sub { font-size: 11px; color: var(--text-3); }
 
-    .sb-nav { flex: 1; padding: 14px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-    .sb-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; padding: 12px 10px 4px 10px; }
-    .nav-btn {
+    .sb-nav { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .sb-group { font-size: 11px; font-weight: 600; color: var(--text-3); padding: 12px 10px 4px 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .nav-item {
       width: 100%; display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; border-radius: var(--radius-sm); font-size: 0.86rem; font-weight: 600;
-      color: var(--text-sec); text-align: left; transition: all 140ms;
+      padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      color: var(--text-2); text-align: left; transition: background 120ms, color 120ms;
     }
-    .nav-btn:hover { background: rgba(56, 130, 196, 0.12); color: var(--text-main); }
-    .nav-btn.active { background: rgba(29, 91, 140, 0.35); color: #fff; border: 1px solid rgba(56, 189, 248, 0.25); }
-    .nav-pill { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(16, 185, 129, 0.18); color: #34D399; }
+    .nav-item:hover { background: var(--surface-2); color: var(--text); }
+    .nav-item.active { background: var(--surface-hover); color: var(--text); font-weight: 600; }
+    .nav-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
 
-    .sb-footer {
-      padding: 14px 16px; border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-sec);
+    .sb-foot {
+      padding: 12px 14px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-3);
     }
-    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--emerald); }
+    .dot-ok { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; }
 
-    /* Main Content */
-    .main-wrap { flex: 1; min-width: 0; padding: 26px 28px 48px 28px; overflow-y: auto; }
-    .top-bar {
+    /* Main Workspace */
+    .workspace { flex: 1; min-width: 0; padding: 24px 28px 48px 28px; overflow-y: auto; }
+    .ws-header {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-      gap: 14px; margin-bottom: 24px;
+      gap: 12px; padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--border);
     }
-    .page-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
-    .page-sub { font-size: 0.85rem; color: var(--text-sec); margin-top: 2px; }
-    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ws-h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+    .ws-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+    .ws-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .tab-pane { display: none; }
-    .tab-pane.active { display: block; animation: fadeIn 180ms ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-pane.active { display: block; }
 
-    /* KPI Grid */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 22px; }
-    .kpi-card {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
-      padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;
+    /* KPI Row */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px;
     }
-    .kpi-label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-sec); }
-    .kpi-value { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
-    .kpi-meta { font-size: 0.78rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
-    .kpi-tag { font-weight: 700; padding: 2px 7px; border-radius: 5px; font-size: 0.72rem; }
-    .tag-ok { background: rgba(16, 185, 129, 0.16); color: #34D399; }
-    .tag-blue { background: rgba(56, 189, 248, 0.14); color: #7DD3FC; }
-    .tag-amber { background: rgba(245, 158, 11, 0.16); color: #FBBF24; }
+    .kpi-label { font-size: 12px; color: var(--text-2); font-weight: 500; margin-bottom: 8px; display: block; }
+    .kpi-val { font-size: 26px; font-weight: 600; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .kpi-foot { margin-top: 8px; font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 
-    /* Panels & Charts */
-    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 20px; }
-    @media (min-width: 1024px) { .grid-2 { grid-template-columns: 1.35fr 1fr; } }
-    .grid-2-eq { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 20px; }
+    /* Cards & Grids */
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
+    @media (min-width: 1024px) { .grid-2 { grid-template-columns: 1.4fr 1fr; } }
+    .grid-2-eq { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
     @media (min-width: 960px) { .grid-2-eq { grid-template-columns: 1fr 1fr; } }
 
-    .panel-card {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
-      padding: 20px 22px;
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px;
     }
-    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
-    .panel-title { font-size: 1rem; font-weight: 700; }
-    .panel-sub { font-size: 0.78rem; color: var(--text-sec); }
-    .chart-box { position: relative; height: 260px; width: 100%; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+    .card-title { font-size: 14px; font-weight: 600; }
+    .card-sub { font-size: 12px; color: var(--text-3); }
+    .chart-box { position: relative; height: 240px; width: 100%; }
 
-    /* Funnel & Progress Bars */
-    .funnel-row { margin-bottom: 14px; }
-    .funnel-head { display: flex; justify-content: space-between; font-size: 0.84rem; font-weight: 600; margin-bottom: 5px; }
-    .funnel-track { height: 9px; background: var(--bg-input); border-radius: 99px; overflow: hidden; }
-    .funnel-fill { height: 100%; border-radius: 99px; transition: width 500ms ease; }
+    /* Tables */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tbl th, .tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+    .tbl th { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
 
-    /* Data Tables */
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .data-table th, .data-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-    .data-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-sec); font-weight: 700; }
-    .data-table tr:last-child td { border-bottom: none; }
-    .mono { font-family: var(--font-mono); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 500;
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+    }
+    .badge-ok { color: #86EFAC; border-color: rgba(34, 197, 94, 0.25); background: rgba(34, 197, 94, 0.08); }
 
-    /* AI Assistant Chatbot */
-    .ai-briefing-banner {
-      background: linear-gradient(135deg, rgba(29, 91, 140, 0.28) 0%, rgba(15, 118, 110, 0.16) 100%);
-      border: 1px solid var(--border-strong); border-radius: var(--radius-md);
-      padding: 20px 22px; margin-bottom: 18px;
-    }
-    .ai-badge {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700;
-      color: var(--sky); background: rgba(56, 189, 248, 0.12); padding: 4px 10px; border-radius: 99px;
-      margin-bottom: 10px;
-    }
-    .chat-shell {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
-      display: flex; flex-direction: column; height: 520px; overflow: hidden;
-    }
-    .chat-messages {
-      flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px;
-    }
-    .chat-msg { max-width: 86%; padding: 13px 16px; border-radius: 12px; font-size: 0.88rem; line-height: 1.62; }
-    .chat-msg.bot { align-self: flex-start; background: var(--bg-card-2); border: 1px solid var(--border); }
-    .chat-msg.user { align-self: flex-end; background: var(--navy); color: #fff; }
-    .chat-msg ul { margin: 8px 0 4px 18px; }
-    .chat-msg li { margin-bottom: 4px; }
-    .chat-chips {
-      display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px;
-      border-top: 1px solid var(--border); background: rgba(10, 17, 26, 0.45);
-    }
-    .chat-chip {
-      font-size: 0.77rem; font-weight: 600; padding: 6px 11px; border-radius: 99px;
-      background: var(--bg-card-2); border: 1px solid var(--border); color: var(--text-main);
-      transition: all 140ms;
-    }
-    .chat-chip:hover { border-color: var(--sky); color: var(--sky); }
-    .chat-input-row {
-      display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-sidebar);
-    }
-    .chat-input-row input {
-      flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
-      color: var(--text-main); padding: 10px 14px; font-size: 0.88rem; outline: none;
-    }
-    .chat-input-row input:focus { border-color: var(--sky); }
+    /* Funnel */
+    .bar-row { margin-bottom: 12px; }
+    .bar-top { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 5px; color: var(--text-2); }
+    .bar-track { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #FAFAFA; border-radius: 99px; transition: width 400ms ease; }
 
-    /* Mobile Responsive */
+    /* Agents Grid */
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .agent-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .agent-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .agent-name { font-size: 14px; font-weight: 600; }
+    .agent-mod { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+    .agent-role { font-size: 12.5px; color: var(--text-2); line-height: 1.45; }
+    .agent-metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+    .am-lbl { font-size: 10.5px; color: var(--text-3); display: block; }
+    .am-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text); }
+
+    /* Live AI Chat */
+    .briefing-strip {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px; margin-bottom: 14px;
+    }
+    .briefing-strip summary {
+      cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text);
+      display: flex; align-items: center; justify-content: space-between; list-style: none;
+    }
+    .chat-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; flex-direction: column; height: 540px; overflow: hidden;
+    }
+    .chat-log {
+      flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg {
+      max-width: 82%; padding: 11px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.6;
+      white-space: pre-wrap; word-wrap: break-word;
+    }
+    .msg.assistant { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
+    .msg.user { align-self: flex-end; background: #FAFAFA; color: #09090B; font-weight: 500; }
+    .msg-meta { font-size: 10.5px; color: var(--text-3); margin-top: 4px; }
+    .chat-prompts {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px;
+      border-top: 1px solid var(--border); background: var(--bg);
+    }
+    .prompt-btn {
+      font-size: 12px; color: var(--text-2); background: var(--surface);
+      border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px;
+      transition: all 120ms;
+    }
+    .prompt-btn:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-2); }
+    .chat-form {
+      display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface);
+    }
+    .chat-form input {
+      flex: 1; height: 38px; padding: 0 12px; border-radius: 6px;
+      background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13.5px; outline: none;
+    }
+    .chat-form input:focus { border-color: var(--border-strong); }
+
     @media (max-width: 860px) {
       body { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; }
-      .sb-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 8px; }
-      .sb-section-label, .sb-footer { display: none; }
-      .nav-btn { width: auto; white-space: nowrap; }
-      .main-wrap { padding: 18px 14px 40px 14px; }
+      .sb-nav { flex-direction: row; overflow-x: auto; padding: 8px; }
+      .sb-group, .sb-foot { display: none; }
+      .nav-item { width: auto; white-space: nowrap; }
+      .workspace { padding: 16px 14px 40px 14px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- GÜVENLİ GİRİŞ EKRANI (Mevcut SHA-256 Şifreniz Korunur) -->
+  <!-- GİRİŞ EKRANI -->
   <div id="login-overlay">
-    <div class="login-card">
-      <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi" class="login-logo">
-      <h1 class="login-title">Patron Yönetici Konsolu</h1>
-      <p class="login-sub">Canlı Supabase analitik verileri, NVIDIA Nemotron AI asistanı ve içerik denetim merkezi.</p>
-      <div class="form-group">
-        <label class="form-label" for="patron-username">Yönetici Kullanıcı Adı</label>
-        <input type="text" id="patron-username" class="form-input" autocomplete="username" placeholder="Kullanıcı adınız">
+    <div class="login-box">
+      <div class="login-head">
+        <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi">
+        <div>
+          <div class="login-title">Yönetici Konsolu</div>
+          <div class="login-sub">kamupersonelrehberiniz.me</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="patron-password">Parola</label>
-        <input type="password" id="patron-password" class="form-input" autocomplete="current-password" placeholder="••••••••">
+      <div class="field">
+        <label for="patron-username">Kullanıcı Adı</label>
+        <input type="text" id="patron-username" class="input" autocomplete="username">
       </div>
-      <p id="login-error" style="display:none;color:#F87171;font-size:0.82rem;margin-bottom:12px;">Kullanıcı adı veya parola hatalı.</p>
-      <button class="btn-primary" style="width:100%;" onclick="checkAuth()">Güvenli Giriş Yap</button>
+      <div class="field">
+        <label for="patron-password">Parola</label>
+        <input type="password" id="patron-password" class="input" autocomplete="current-password">
+      </div>
+      <p id="login-error" style="display:none;color:var(--err);font-size:12px;margin-bottom:10px;">Kullanıcı adı veya parola hatalı.</p>
+      <button class="btn-white" style="width:100%;" onclick="checkAuth()">Giriş Yap</button>
     </div>
   </div>
 
-  <!-- SOL MENÜ (SIDEBAR) -->
+  <!-- SOL MENÜ -->
   <aside class="sidebar">
-    <div class="sb-brand">
-      <img src="/assets/img/logo.svg" alt="KPR Logo">
+    <div class="sb-head">
+      <img src="/assets/img/logo.svg" alt="KPR">
       <div>
-        <div class="sb-brand-name">Kamu Personel</div>
-        <div class="sb-brand-sub">Yönetici Konsolu</div>
+        <div class="sb-title">Kamu Personel</div>
+        <div class="sb-sub">Yönetici Konsolu</div>
       </div>
     </div>
 
     <nav class="sb-nav">
-      <div class="sb-section-label">Canlı Analitik</div>
-      <button class="nav-btn active" onclick="switchTab('tab-overview', this)">Genel Bakış &amp; Huni</button>
-      <button class="nav-btn" onclick="switchTab('tab-ai', this)"><span>NVIDIA AI Asistanı</span><span class="nav-pill">550B</span></button>
-      <button class="nav-btn" onclick="switchTab('tab-traffic', this)">Kaynaklar &amp; Aramalar</button>
+      <div class="sb-group">Analitik</div>
+      <button class="nav-item active" onclick="switchTab('tab-overview', this)"><span>Genel Bakış</span></button>
+      <button class="nav-item" onclick="switchTab('tab-ai', this)"><span>AI Site Asistanı</span><span class="nav-count">CANLI</span></button>
+      <button class="nav-item" onclick="switchTab('tab-traffic', this)"><span>Trafik &amp; Aramalar</span></button>
 
-      <div class="sb-section-label">İçerik &amp; Sistem</div>
-      <button class="nav-btn" onclick="switchTab('tab-inventory', this)">İlan &amp; AI Haber Envanteri</button>
-      <button class="nav-btn" onclick="switchTab('tab-system', this)">Otomasyon &amp; Kısayollar</button>
+      <div class="sb-group">Operasyon</div>
+      <button class="nav-item" onclick="switchTab('tab-agents', this)"><span>Ajan Takibi</span><span class="nav-count" id="sb-agent-cnt">5</span></button>
+      <button class="nav-item" onclick="switchTab('tab-inventory', this)"><span>Envanter &amp; Sistem</span></button>
     </nav>
 
-    <div class="sb-footer">
-      <span><span class="live-dot"></span>Canlı Veri</span>
-      <button onclick="logout()" style="color:#F87171;font-weight:700;">Çıkış</button>
+    <div class="sb-foot">
+      <span><span class="dot-ok"></span>Canlı Bağlı</span>
+      <button onclick="logout()" style="color:var(--text-2);font-weight:500;">Çıkış</button>
     </div>
   </aside>
 
-  <!-- ANA İÇERİK -->
-  <main class="main-wrap">
-    <div class="top-bar">
+  <!-- ANA ALAN -->
+  <main class="workspace">
+    <div class="ws-header">
       <div>
-        <h1 class="page-title" id="top-page-title">Canlı Analitik &amp; Yönetici Özeti</h1>
-        <p class="page-sub" id="top-page-sub">kamupersonelrehberiniz.me — %100 gerçek Supabase, ilan ve NVIDIA AI verileri</p>
+        <h1 class="ws-h1" id="ws-title">Genel Bakış</h1>
+        <p class="ws-sub" id="ws-sub">Gerçek zamanlı Supabase analitik, otonom ajan ve içerik verileri</p>
       </div>
-      <div class="top-actions">
-        <button class="btn-ghost" onclick="refreshAllData()">Verileri Yenile</button>
-        <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-ghost">Search Console ↗</a>
-        <a href="https://adsense.google.com/" target="_blank" rel="noopener noreferrer" class="btn-primary">Google AdSense ↗</a>
+      <div class="ws-actions">
+        <button class="btn-outline" onclick="refreshAllData()">Yenile</button>
+        <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-outline">Search Console ↗</a>
+        <a href="https://adsense.google.com/" target="_blank" rel="noopener noreferrer" class="btn-white">AdSense ↗</a>
       </div>
     </div>
 
-    <!-- SEKME 1: GENEL BAKIŞ & CANLI ANALİTİK -->
+    <!-- 1. GENEL BAKIŞ -->
     <section class="tab-pane active" id="tab-overview">
       <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-label">Sayfa Görüntüleme (Pageview)</span>
-          <div class="kpi-value" id="kpi-pv">-</div>
-          <div class="kpi-meta"><span class="kpi-tag tag-blue" id="kpi-pv-24h">Son 24s: -</span><span>Gerçek ziyaret</span></div>
+        <div class="kpi">
+          <span class="kpi-label">Sayfa Görüntüleme</span>
+          <div class="kpi-val" id="kpi-pv">-</div>
+          <div class="kpi-foot" id="kpi-pv-24h">Son 24 saat: -</div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">İlan İnceleme (Job View)</span>
-          <div class="kpi-value" id="kpi-jv">-</div>
-          <div class="kpi-meta"><span class="kpi-tag tag-blue" id="kpi-jv-24h">Son 24s: -</span><span>Detay açılımı</span></div>
+        <div class="kpi">
+          <span class="kpi-label">İlan İnceleme</span>
+          <div class="kpi-val" id="kpi-jv">-</div>
+          <div class="kpi-foot" id="kpi-jv-24h">Son 24 saat: -</div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Resmi PDF Kılavuz Açma</span>
-          <div class="kpi-value" id="kpi-pdf">-</div>
-          <div class="kpi-meta"><span class="kpi-tag tag-amber" id="kpi-pdf-rate">-%</span><span>İlan incelemeye göre</span></div>
+        <div class="kpi">
+          <span class="kpi-label">Resmi PDF Kılavuz</span>
+          <div class="kpi-val" id="kpi-pdf">-</div>
+          <div class="kpi-foot" id="kpi-pdf-rate">Oran: -%</div>
         </div>
-        <div class="kpi-card">
+        <div class="kpi">
           <span class="kpi-label">Resmi Başvuru Tıklaması</span>
-          <div class="kpi-value" id="kpi-apply">-</div>
-          <div class="kpi-meta"><span class="kpi-tag tag-ok" id="kpi-apply-rate">-%</span><span>Dönüşüm oranı</span></div>
+          <div class="kpi-val" id="kpi-apply">-</div>
+          <div class="kpi-foot" id="kpi-apply-rate">Dönüşüm: -%</div>
         </div>
       </div>
 
       <div class="grid-2">
-        <div class="panel-card">
-          <div class="panel-head">
+        <div class="card">
+          <div class="card-head">
             <div>
-              <div class="panel-title">Son 7 Günlük Gerçek Etkileşim Trendi</div>
-              <div class="panel-sub">Supabase site_analytics_events günlük dağılımı</div>
+              <div class="card-title">Son 7 Günlük Etkileşim</div>
+              <div class="card-sub">Günlük toplam gerçek olay sayısı</div>
             </div>
           </div>
           <div class="chart-box"><canvas id="chart-trend"></canvas></div>
         </div>
 
-        <div class="panel-card">
-          <div class="panel-head">
+        <div class="card">
+          <div class="card-head">
             <div>
-              <div class="panel-title">Ziyaretçiler Nereden Geliyor?</div>
-              <div class="panel-sub">Gerçek referrer (kanal) dağılımı</div>
+              <div class="card-title">Trafik Kaynakları</div>
+              <div class="card-sub">Ziyaretçilerin geldiği kanallar</div>
             </div>
           </div>
           <div class="chart-box"><canvas id="chart-referrers"></canvas></div>
@@ -332,150 +358,153 @@
       </div>
 
       <div class="grid-2-eq">
-        <div class="panel-card">
-          <div class="panel-head">
-            <div class="panel-title">Aday Karar Hunisi &amp; Cihaz Dağılımı</div>
-          </div>
-          <div id="funnel-container"></div>
-          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
-            <div style="font-size:0.82rem;font-weight:700;color:var(--text-sec);margin-bottom:10px;">CİHAZ DAĞILIMI (GERÇEK USER-AGENT)</div>
-            <div id="device-container" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Dönüşüm Hunisi &amp; Cihazlar</div></div>
+          <div id="funnel-box"></div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;margin-bottom:8px;">Cihaz Dağılımı</div>
+            <div id="device-box" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
           </div>
         </div>
 
-        <div class="panel-card">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">En Çok İlgi Gören Sayfa &amp; İlanlar</div>
-              <div class="panel-sub">Gerçek tıklama ve inceleme sıralaması</div>
-            </div>
-          </div>
-          <table class="data-table">
-            <thead><tr><th>İlan / Sayfa</th><th style="text-align:right;">Etkileşim</th></tr></thead>
-            <tbody id="top-pages-tbody"><tr><td colspan="2" style="color:var(--text-sec);">Yükleniyor...</td></tr></tbody>
+        <div class="card">
+          <div class="card-head"><div class="card-title">En Çok İlgi Gören Sayfa &amp; İlanlar</div></div>
+          <table class="tbl">
+            <thead><tr><th>İçerik</th><th style="text-align:right;">Tıklama</th></tr></thead>
+            <tbody id="top-pages-tbody"><tr><td colspan="2" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SEKME 2: NVIDIA AI YÖNETİCİ ASİSTANI (CHATBOT) -->
+    <!-- 2. CANLI AI SİTE ASİSTANI -->
     <section class="tab-pane" id="tab-ai">
-      <div class="ai-briefing-banner" id="ai-briefing-card">
-        <span class="ai-badge">NVIDIA NEMOTRON-3-ULTRA-550B • OTOMATİK YÖNETİCİ BRİFİNGİ</span>
-        <div id="ai-briefing-content" style="font-size:0.9rem;color:var(--text-main);">NVIDIA AI brifingi yükleniyor...</div>
-      </div>
+      <details class="briefing-strip" open>
+        <summary>
+          <span>NVIDIA Nemotron-3-Ultra-550B — Son Otomatik Yönetici Brifingi</span>
+          <span class="mono" style="color:var(--text-3);" id="briefing-ts">-</span>
+        </summary>
+        <div id="briefing-body" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);line-height:1.65;">
+          Yükleniyor...
+        </div>
+      </details>
 
-      <div class="chat-shell">
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-msg bot">
-            <strong>Merhaba Patron!</strong> Ben Kamu Personel Rehberi <strong>AI Site Asistanınım</strong> (NVIDIA Nemotron-3-Ultra-550B brifing motoru + canlı Supabase veri katmanı).<br>
-            Bana <em>"günlük özet ver"</em>, <em>"ziyaretçiler nereden geliyor?"</em>, <em>"en çok hangi sayfa ilgi gördü?"</em>, <em>"bot ve haber durumu nasıl?"</em> veya <em>"AdSense önerisi"</em> gibi sorular sorabilirsin.
-          </div>
+      <div class="chat-box">
+        <div class="chat-log" id="chat-log">
+          <div class="msg assistant">Merhaba. Sitenin canlı Supabase analitik verilerine, aktif ilan envanterine, ajan çıktılarına ve son NVIDIA brifingine doğrudan erişimim var. İstediğin her konuda doğal biçimde sorabilirsin.</div>
         </div>
 
-        <div class="chat-chips">
-          <button class="chat-chip" onclick="askAssistant('Günlük yönetici özeti ver')">Günlük özet ver</button>
-          <button class="chat-chip" onclick="askAssistant('Ziyaretçiler nereden geliyor?')">Ziyaretçiler nereden geliyor?</button>
-          <button class="chat-chip" onclick="askAssistant('En çok hangi ilan ve sayfalar ilgi gördü?')">En çok ilgi gören sayfalar</button>
-          <button class="chat-chip" onclick="askAssistant('Mobil ve masaüstü cihaz dağılımı nedir?')">Cihaz dağılımı</button>
-          <button class="chat-chip" onclick="askAssistant('Aktif ilan, AI haber ve bot durumu nedir?')">İlan &amp; AI Haber durumu</button>
-          <button class="chat-chip" onclick="askAssistant('AdSense ve SEO için somut aksiyon öner')">AdSense &amp; SEO önerileri</button>
+        <div class="chat-prompts">
+          <button class="prompt-btn" onclick="sendPrompt('Bugünkü genel durumu kısa ve net özetle')">Günlük özet</button>
+          <button class="prompt-btn" onclick="sendPrompt('Ziyaretçiler hangi kanallardan geliyor ve hangisini büyütmeliyiz?')">Trafik kaynak analizi</button>
+          <button class="prompt-btn" onclick="sendPrompt('En çok ilgi gören ilanlar ve aramalar hangileri?')">En popüler içerikler</button>
+          <button class="prompt-btn" onclick="sendPrompt('Otonom ajanların son çalışma performansı nasıl?')">Ajan performansı</button>
+          <button class="prompt-btn" onclick="sendPrompt('Google AdSense onayı için şu an en kritik 3 adım ne?')">AdSense stratejisi</button>
         </div>
 
-        <form class="chat-input-row" onsubmit="event.preventDefault(); sendChatInput();">
-          <input type="text" id="chat-input" placeholder="Sitenle ilgili bir soru sor (örn: Bugün kaç kişi geldi, en çok ne arandı?)..." autocomplete="off">
-          <button type="submit" class="btn-primary">Sor</button>
+        <form class="chat-form" onsubmit="event.preventDefault(); handleChatSubmit();">
+          <input type="text" id="chat-input" placeholder="Asistana herhangi bir şey yaz..." autocomplete="off">
+          <button type="submit" class="btn-white" id="chat-send-btn">Gönder</button>
         </form>
       </div>
     </section>
 
-    <!-- SEKME 3: TRAFİK KAYNAKLARI, ARAMALAR & CANLI AKIŞ -->
+    <!-- 3. AJAN TAKİBİ (5 OTONOM AJAN) -->
+    <section class="tab-pane" id="tab-agents">
+      <div class="card" style="margin-bottom:14px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <div class="card-title">Otonom İçerik &amp; Yayın Ajanları</div>
+          <div class="card-sub" id="agent-schedule-text">Yükleniyor...</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="mono" style="color:var(--text-3);" id="agent-last-sync">-</span>
+          <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">GitHub Actions Logları ↗</a>
+        </div>
+      </div>
+
+      <div class="agents-grid" id="agents-grid">
+        <div class="agent-card"><span style="color:var(--text-3);">Ajan verileri yükleniyor...</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Editör Ajanının Ürettiği Son Makaleler</div>
+            <div class="card-sub">Kalite kapısından geçip yayına alınan gerçek içerikler</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr><th>Makale Başlığı</th><th>Kurum</th><th>Model / Motor</th><th style="text-align:right;">Kelime</th><th style="text-align:right;">Tarih</th></tr></thead>
+            <tbody id="agent-outputs-tbody"><tr><td colspan="5" style="color:var(--text-3);">Yükleniyor...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TRAFİK & ARAMALAR -->
     <section class="tab-pane" id="tab-traffic">
       <div class="grid-2-eq">
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">Trafik Kaynakları (Referrer)</div></div>
-          <table class="data-table">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Kaynak (Referrer) Dağılımı</div></div>
+          <table class="tbl">
             <thead><tr><th>Kaynak</th><th style="text-align:right;">Olay</th><th style="text-align:right;">Pay</th></tr></thead>
             <tbody id="ref-tbody"></tbody>
           </table>
         </div>
 
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">Ziyaretçilerin Aradığı Kelimeler</div></div>
-          <table class="data-table">
-            <thead><tr><th>Arama Sorgusu / Kategori</th><th style="text-align:right;">Adet</th></tr></thead>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Site İçi Arama Sorguları</div></div>
+          <table class="tbl">
+            <thead><tr><th>Aranan Terim</th><th style="text-align:right;">Adet</th></tr></thead>
             <tbody id="search-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="panel-card">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">Son 25 Canlı Ziyaretçi Hareketi</div>
-            <div class="panel-sub">Supabase gerçek zamanlı kayıt akışı</div>
-          </div>
-        </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Son 25 Canlı Ziyaretçi Hareketi</div></div>
         <div style="overflow-x:auto;">
-          <table class="data-table">
-            <thead><tr><th>Zaman</th><th>Olay</th><th>İlan / Sayfa</th><th>Kaynak</th><th>Cihaz</th></tr></thead>
+          <table class="tbl">
+            <thead><tr><th>Zaman</th><th>Olay</th><th>Sayfa / İlan</th><th>Kaynak</th><th>Cihaz</th></tr></thead>
             <tbody id="live-stream-tbody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SEKME 4: İLAN & AI HABER ENVANTERİ (GERÇEK JSON) -->
+    <!-- 5. ENVANTER & SİSTEM -->
     <section class="tab-pane" id="tab-inventory">
       <div class="kpi-grid">
-        <div class="kpi-card"><span class="kpi-label">Aktif Kamu İlanı</span><div class="kpi-value" id="inv-jobs">-</div><div class="kpi-meta">jobs.json canlı veri</div></div>
-        <div class="kpi-card"><span class="kpi-label">Toplam Açık Kontenjan</span><div class="kpi-value" id="inv-quota">-</div><div class="kpi-meta">Teyitli kadro toplamı</div></div>
-        <div class="kpi-card"><span class="kpi-label">PDF Kılavuz Oranı</span><div class="kpi-value" id="inv-pdf-pct">-</div><div class="kpi-meta" id="inv-pdf-sub">Doğrudan PDF bağlı</div></div>
-        <div class="kpi-card"><span class="kpi-label">NVIDIA AI Onaylı Haber</span><div class="kpi-value" id="inv-news">-</div><div class="kpi-meta">editorial_news.json</div></div>
+        <div class="kpi"><span class="kpi-label">Aktif Kamu İlanı</span><div class="kpi-val" id="inv-jobs">-</div><div class="kpi-foot">jobs.json canlı veri</div></div>
+        <div class="kpi"><span class="kpi-label">Açık Kontenjan</span><div class="kpi-val" id="inv-quota">-</div><div class="kpi-foot">Teyitli toplam</div></div>
+        <div class="kpi"><span class="kpi-label">PDF Kılavuz Oranı</span><div class="kpi-val" id="inv-pdf-pct">-</div><div class="kpi-foot" id="inv-pdf-sub">-</div></div>
+        <div class="kpi"><span class="kpi-label">Yayındaki AI Haber</span><div class="kpi-val" id="inv-news">-</div><div class="kpi-foot">editorial_news.json</div></div>
       </div>
 
       <div class="grid-2-eq">
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">İlan Kaynağı Dağılımı (Bot Sağlığı)</div></div>
-          <table class="data-table">
-            <thead><tr><th>Resmi Kaynak</th><th style="text-align:right;">Aktif İlan</th></tr></thead>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Resmi Kaynak (Scraper) Dağılımı</div></div>
+          <table class="tbl">
+            <thead><tr><th>Kaynak</th><th style="text-align:right;">İlan</th></tr></thead>
             <tbody id="source-health-tbody"></tbody>
           </table>
         </div>
 
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">NVIDIA Nemotron-550B AI Haberleri</div></div>
-          <table class="data-table">
-            <thead><tr><th>Başlık</th><th style="text-align:right;">Kelime</th></tr></thead>
-            <tbody id="ai-news-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEKME 5: OTOMASYON & SİSTEM DURUMU -->
-    <section class="tab-pane" id="tab-system">
-      <div class="grid-2-eq">
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">Otonom Pipeline Durumu</div></div>
-          <table class="data-table">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Sistem &amp; Senkronizasyon</div></div>
+          <table class="tbl">
             <tbody>
-              <tr><td>Otomatik Tarama Periyodu</td><td class="mono" style="text-align:right;">Günde 3 Kez (09:00 / 14:00 / 19:00 TSİ)</td></tr>
-              <tr><td>İlan Verisi Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-jobs-ts">-</td></tr>
-              <tr><td>AI Haber Merkezi Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-news-ts">-</td></tr>
-              <tr><td>NVIDIA AI Brifing Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-ai-ts">-</td></tr>
-              <tr><td>Aktif AI Modeli</td><td class="mono" style="text-align:right;" id="sys-ai-model">nvidia/nemotron-3-ultra-550b-a55b</td></tr>
+              <tr><td>İlan Verisi (jobs.json)</td><td class="mono" style="text-align:right;" id="sys-jobs-ts">-</td></tr>
+              <tr><td>AI Haberler (editorial_news.json)</td><td class="mono" style="text-align:right;" id="sys-news-ts">-</td></tr>
+              <tr><td>NVIDIA Brifing (ai_briefing.json)</td><td class="mono" style="text-align:right;" id="sys-ai-ts">-</td></tr>
+              <tr><td>Ajan Telemetrisi (agent_runs.json)</td><td class="mono" style="text-align:right;" id="sys-agent-ts">-</td></tr>
             </tbody>
           </table>
-        </div>
-
-        <div class="panel-card">
-          <div class="panel-head"><div class="panel-title">Yönetici Hızlı Bağlantıları</div></div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>GitHub Actions (Bot Çalışma Geçmişi)</span><span>↗</span></a>
-            <a href="https://github.com/Hesso04/kamupersonelrehberi/settings/secrets/actions" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>GitHub Secrets (NVIDIA_API_KEY)</span><span>↗</span></a>
-            <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>Google Search Console (Sitemap &amp; İndeks)</span><span>↗</span></a>
-            <a href="https://kamupersonelrehberiniz.me/" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>Canlı Web Sitesini Görüntüle</span><span>↗</span></a>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+            <a href="https://kamupersonelrehberiniz.me/" target="_blank" rel="noopener noreferrer" class="btn-outline">Canlı Site ↗</a>
+            <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">Actions ↗</a>
+            <a href="https://github.com/Hesso04/kamupersonelrehberi/settings/secrets/actions" target="_blank" rel="noopener noreferrer" class="btn-outline">Secrets ↗</a>
           </div>
         </div>
       </div>
@@ -485,28 +514,18 @@
   <script>
     const SUPABASE_URL = 'https://lxffirosgbrfptnbjvdg.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
-
-    // Mevcut SHA-256 Yönetici Giriş Hash'leri
     const _AUTH_U = 'd9bf4c8f7292dd3faa9a1c0da0f9ca8116f0eca051ac775332692c70922f97b5';
     const _AUTH_K = 'e7c85779263d48cdad9fcc3704a218e156056b013fe8ab5d3c6f3c9ebe932315';
 
-    let STATE = {
-      events: [],
-      jobsData: null,
-      newsData: null,
-      aiBriefing: null,
-      computed: null
-    };
-    let trendChart = null;
-    let refChart = null;
+    let STATE = { events: [], jobsData: null, newsData: null, aiBriefing: null, agentRuns: null, computed: null };
+    let CHAT_HISTORY = [];
+    let trendChart = null, refChart = null;
 
-    function esc(s) {
-      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+    const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-    async function _digest(text) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    async function _digest(t) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
     async function checkAuth() {
@@ -524,118 +543,100 @@
 
     document.getElementById('patron-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('patron-password').focus(); });
     document.getElementById('patron-password').addEventListener('keydown', e => { if (e.key === 'Enter') checkAuth(); });
+    function logout() { sessionStorage.removeItem('kpr_patron_auth'); location.reload(); }
 
-    function logout() {
-      sessionStorage.removeItem('kpr_patron_auth');
-      location.reload();
-    }
-
-    const TAB_TITLES = {
-      'tab-overview': ['Canlı Analitik & Yönetici Özeti', 'kamupersonelrehberiniz.me — %100 gerçek Supabase ziyaretçi ve dönüşüm verileri'],
-      'tab-ai': ['NVIDIA Nemotron-550B AI Site Asistanı', 'Günlük brifing, trafik analizi ve interaktif yönetici sohbet asistanı'],
-      'tab-traffic': ['Ziyaretçi Kaynakları & Arama Trendleri', 'Trafik kanalları, aranan kelimeler ve son 25 canlı hareket'],
-      'tab-inventory': ['İlan & NVIDIA AI Haber Envanteri', 'Canlı jobs.json bot kaynak dağılımı ve onaylı AI haber arşivi'],
-      'tab-system': ['Otomasyon & Sistem Durumu', 'GitHub Actions zamanlaması ve veri tazelik takibi']
+    const TITLES = {
+      'tab-overview': ['Genel Bakış', 'Gerçek zamanlı Supabase analitik, trafik ve dönüşüm metrikleri'],
+      'tab-ai': ['AI Site Asistanı', 'Canlı site verilerine bağlı gerçek yapay zeka sohbeti ve NVIDIA brifingi'],
+      'tab-agents': ['Ajan Takibi', '5 otonom ajanın çalışma durumu, ürettiği makaleler ve kalite kapısı verileri'],
+      'tab-traffic': ['Trafik & Aramalar', 'Referrer kanalları, aranan kelimeler ve son 25 canlı ziyaretçi hareketi'],
+      'tab-inventory': ['Envanter & Sistem', 'Resmi ilan kaynakları, PDF sağlık oranı ve senkronizasyon durumu']
     };
 
     function switchTab(id, btn) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      const el = document.getElementById(id);
-      if (el) el.classList.add('active');
-      if (btn) btn.classList.add('active');
-      if (TAB_TITLES[id]) {
-        document.getElementById('top-page-title').textContent = TAB_TITLES[id][0];
-        document.getElementById('top-page-sub').textContent = TAB_TITLES[id][1];
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(id)?.classList.add('active');
+      btn?.classList.add('active');
+      if (TITLES[id]) {
+        document.getElementById('ws-title').textContent = TITLES[id][0];
+        document.getElementById('ws-sub').textContent = TITLES[id][1];
       }
     }
 
     function detectDevice(ua) {
       const u = (ua || '').toLowerCase();
       if (u.includes('instagram')) return 'Instagram İçi';
-      if (u.includes('iphone') || u.includes('ipad')) return 'Mobil (iOS)';
-      if (u.includes('android')) return 'Mobil (Android)';
+      if (u.includes('iphone') || u.includes('ipad')) return 'iOS';
+      if (u.includes('android')) return 'Android';
       if (u.includes('windows') || u.includes('macintosh') || u.includes('linux')) return 'Masaüstü';
       return 'Diğer';
     }
 
     async function refreshAllData() {
       try {
-        const [evResp, jobsResp, newsResp, aiResp] = await Promise.all([
+        const ts = Date.now();
+        const [evR, jR, nR, aiR, agR] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/site_analytics_events?select=id,event_type,job_id,job_title,category,referrer,user_agent,created_at&order=created_at.desc&limit=2000`, {
             headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
           }),
-          fetch('/data/jobs.json?t=' + Date.now()),
-          fetch('/data/editorial_news.json?t=' + Date.now()),
-          fetch('/data/ai_briefing.json?t=' + Date.now()).catch(() => null)
+          fetch('/data/jobs.json?t=' + ts),
+          fetch('/data/editorial_news.json?t=' + ts),
+          fetch('/data/ai_briefing.json?t=' + ts).catch(() => null),
+          fetch('/data/agent_runs.json?t=' + ts).catch(() => null)
         ]);
-
-        STATE.events = evResp.ok ? await evResp.json() : [];
-        STATE.jobsData = jobsResp.ok ? await jobsResp.json() : { jobs: [], meta: {} };
-        STATE.newsData = newsResp.ok ? await newsResp.json() : { articles: [], meta: {} };
-        STATE.aiBriefing = (aiResp && aiResp.ok) ? await aiResp.json() : null;
+        STATE.events = evR.ok ? await evR.json() : [];
+        STATE.jobsData = jR.ok ? await jR.json() : { jobs: [], meta: {} };
+        STATE.newsData = nR.ok ? await nR.json() : { articles: [], meta: {} };
+        STATE.aiBriefing = (aiR && aiR.ok) ? await aiR.json() : null;
+        STATE.agentRuns = (agR && agR.ok) ? await agR.json() : null;
 
         computeAnalytics();
         renderOverview();
+        renderAgentsTab();
         renderTrafficTab();
         renderInventoryTab();
-        renderAIBriefing();
-        renderSystemTab();
-      } catch (err) {
-        console.error('Veri yükleme hatası:', err);
+        renderBriefing();
+      } catch (e) {
+        console.error(e);
       }
     }
 
     function computeAnalytics() {
-      const now = Date.now();
-      const dayMs = 86400000;
+      const now = Date.now(), dayMs = 86400000;
       const counts = { PAGEVIEW: 0, JOB_VIEW: 0, PDF_DOWNLOAD: 0, APPLY_CLICK: 0, SEARCH: 0 };
       const counts24 = { PAGEVIEW: 0, JOB_VIEW: 0, PDF_DOWNLOAD: 0, APPLY_CLICK: 0, SEARCH: 0 };
-      const byDay = {};
-      const byRef = {};
-      const byDev = {};
-      const byPage = {};
-      const bySearch = {};
+      const byDay = {}, byRef = {}, byDev = {}, byPage = {}, bySearch = {};
 
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now - i * dayMs);
-        const key = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-        byDay[key] = 0;
+        byDay[`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`] = 0;
       }
 
       STATE.events.forEach(ev => {
         const t = ev.event_type || 'OTHER';
         if (counts[t] !== undefined) counts[t]++;
-
         const dt = new Date(ev.created_at);
         if (!isNaN(dt.getTime())) {
           if (now - dt.getTime() <= dayMs && counts24[t] !== undefined) counts24[t]++;
-          const key = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}`;
-          if (byDay[key] !== undefined) byDay[key]++;
+          const k = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}`;
+          if (byDay[k] !== undefined) byDay[k]++;
         }
-
         const ref = ev.referrer || 'Doğrudan (Direct)';
         byRef[ref] = (byRef[ref] || 0) + 1;
-
         const dev = detectDevice(ev.user_agent);
         byDev[dev] = (byDev[dev] || 0) + 1;
-
         if (ev.job_title) {
           if (t === 'SEARCH') bySearch[ev.job_title] = (bySearch[ev.job_title] || 0) + 1;
           else byPage[ev.job_title] = (byPage[ev.job_title] || 0) + 1;
-        } else if (ev.category && t === 'SEARCH') {
-          bySearch[ev.category] = (bySearch[ev.category] || 0) + 1;
         }
       });
 
-      const sortObj = obj => Object.entries(obj).sort((a, b) => b[1] - a[1]);
+      const sort = o => Object.entries(o).sort((a,b) => b[1] - a[1]);
       STATE.computed = {
-        totalEvents: STATE.events.length,
-        counts, counts24, byDay,
-        referrers: sortObj(byRef),
-        devices: sortObj(byDev),
-        topPages: sortObj(byPage).slice(0, 10),
-        topSearches: sortObj(bySearch).slice(0, 12)
+        totalEvents: STATE.events.length, counts, counts24, byDay,
+        referrers: sort(byRef), devices: sort(byDev),
+        topPages: sort(byPage).slice(0, 10), topSearches: sort(bySearch).slice(0, 12)
       };
     }
 
@@ -646,235 +647,229 @@
       document.getElementById('kpi-jv').textContent = jv.toLocaleString('tr-TR');
       document.getElementById('kpi-pdf').textContent = pdf.toLocaleString('tr-TR');
       document.getElementById('kpi-apply').textContent = ap.toLocaleString('tr-TR');
-      document.getElementById('kpi-pv-24h').textContent = `Son 24s: +${c.counts24.PAGEVIEW}`;
-      document.getElementById('kpi-jv-24h').textContent = `Son 24s: +${c.counts24.JOB_VIEW}`;
-      const pdfRate = jv ? ((pdf / jv) * 100).toFixed(1) : '0.0';
-      const apRate = jv ? ((ap / jv) * 100).toFixed(1) : '0.0';
-      document.getElementById('kpi-pdf-rate').textContent = `%${pdfRate}`;
-      document.getElementById('kpi-apply-rate').textContent = `%${apRate}`;
+      document.getElementById('kpi-pv-24h').textContent = `Son 24 saat: +${c.counts24.PAGEVIEW}`;
+      document.getElementById('kpi-jv-24h').textContent = `Son 24 saat: +${c.counts24.JOB_VIEW}`;
+      document.getElementById('kpi-pdf-rate').textContent = `Oran: %${jv ? ((pdf/jv)*100).toFixed(1) : '0.0'}`;
+      document.getElementById('kpi-apply-rate').textContent = `Dönüşüm: %${jv ? ((ap/jv)*100).toFixed(1) : '0.0'}`;
 
-      // 7 Gün Trend Grafiği
-      const trendCtx = document.getElementById('chart-trend').getContext('2d');
+      // Monokrom Bar Chart
+      const tCtx = document.getElementById('chart-trend').getContext('2d');
       if (trendChart) trendChart.destroy();
-      trendChart = new Chart(trendCtx, {
+      trendChart = new Chart(tCtx, {
         type: 'bar',
         data: {
           labels: Object.keys(c.byDay),
-          datasets: [{
-            label: 'Günlük Etkileşim',
-            data: Object.values(c.byDay),
-            backgroundColor: '#3882C4',
-            borderRadius: 6
-          }]
+          datasets: [{ data: Object.values(c.byDay), backgroundColor: '#E4E4E7', hoverBackgroundColor: '#FFFFFF', borderRadius: 4 }]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
-            y: { grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { color: '#94A3B8' } }
+            x: { grid: { display: false }, ticks: { color: '#71717A', font: { size: 11 } } },
+            y: { grid: { color: '#27272A' }, ticks: { color: '#71717A', font: { size: 11 } } }
           }
         }
       });
 
-      // Trafik Kaynakları Doughnut
-      const refCtx = document.getElementById('chart-referrers').getContext('2d');
+      // Monokrom Doughnut
+      const rCtx = document.getElementById('chart-referrers').getContext('2d');
       if (refChart) refChart.destroy();
-      const topRefs = c.referrers.slice(0, 6);
-      refChart = new Chart(refCtx, {
+      const topR = c.referrers.slice(0, 6);
+      refChart = new Chart(rCtx, {
         type: 'doughnut',
         data: {
-          labels: topRefs.map(x => x[0]),
-          datasets: [{
-            data: topRefs.map(x => x[1]),
-            backgroundColor: ['#3882C4', '#10B981', '#F59E0B', '#38BDF8', '#8B5CF6', '#64748B'],
-            borderWidth: 0
-          }]
+          labels: topR.map(x => x[0]),
+          datasets: [{ data: topR.map(x => x[1]), backgroundColor: ['#FAFAFA','#A1A1AA','#71717A','#52525B','#3F3F46','#27272A'], borderWidth: 1, borderColor: '#111113' }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false, cutout: '64%',
-          plugins: { legend: { position: 'right', labels: { color: '#CBD5E1', boxWidth: 12, font: { size: 11 } } } }
+          responsive: true, maintainAspectRatio: false, cutout: '66%',
+          plugins: { legend: { position: 'right', labels: { color: '#A1A1AA', boxWidth: 10, font: { size: 11 } } } }
         }
       });
 
-      // Huni
-      const maxVal = Math.max(pv, jv, 1);
-      const funnelSteps = [
-        ['1. Site Ziyareti (Pageview)', pv, '#3882C4'],
-        ['2. İlan Detayı Açma (Job View)', jv, '#38BDF8'],
-        ['3. Resmi PDF Kılavuz Açma', pdf, '#F59E0B'],
-        ['4. Resmi Başvuru Yönlendirmesi', ap, '#10B981']
-      ];
-      document.getElementById('funnel-container').innerHTML = funnelSteps.map(([lbl, val, col]) => {
-        const pct = Math.min(100, Math.round((val / maxVal) * 100));
-        return `<div class="funnel-row"><div class="funnel-head"><span>${lbl}</span><span class="mono">${val.toLocaleString('tr-TR')}</span></div><div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:${col};"></div></div></div>`;
+      const maxV = Math.max(pv, jv, 1);
+      document.getElementById('funnel-box').innerHTML = [
+        ['1. Sayfa Görüntüleme', pv], ['2. İlan İnceleme', jv],
+        ['3. Resmi PDF Açma', pdf], ['4. Başvuru Yönlendirmesi', ap]
+      ].map(([l, v]) => `<div class="bar-row"><div class="bar-top"><span>${l}</span><span class="mono">${v.toLocaleString('tr-TR')}</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, Math.round((v/maxV)*100))}%"></div></div></div>`).join('');
+
+      const devTot = c.devices.reduce((s, x) => s + x[1], 0) || 1;
+      document.getElementById('device-box').innerHTML = c.devices.map(([d, n]) =>
+        `<span class="badge">${esc(d)}: <strong class="mono">${n}</strong> (%${((n/devTot)*100).toFixed(1)})</span>`
+      ).join('');
+
+      document.getElementById('top-pages-tbody').innerHTML = c.topPages.length
+        ? c.topPages.map(([t, n]) => `<tr><td>${esc(t)}</td><td class="mono" style="text-align:right;">${n}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:var(--text-3);">Kayıt yok.</td></tr>';
+    }
+
+    function renderAgentsTab() {
+      const ag = STATE.agentRuns;
+      if (!ag || !ag.agents) {
+        document.getElementById('agents-grid').innerHTML = '<div class="agent-card">Ajan telemetrisi henüz oluşmadı.</div>';
+        return;
+      }
+      document.getElementById('sb-agent-cnt').textContent = ag.agents.length;
+      document.getElementById('agent-schedule-text').textContent = ag.schedule || '';
+      document.getElementById('agent-last-sync').textContent = 'Son rapor: ' + (ag.generated_at_tr || '-');
+
+      document.getElementById('agents-grid').innerHTML = ag.agents.map(a => {
+        const mets = Object.entries(a.metrics || {}).map(([k, v]) =>
+          `<div><span class="am-lbl">${esc(k)}</span><span class="am-val">${esc(v)}</span></div>`
+        ).join('');
+        const ts = a.last_run ? new Date(a.last_run).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-';
+        return `<div class="agent-card">
+          <div class="agent-top">
+            <div><div class="agent-name">${esc(a.name)}</div><div class="agent-mod">${esc(a.module)}</div></div>
+            <span class="badge badge-ok">Aktif • ${ts}</span>
+          </div>
+          <div class="agent-role">${esc(a.role)}</div>
+          <div class="agent-metrics">${mets}</div>
+        </div>`;
       }).join('');
 
-      // Cihaz Dağılımı
-      const totalDev = c.devices.reduce((s, x) => s + x[1], 0) || 1;
-      document.getElementById('device-container').innerHTML = c.devices.map(([dev, cnt]) => {
-        const p = ((cnt / totalDev) * 100).toFixed(1);
-        return `<span class="kpi-tag tag-blue">${esc(dev)}: ${cnt} (%${p})</span>`;
-      }).join('');
-
-      // En Çok İlgi Gören Sayfalar/İlanlar
-      const tbody = document.getElementById('top-pages-tbody');
-      tbody.innerHTML = c.topPages.length
-        ? c.topPages.map(([title, cnt]) => `<tr><td>${esc(title)}</td><td class="mono" style="text-align:right;font-weight:700;color:#7DD3FC;">${cnt}</td></tr>`).join('')
-        : '<tr><td colspan="2" style="color:var(--text-sec);">Henüz kayıt yok.</td></tr>';
+      const outs = ag.recent_outputs || [];
+      document.getElementById('agent-outputs-tbody').innerHTML = outs.length
+        ? outs.map(o => `<tr>
+            <td><a href="/haber/${esc(o.slug)}/" target="_blank" style="text-decoration:underline;text-underline-offset:3px;">${esc(o.headline)}</a></td>
+            <td style="color:var(--text-2);">${esc(o.institution)}</td>
+            <td class="mono" style="color:var(--text-3);">${esc(o.generated_by)}</td>
+            <td class="mono" style="text-align:right;">${o.word_count}</td>
+            <td class="mono" style="text-align:right;color:var(--text-3);">${esc(o.publish_date)}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" style="color:var(--text-3);">Henüz üretilmiş makale yok.</td></tr>';
     }
 
     function renderTrafficTab() {
-      const c = STATE.computed;
-      const tot = c.totalEvents || 1;
-      document.getElementById('ref-tbody').innerHTML = c.referrers.map(([ref, cnt]) =>
-        `<tr><td>${esc(ref)}</td><td class="mono" style="text-align:right;">${cnt}</td><td class="mono" style="text-align:right;color:#34D399;">%${((cnt/tot)*100).toFixed(1)}</td></tr>`
+      const c = STATE.computed, tot = c.totalEvents || 1;
+      document.getElementById('ref-tbody').innerHTML = c.referrers.map(([r, n]) =>
+        `<tr><td>${esc(r)}</td><td class="mono" style="text-align:right;">${n}</td><td class="mono" style="text-align:right;color:var(--text-2);">%${((n/tot)*100).toFixed(1)}</td></tr>`
       ).join('');
-
       document.getElementById('search-tbody').innerHTML = c.topSearches.length
-        ? c.topSearches.map(([q, cnt]) => `<tr><td>${esc(q)}</td><td class="mono" style="text-align:right;">${cnt}</td></tr>`).join('')
-        : '<tr><td colspan="2" style="color:var(--text-sec);">Henüz arama sorgusu kaydedilmedi.</td></tr>';
-
+        ? c.topSearches.map(([q, n]) => `<tr><td>${esc(q)}</td><td class="mono" style="text-align:right;">${n}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:var(--text-3);">Henüz arama yok.</td></tr>';
       document.getElementById('live-stream-tbody').innerHTML = STATE.events.slice(0, 25).map(ev => {
         const dt = new Date(ev.created_at);
         const ts = isNaN(dt.getTime()) ? '-' : dt.toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-        return `<tr><td class="mono">${ts}</td><td><span class="kpi-tag tag-blue">${esc(ev.event_type)}</span></td><td>${esc(ev.job_title || ev.category || 'Ana Sayfa')}</td><td>${esc(ev.referrer || 'Doğrudan')}</td><td>${esc(detectDevice(ev.user_agent))}</td></tr>`;
+        return `<tr><td class="mono" style="color:var(--text-3);">${ts}</td><td><span class="badge">${esc(ev.event_type)}</span></td><td>${esc(ev.job_title || ev.category || 'Ana Sayfa')}</td><td style="color:var(--text-2);">${esc(ev.referrer || 'Doğrudan')}</td><td style="color:var(--text-3);">${esc(detectDevice(ev.user_agent))}</td></tr>`;
       }).join('');
     }
 
     function renderInventoryTab() {
-      const jobs = (STATE.jobsData && STATE.jobsData.jobs) || [];
-      const activeJobs = jobs.filter(j => !j.is_cancellation);
+      const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
       const news = (STATE.newsData && STATE.newsData.articles) || [];
-      const withPdf = activeJobs.filter(j => j.has_pdf || j.pdf_url).length;
-      const pdfPct = activeJobs.length ? ((withPdf / activeJobs.length) * 100).toFixed(1) : '0';
-
-      document.getElementById('inv-jobs').textContent = activeJobs.length.toLocaleString('tr-TR');
-      document.getElementById('inv-quota').textContent = ((STATE.jobsData.meta && STATE.jobsData.meta.total_quota) || 0).toLocaleString('tr-TR') + '+';
-      document.getElementById('inv-pdf-pct').textContent = `%${pdfPct}`;
-      document.getElementById('inv-pdf-sub').textContent = `${withPdf} / ${activeJobs.length} ilanda PDF kılavuz`;
+      const withPdf = jobs.filter(j => j.has_pdf || j.pdf_url).length;
+      document.getElementById('inv-jobs').textContent = jobs.length.toLocaleString('tr-TR');
+      document.getElementById('inv-quota').textContent = ((STATE.jobsData?.meta?.total_quota) || 0).toLocaleString('tr-TR') + '+';
+      document.getElementById('inv-pdf-pct').textContent = `%${jobs.length ? ((withPdf/jobs.length)*100).toFixed(1) : '0'}`;
+      document.getElementById('inv-pdf-sub').textContent = `${withPdf} / ${jobs.length} ilanda PDF`;
       document.getElementById('inv-news').textContent = news.length;
 
       const bySrc = {};
-      activeJobs.forEach(j => { const s = j.source_name || 'Diğer Resmi Kaynak'; bySrc[s] = (bySrc[s] || 0) + 1; });
-      document.getElementById('source-health-tbody').innerHTML = Object.entries(bySrc).sort((a,b) => b[1]-a[1]).map(([src, cnt]) =>
-        `<tr><td>${esc(src)}</td><td class="mono" style="text-align:right;font-weight:700;color:#34D399;">${cnt}</td></tr>`
+      jobs.forEach(j => { const s = j.source_name || 'Diğer'; bySrc[s] = (bySrc[s] || 0) + 1; });
+      document.getElementById('source-health-tbody').innerHTML = Object.entries(bySrc).sort((a,b) => b[1]-a[1]).map(([s, n]) =>
+        `<tr><td>${esc(s)}</td><td class="mono" style="text-align:right;">${n}</td></tr>`
       ).join('');
 
-      document.getElementById('ai-news-tbody').innerHTML = news.slice(0, 12).map(a =>
-        `<tr><td><a href="/haber/${esc(a.slug)}/" target="_blank" style="color:#7DD3FC;">${esc(a.headline)} ↗</a></td><td class="mono" style="text-align:right;">${a.word_count || '-'}</td></tr>`
-      ).join('');
+      const fmt = t => t ? new Date(t).toLocaleString('tr-TR') : '-';
+      document.getElementById('sys-jobs-ts').textContent = fmt(STATE.jobsData?.meta?.generated_at);
+      document.getElementById('sys-news-ts').textContent = fmt(STATE.newsData?.meta?.generated_at);
+      document.getElementById('sys-ai-ts').textContent = STATE.aiBriefing?.generated_at_tr || '-';
+      document.getElementById('sys-agent-ts').textContent = STATE.agentRuns?.generated_at_tr || '-';
     }
 
-    function renderAIBriefing() {
-      const box = document.getElementById('ai-briefing-content');
-      if (!STATE.aiBriefing || !STATE.aiBriefing.briefing) {
-        box.innerHTML = 'Otomatik NVIDIA AI brifingi henüz oluşturulmadı; alttaki sohbet alanından canlı verilerle anlık soru sorabilirsiniz.';
-        return;
-      }
-      const b = STATE.aiBriefing.briefing;
-      const actions = (b.action_items || []).map(x => `<li>${esc(x)}</li>`).join('');
-      box.innerHTML = `
-        <p style="margin-bottom:8px;"><strong>Yönetici Özeti (${esc(STATE.aiBriefing.generated_at_tr || '')}):</strong> ${esc(b.executive_summary || '')}</p>
-        <p style="margin-bottom:8px;color:var(--text-sec);"><strong>Trafik &amp; Kanal:</strong> ${esc(b.traffic_insight || '')}</p>
-        ${b.content_insight ? `<p style="margin-bottom:8px;color:var(--text-sec);"><strong>İçerik &amp; İlgi:</strong> ${esc(b.content_insight)}</p>` : ''}
-        ${actions ? `<div style="margin-top:8px;"><strong>Öncelikli Aksiyonlar:</strong><ul style="margin:4px 0 0 18px;color:#CBD5E1;">${actions}</ul></div>` : ''}
+    function renderBriefing() {
+      const b = STATE.aiBriefing?.briefing;
+      document.getElementById('briefing-ts').textContent = STATE.aiBriefing?.generated_at_tr || '-';
+      if (!b) { document.getElementById('briefing-body').textContent = 'Henüz brifing oluşmadı.'; return; }
+      const acts = (b.action_items || []).map(x => `<li>${esc(x)}</li>`).join('');
+      document.getElementById('briefing-body').innerHTML = `
+        <p style="margin-bottom:8px;color:var(--text);">${esc(b.executive_summary || '')}</p>
+        <p style="margin-bottom:6px;"><strong>Trafik:</strong> ${esc(b.traffic_insight || '')}</p>
+        ${b.content_insight ? `<p style="margin-bottom:6px;"><strong>İçerik:</strong> ${esc(b.content_insight)}</p>` : ''}
+        ${acts ? `<ul style="margin:6px 0 0 18px;">${acts}</ul>` : ''}
       `;
     }
 
-    function renderSystemTab() {
-      const fmt = ts => ts ? new Date(ts).toLocaleString('tr-TR') : '-';
-      document.getElementById('sys-jobs-ts').textContent = fmt(STATE.jobsData && STATE.jobsData.meta && STATE.jobsData.meta.generated_at);
-      document.getElementById('sys-news-ts').textContent = fmt(STATE.newsData && STATE.newsData.meta && STATE.newsData.meta.generated_at);
-      document.getElementById('sys-ai-ts').textContent = (STATE.aiBriefing && STATE.aiBriefing.generated_at_tr) || '-';
-      if (STATE.aiBriefing && STATE.aiBriefing.model) {
-        document.getElementById('sys-ai-model').textContent = STATE.aiBriefing.model;
-      }
-    }
-
     /* =====================================================================
-       İNTERAKTİF AI SITE ASİSTANI (CANLI VERİ + NVIDIA BRİFİNG SENTEZİ)
+       GERÇEK CANLI LLM SOHBET MOTORU (Hazır şablon YOK!)
+       Canlı Supabase + İlan + Haber + Ajan verisi sistem bağlamına verilir.
        ===================================================================== */
-    function appendChat(role, htmlText) {
-      const wrap = document.getElementById('chat-messages');
-      const div = document.createElement('div');
-      div.className = 'chat-msg ' + role;
-      div.innerHTML = htmlText;
-      wrap.appendChild(div);
-      wrap.scrollTop = wrap.scrollHeight;
-    }
-
-    function buildAssistantAnswer(question) {
-      const q = question.toLocaleLowerCase('tr-TR');
-      const c = STATE.computed;
-      if (!c) return 'Veriler henüz yükleniyor, birkaç saniye sonra tekrar sorabilirsiniz.';
-
+    function buildLiveContextForLLM() {
+      const c = STATE.computed || {};
       const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
       const news = (STATE.newsData && STATE.newsData.articles) || [];
-      const b = STATE.aiBriefing && STATE.aiBriefing.briefing;
-
-      if (q.includes('nereden') || q.includes('kaynak') || q.includes('referrer') || q.includes('trafik')) {
-        const tot = c.totalEvents || 1;
-        const rows = c.referrers.slice(0, 6).map(([r, n]) => `<li><strong>${esc(r)}:</strong> ${n} etkileşim (%${((n/tot)*100).toFixed(1)})</li>`).join('');
-        return `<strong>Ziyaretçi Trafik Kaynakları (Canlı Supabase):</strong><ul>${rows}</ul>` + (b && b.traffic_insight ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA AI Yorumu:</em> ${esc(b.traffic_insight)}</p>` : '');
-      }
-
-      if (q.includes('ilgi') || q.includes('popüler') || q.includes('en çok') || q.includes('sayfa') || q.includes('ilan')) {
-        const rows = c.topPages.slice(0, 6).map(([t, n]) => `<li><strong>${esc(t)}:</strong> ${n} görüntüleme/tıklama</li>`).join('');
-        return `<strong>En Çok İlgi Gören Sayfa &amp; İlanlar:</strong><ul>${rows || '<li>Henüz yeterli veri birikmedi.</li>'}</ul>` + (b && b.content_insight ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA AI Yorumu:</em> ${esc(b.content_insight)}</p>` : '');
-      }
-
-      if (q.includes('cihaz') || q.includes('mobil') || q.includes('masaüstü') || q.includes('telefon')) {
-        const tot = c.devices.reduce((s, x) => s + x[1], 0) || 1;
-        const rows = c.devices.map(([d, n]) => `<li><strong>${esc(d)}:</strong> ${n} oturum (%${((n/tot)*100).toFixed(1)})</li>`).join('');
-        return `<strong>Canlı Cihaz Dağılımı:</strong><ul>${rows}</ul>`;
-      }
-
-      if (q.includes('bot') || q.includes('haber') || q.includes('envanter')) {
-        return `<strong>İlan &amp; AI Haber Envanter Özeti:</strong><ul>
-          <li><strong>Aktif Kamu İlanı:</strong> ${jobs.length.toLocaleString('tr-TR')} ilan (${((STATE.jobsData.meta && STATE.jobsData.meta.total_quota) || 0).toLocaleString('tr-TR')}+ kontenjan)</li>
-          <li><strong>NVIDIA Nemotron-550B AI Haberleri:</strong> ${news.length} adet onaylı özgün haber</li>
-          <li><strong>Statik Rehber &amp; Sayfalar:</strong> 12 derin rehber + KPSS Puan Hesaplama aracı + 94 temiz sitemap URL'si</li>
-        </ul>`;
-      }
-
-      if (q.includes('adsense') || q.includes('seo') || q.includes('öneri') || q.includes('aksiyon')) {
-        const acts = (b && b.action_items && b.action_items.length)
-          ? b.action_items.map(x => `<li>${esc(x)}</li>`).join('')
-          : '<li>Google Search Console’da indekslenen sayfa sayısının 30-50 üzerine çıkmasını bekleyin.</li><li>Telegram ve Instagram trafiğini doğrudan yeni /rehber/ ve /haber/ sayfalarına yönlendirin.</li>';
-        return `<strong>NVIDIA AI AdSense &amp; SEO Aksiyon Önerileri:</strong><ul>${acts}</ul>`;
-      }
-
-      // Varsayılan: Kapsamlı Günlük Yönetici Özeti
-      const apRate = c.counts.JOB_VIEW ? ((c.counts.APPLY_CLICK / c.counts.JOB_VIEW) * 100).toFixed(1) : '0.0';
-      const topRef = c.referrers[0] ? `${c.referrers[0][0]} (${c.referrers[0][1]})` : '-';
-      const topPage = c.topPages[0] ? `${c.topPages[0][0]} (${c.topPages[0][1]})` : '-';
-      return `<strong>Günlük Yönetici Özeti (Canlı Veriler):</strong>
-        <ul>
-          <li><strong>Toplam İncelenen Hareket:</strong> ${c.totalEvents.toLocaleString('tr-TR')} (Son 24 saatte ${c.counts24.PAGEVIEW} sayfa görüntüleme, ${c.counts24.JOB_VIEW} ilan inceleme)</li>
-          <li><strong>Dönüşüm:</strong> ${c.counts.APPLY_CLICK} resmi başvuru tıklaması (%${apRate} dönüşüm) ve ${c.counts.PDF_DOWNLOAD} PDF kılavuz açılımı</li>
-          <li><strong>Lider Trafik Kanalı:</strong> ${esc(topRef)}</li>
-          <li><strong>En Çok İlgi Gören İçerik:</strong> ${esc(topPage)}</li>
-          <li><strong>Aktif Envanter:</strong> ${jobs.length.toLocaleString('tr-TR')} ilan &amp; ${news.length} NVIDIA AI haber makalesi</li>
-        </ul>` + (b && b.executive_summary ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA Nemotron-550B Brifingi:</em> ${esc(b.executive_summary)}</p>` : '');
+      return JSON.stringify({
+        site: 'kamupersonelrehberiniz.me',
+        toplam_olay: c.totalEvents || 0,
+        olay_dagilimi: c.counts || {},
+        son_24_saat: c.counts24 || {},
+        trafik_kaynaklari: (c.referrers || []).slice(0, 6),
+        cihazlar: c.devices || [],
+        en_cok_ilgi_goren_sayfalar: (c.topPages || []).slice(0, 8),
+        en_cok_arananlar: (c.topSearches || []).slice(0, 8),
+        aktif_ilan_sayisi: jobs.length,
+        toplam_kontenjan: STATE.jobsData?.meta?.total_quota || 0,
+        ai_haber_sayisi: news.length,
+        ajanlar: (STATE.agentRuns?.agents || []).map(a => ({ ad: a.name, durum: a.status, metrikler: a.metrics })),
+        son_nvidia_brifingi: STATE.aiBriefing?.briefing || null
+      });
     }
 
-    function askAssistant(q) {
-      appendChat('user', esc(q));
-      setTimeout(() => {
-        appendChat('bot', buildAssistantAnswer(q));
-      }, 180);
+    function appendMsg(role, text) {
+      const log = document.getElementById('chat-log');
+      const div = document.createElement('div');
+      div.className = 'msg ' + role;
+      div.textContent = text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+      return div;
     }
 
-    function sendChatInput() {
+    async function sendPrompt(userText) {
+      const btn = document.getElementById('chat-send-btn');
+      appendMsg('user', userText);
+      const thinkingEl = appendMsg('assistant', 'Düşünüyor...');
+      btn.disabled = true;
+
+      const sysPrompt =
+        'Sen Kamu Personel Rehberi (kamupersonelrehberiniz.me) yönetici panelindeki kıdemli, ciddi ve profesyonel Türkçe AI Site Asistanısın. ' +
+        'Kullanıcı gündelik bir şey sorarsa (örn. "naber", "selam") doğal, kısa ve profesyonelce karşılık ver; veri isterse ASLA rakam uydurma, sadece aşağıdaki canlı JSON verilerini kullan. ' +
+        'Cevapların net, doğrudan ve sade Türkçe olsun (gereksiz süsleme veya robotik şablon kullanma).\n\nCANLI SİTE VERİSİ:\n' +
+        buildLiveContextForLLM();
+
+      CHAT_HISTORY.push({ role: 'user', content: userText });
+      const messages = [{ role: 'system', content: sysPrompt }, ...CHAT_HISTORY.slice(-8)];
+
+      try {
+        const resp = await fetch('https://text.pollinations.ai/openai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'openai', messages, temperature: 0.4 })
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '').trim();
+        if (!reply) throw new Error('Boş yanıt');
+        thinkingEl.textContent = reply;
+        CHAT_HISTORY.push({ role: 'assistant', content: reply });
+      } catch (err) {
+        thinkingEl.textContent = 'Canlı AI servisine şu an ulaşılamadı (' + err.message + '). Birkaç saniye sonra tekrar deneyin.';
+      } finally {
+        btn.disabled = false;
+        const log = document.getElementById('chat-log');
+        log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    function handleChatSubmit() {
       const inp = document.getElementById('chat-input');
-      const val = inp.value.trim();
-      if (!val) return;
+      const v = inp.value.trim();
+      if (!v) return;
       inp.value = '';
-      askAssistant(val);
+      sendPrompt(v);
     }
 
-    // Oturum kontrolü
     if (sessionStorage.getItem('kpr_patron_auth')) {
       document.getElementById('login-overlay').style.display = 'none';
       refreshAllData();

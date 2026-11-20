@@ -50,8 +50,9 @@ jobs:
           python modules/editorial_pipeline.py || true
           echo "=== 5. Çok Sayfalı Statik Site (SSG) & Temiz Sitemap Üretimi ==="
           python scripts/ssg_builder.py || true
-          echo "=== 6. Patron Paneli NVIDIA AI Yönetici Brifingi ==="
+          echo "=== 6. Patron Paneli NVIDIA AI Yönetici Brifingi & Ajan Telemetrisi ==="
           python modules/patron_ai_briefing.py || true
+          python modules/agent_telemetry.py || true
 
       - name: Değişiklikleri GitHub Pages & Repoya Pushla
         run: |

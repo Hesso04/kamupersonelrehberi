@@ -1,0 +1,235 @@
+{
+  "generated_at": "2026-11-20T22:55:24.975550+00:00",
+  "generated_at_tr": "21.11.2026 01:55",
+  "schedule": "Günde 3 kez otomatik (09:00 / 14:00 / 19:00 TSİ — GitHub Actions)",
+  "agents": [
+    {
+      "id": "fetcher",
+      "name": "Muhabir Ajanı",
+      "module": "ArticleFetcherAgent",
+      "role": "Resmi kurumlardan tam metin çekimi ve mükerrer kayıt eleme",
+      "status": "active",
+      "last_run": "2026-11-20T22:30:20.857949+00:00",
+      "metrics": {
+        "Taranan Ham Bülten": 65,
+        "Benzersiz Kaynak": 55,
+        "Elenen Mükerrer": 10
+      }
+    },
+    {
+      "id": "editor",
+      "name": "Editör Ajanı (LLM)",
+      "module": "EditorialWriterAgent",
+      "role": "NVIDIA Nemotron-3-Ultra-550B ile özgün Türkçe haber üretimi",
+      "status": "active",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "metrics": {
+        "Üretilen Makale": 33,
+        "Ort. Kelime": 408,
+        "Min / Max Kelime": "265 / 528"
+      }
+    },
+    {
+      "id": "visual",
+      "name": "Görsel Ajanı",
+      "module": "VisualCuratorAgent",
+      "role": "1200x675 telifsiz WebP kapak üretimi ve SEO alt etiketi",
+      "status": "active",
+      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "metrics": {
+        "WebP Kapak": 64,
+        "Toplam Boyut": "2221.7 KB",
+        "Ort. Boyut": "34.7 KB"
+      }
+    },
+    {
+      "id": "qa",
+      "name": "Kalite Kapısı Ajanı",
+      "module": "QualityGateAgent",
+      "role": "Kelime, kesik metin ([...]), encoding ve görsel yayın denetimi",
+      "status": "active",
+      "last_run": "2026-11-20T22:39:33.274803+00:00",
+      "metrics": {
+        "Onaylanan": 33,
+        "Reddedilen": 2,
+        "Onay Oranı": "%94.3"
+      }
+    },
+    {
+      "id": "publisher",
+      "name": "SSG & Brifing Ajanı",
+      "module": "SSGBuilder + PatronAIBriefing",
+      "role": "Statik HTML derleme, temiz sitemap ve NVIDIA yönetici brifingi",
+      "status": "active",
+      "last_run": "2026-11-20T22:43:44.353673+00:00",
+      "metrics": {
+        "Statik Sayfa (Sitemap)": 112,
+        "Aktif İlan": 1503,
+        "Brifing Modeli": "nemotron-3-ultra-550b-a55b"
+      }
+    }
+  ],
+  "recent_outputs": [
+    {
+      "headline": "Millî Eğitim Bakanlığınca COP31 kapsamında oluşturulan Türkiye İklim Okulu, gençlerin, geliştirdikleri girişim fikirlerini jüri önünde sunduğu",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "milli-egitim-bakanliginca-cop31-kapsaminda-olusturulan-turkiye-iklim",
+      "word_count": 321,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "TOKİ Başkan Yardımcısı Ahmet Kutluğ Gayretli, COP31'in inşa sürecini anlattı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "slug": "toki-baskan-yardimcisi-ahmet-kutlug-gayretli-cop31-in-insa-surecini",
+      "word_count": 358,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "İstanbul Tuzla’da 632 Sosyal Konut Teslim Ediliyor",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "slug": "istanbul-tuzla-da-632-sosyal-konut-teslim-ediliyor",
+      "word_count": 311,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "İletişim Başkanı Duran’dan Dünya Çocuk Hakları Günü mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "slug": "iletisim-baskani-duran-dan-dunya-cocuk-haklari-gunu-mesaji",
+      "word_count": 406,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "İletişim Başkanı Duran’dan Oruç Reis’in Pakistan görevine ilişkin açıklama",
+      "institution": "T.C. İletişim Başkanlığı",
+      "slug": "iletisim-baskani-duran-dan-oruc-reis-in-pakistan-gorevine-iliskin",
+      "word_count": 480,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "Millî Eğitim Bakanlığı, Anadolu'nun kültürel mirasını öğrencilere tanıtmak amacıyla hayata geçirdiği \"Dijital Anadolu Medeniyetleri",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "milli-egitim-bakanligi-anadolu-nun-kulturel-mirasini-ogrencilere",
+      "word_count": 427,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "Millî Eğitim Bakanlığınca öğrencilerin okul derslerine ve sınavlara hazırlık süreçlerini desteklemek amacıyla hayata geçirilen MEBİ Bireysel",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "milli-egitim-bakanliginca-ogrencilerin-okul-derslerine-ve-sinavlara",
+      "word_count": 351,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "TOKİ Başkan Yardımcısı Osman Direnç, asrın felaketi sonrası yapılan çalışmaları anlattı",
+      "institution": "T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (TOKİ)",
+      "slug": "toki-baskan-yardimcisi-osman-direnc-asrin-felaketi-sonrasi-yapilan",
+      "word_count": 436,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "2026-TUS 2. Dönem: Ek Yerleştirme Tercihlerinin Alınması",
+      "institution": "T.C. Ölçme, Seçme ve Yerleştirme Merkezi (ÖSYM)",
+      "slug": "2026-tus-2-donem-ek-yerlestirme-tercihlerinin-alinmasi",
+      "word_count": 405,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "20 Kasım 2026"
+    },
+    {
+      "headline": "İletişim Başkanı Duran’dan KIZILELMA’nın envantere girmesine ilişkin tebrik mesajı",
+      "institution": "T.C. İletişim Başkanlığı",
+      "slug": "iletisim-baskani-duran-dan-kizilelma-nin-envantere-girmesine-iliskin",
+      "word_count": 438,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Cumhurbaşkanı Erdoğan’dan KIZILELMA’nın envantere girmesine ilişkin mesaj",
+      "institution": "T.C. İletişim Başkanlığı",
+      "slug": "cumhurbaskani-erdogan-dan-kizilelma-nin-envantere-girmesine-iliskin",
+      "word_count": 528,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Türkiye'nin uluslararası öğrenci değerlendirmelerinde ortaya koyduğu gelişimin ve PISA 2025 sonuçlarında elde ettiği başarının ele",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "turkiye-nin-uluslararasi-ogrenci-degerlendirmelerinde-ortaya-koydugu",
+      "word_count": 498,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "COP31 kapsamında oluşturulan Türkiye İklim Okulunda, 30 ilde yaklaşık 1.500 öğrencinin katılımıyla hazırlanan \"Ulusal Gençlik İklim",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "cop31-kapsaminda-olusturulan-turkiye-iklim-okulunda-30-ilde-yaklasik-1",
+      "word_count": 412,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "COP31 kapsamında Türkiye İklim Okulunda gerçekleştirilen \"81 İl 81 İklim Delegesi Gençlik Paneli\", farklı illerden seçilen genç iklim",
+      "institution": "T.C. Millî Eğitim Bakanlığı",
+      "slug": "cop31-kapsaminda-turkiye-iklim-okulunda-gerceklestirilen-81-il-81-iklim",
+      "word_count": 476,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Liseli şeflerin hazırladığı tabaklar Hırvatistan'dan 12 madalya getirdi",
+      "institution": "Anadolu Ajansı",
+      "slug": "liseli-seflerin-hazirladigi-tabaklar-hirvatistan-dan-12-madalya-getirdi",
+      "word_count": 344,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "e-YDTS başvuruları başladı",
+      "institution": "Anadolu Ajansı",
+      "slug": "e-ydts-basvurulari-basladi",
+      "word_count": 482,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Bakan Tekin: Çocuklarımızın insani değerlerini, devletle ve milletle bağını kaybetmesine müsaade etmeyeceğiz",
+      "institution": "Anadolu Ajansı",
+      "slug": "bakan-tekin-cocuklarimizin-insani-degerlerini-devletle-ve-milletle",
+      "word_count": 464,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "İlköğretim ve Ortaöğretim Kurumları Bursluluk Sınavı giriş belgeleri erişime açıldı",
+      "institution": "Anadolu Ajansı",
+      "slug": "ilkogretim-ve-ortaogretim-kurumlari-bursluluk-sinavi-giris-belgeleri",
+      "word_count": 490,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Engelli Kamu Personeli Seçme Sınavı yapıldı",
+      "institution": "Anadolu Ajansı",
+      "slug": "engelli-kamu-personeli-secme-sinavi-yapildi",
+      "word_count": 367,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    },
+    {
+      "headline": "Bakan Tekin: Evlatlarımızın güvenliği konusunda en küçük bir tavize izin vermeyeceğiz",
+      "institution": "Anadolu Ajansı",
+      "slug": "bakan-tekin-evlatlarimizin-guvenligi-konusunda-en-kucuk-bir-tavize-izin",
+      "word_count": 424,
+      "generated_by": "nvidia_nemotron_550b_agent",
+      "publish_date": "19 Kasım 2026"
+    }
+  ]
+}
