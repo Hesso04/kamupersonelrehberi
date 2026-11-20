@@ -4,6 +4,45 @@
 (function () {
   "use strict";
 
+  var SUPA_URL = "https://lxffirosgbrfptnbjvdg.supabase.co";
+  var SUPA_KEY = "sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9";
+
+  function detectReferrer() {
+    var r = (document.referrer || "").toLowerCase();
+    var u = (navigator.userAgent || "").toLowerCase();
+    if (u.indexOf("instagram") !== -1 || r.indexOf("instagram") !== -1) return "Instagram";
+    if (r.indexOf("t.me") !== -1 || r.indexOf("telegram") !== -1) return "Telegram Kanalı";
+    if (r.indexOf("google.") !== -1) return "Google Arama";
+    if (r.indexOf("bing.") !== -1 || r.indexOf("yandex.") !== -1) return "Diğer Arama Motoru";
+    if (r.indexOf("facebook.") !== -1 || r.indexOf("fb.") !== -1) return "Facebook";
+    if (r.indexOf("twitter.") !== -1 || r.indexOf("x.com") !== -1) return "X (Twitter)";
+    if (r && r.indexOf("kamupersonelrehberiniz.me") === -1) return r.replace(/^https?:\/\//, "").split("/")[0];
+    return "Doğrudan (Direct)";
+  }
+
+  function trackEvent(eventType, jobId, jobTitle, category) {
+    try {
+      fetch(SUPA_URL + "/rest/v1/site_analytics_events", {
+        method: "POST",
+        headers: {
+          "apikey": SUPA_KEY,
+          "Authorization": "Bearer " + SUPA_KEY,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          event_type: eventType,
+          job_id: jobId || null,
+          job_title: jobTitle ? String(jobTitle).slice(0, 180) : null,
+          category: category ? String(category).slice(0, 100) : null,
+          referrer: detectReferrer(),
+          user_agent: (navigator.userAgent || "").slice(0, 240)
+        }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   var ALL_JOBS = [];
   var FILTERED_JOBS = [];
   var SHOWN_COUNT = 24;
@@ -347,15 +386,21 @@
     var btns = "";
     if (job.pdf_url) {
       var href = job.pdf_url.indexOf("http") === 0 ? job.pdf_url : "/" + job.pdf_url.replace(/^\/+/, "");
-      btns += '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" class="btn-portal-primary">Resmi PDF Kılavuzunu Aç ↗</a>';
+      btns += '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" onclick="window._kprTrack(\'PDF_DOWNLOAD\',' + Number(job.id) + ')" class="btn-portal-primary">Resmi PDF Kılavuzunu Aç ↗</a>';
     }
     if (job.source_url) {
-      btns += '<a href="' + esc(job.source_url) + '" target="_blank" rel="noopener noreferrer nofollow" class="btn-portal-primary" style="background:var(--brand-blue);">Resmi İlan Kaynağı ↗</a>';
+      btns += '<a href="' + esc(job.source_url) + '" target="_blank" rel="noopener noreferrer nofollow" onclick="window._kprTrack(\'APPLY_CLICK\',' + Number(job.id) + ')" class="btn-portal-primary" style="background:var(--brand-blue);">Resmi İlan Kaynağı ↗</a>';
     }
     btns += '<button onclick="closeJobModal()" style="padding:10px 16px;border:1px solid var(--border-color);border-radius:8px;font-weight:600;">Kapat</button>';
     document.getElementById("modal-job-foot").innerHTML = btns;
     modal.classList.add("open");
     document.body.style.overflow = "hidden";
+    trackEvent("JOB_VIEW", Number(job.id), job.title || job.position, job.category || job.institution);
+  };
+
+  window._kprTrack = function (evType, jobId) {
+    var job = ALL_JOBS.find(function (j) { return Number(j.id) === Number(jobId); });
+    trackEvent(evType, jobId, job ? (job.title || job.position) : null, job ? (job.category || job.institution) : null);
   };
 
   window.copyJobSummary = function (jobId) {
@@ -499,6 +544,7 @@
   function boot() {
     setTodayDate();
     initEvents();
+    trackEvent("PAGEVIEW", null, document.title, "Ana Sayfa");
 
     fetch("/data/jobs.json")
       .then(function (r) { return r.json(); })

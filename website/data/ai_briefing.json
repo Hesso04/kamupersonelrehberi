@@ -1,0 +1,178 @@
+{
+  "generated_at": "2026-11-20T22:43:44.353673+00:00",
+  "generated_at_tr": "21.11.2026 01:43",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b",
+  "briefing": {
+    "executive_summary": "Son 24 saatte 880 etkileşimle trafik yoğun, Telegram kanalı (567) tek başına trafiğin %64'ünü oluşturuyor. APPLY_CLICK/JOB_VIEW oranı %50 (141/281) ve iş başvuru niyeti son derece güçlü. Ancak NEWS_VIEW (1) ve PDF_DOWNLOAD (75) düşük kalıyor, içerik tüketimi iş ilanlarına odaklanmış durumda.",
+    "traffic_insight": "Trafik %64 Telegram, %23 Doğrudan, %15 Google, %10 Instagram'dan geliyor; organik arama payı nispeten düşük. Cihazlarda Mobil Android %39, Masaüstü %30, Instagram Uygulama İçi %26, iOS %19; mobil toplam %84 ve Instagram içi tarayıcı payı yüksek, bu sayfaların mobil/uygulama içi performansının kritik olduğunu gösteriyor.",
+    "content_insight": "En çok görüntülenen ilan 'Memur ve İtfaiye Eri Alımı' (33), kategori bazında 'Kamu Personeli / Diğer' (72) ve 'Memur & Genel İdari Kadrolar' (33) öne çıkıyor. Aramalarda 'Ambulans' (7), 'Çocuk/Çocuk gelişimi' (10 toplam), 'Sağlık Bakanlığı' (5) ve 'Memur' (5) terimleri sağlık ve memurluk odaklı talebi kanıtlıyor.",
+    "action_items": [
+      "Google organik trafiğini artırmak için en çok aranan 'Sağlık Bakanlığı', 'Ambulans', 'Çocuk Gelişimi' anahtar kelimeleriyle sayfa başlıklarını, meta description'ları ve şema verilerini optimize et.",
+      "Instagram Uygulama İçi (%26) ve Mobil (%84) trafiği için başvuru butonlarını (APPLY_CLICK) sticky yap, form alanlarını azalt ve sayfa yükleme hızını (LCP/CLS) iyileştir.",
+      "Düşük NEWS_VIEW (1) ve PDF_DOWNLOAD (75) için: haberleri ilan sayfalarına 'İlgili Haberler' bloğu ile entegre et, PDF indirme butonlarını ilan detay sayfasında daha görünür konuma taşı ve 'İndir -> Başvur' akışını tek tıkla birleştir."
+    ],
+    "model": "nvidia/nemotron-3-ultra-550b-a55b"
+  },
+  "snapshot": {
+    "total_events_analyzed": 1000,
+    "event_counts": {
+      "PAGEVIEW": 244,
+      "APPLY_CLICK": 150,
+      "JOB_VIEW": 299,
+      "PDF_DOWNLOAD": 80,
+      "SEARCH": 223,
+      "NEWS_VIEW": 4
+    },
+    "last_24h_counts": {
+      "PAGEVIEW": 201,
+      "APPLY_CLICK": 141,
+      "JOB_VIEW": 281,
+      "PDF_DOWNLOAD": 75,
+      "SEARCH": 181,
+      "NEWS_VIEW": 1
+    },
+    "top_referrers": [
+      [
+        "Telegram Kanalı",
+        567
+      ],
+      [
+        "Doğrudan (Direct)",
+        206
+      ],
+      [
+        "Google Arama",
+        134
+      ],
+      [
+        "Instagram Bio",
+        93
+      ]
+    ],
+    "device_breakdown": [
+      [
+        "Mobil (Android)",
+        340
+      ],
+      [
+        "Masaüstü",
+        260
+      ],
+      [
+        "Instagram Uygulama İçi",
+        229
+      ],
+      [
+        "Mobil (iOS)",
+        168
+      ],
+      [
+        "Diğer",
+        3
+      ]
+    ],
+    "top_jobs": [
+      [
+        "Memur ve İtfaiye Eri Alımı",
+        33
+      ],
+      [
+        "SİGORTACILIK VE ÖZEL EMEKLİLİK DÜZENLEME VE DENETLEME KURUMU - 10 Sekreter, Şoför, Hizmetli Alımı",
+        20
+      ],
+      [
+        "Açıkça Personel Alımı",
+        18
+      ],
+      [
+        "Antalya Gündoğmuş Belediyesi Memur Alım İlanı 05.01.2027",
+        17
+      ],
+      [
+        "Kamu Kurumu - 38 Sağlık bakanlığı 38 bin hekim dışı Personeli Alımı",
+        17
+      ],
+      [
+        "Şile Belediye Başkanlığı - 8 Zabıta Memuru Alımı",
+        14
+      ],
+      [
+        "SAHİL GÜVENLİK KOMUTANLIĞI - SAHİL GÜVENLİK KOMUTANLIĞI 2026 YILI DEVLET MEMURU TEMİNİ",
+        14
+      ],
+      [
+        "Cumhurbaşkanlığı Savunma Sanayii Başkanlığı Proje Bazlı Sözleşmeli Personel Alım İlanı 21.12.2026",
+        11
+      ]
+    ],
+    "top_categories": [
+      [
+        "Kamu Personeli / Diğer",
+        72
+      ],
+      [
+        "Memur & Genel İdari Kadrolar",
+        33
+      ],
+      [
+        "Belediye Başkanlıkları",
+        14
+      ],
+      [
+        "Akademik Kadrolar",
+        12
+      ],
+      [
+        "Sürekli İşçi Alımları",
+        9
+      ],
+      [
+        "Sözleşmeli Personel",
+        9
+      ]
+    ],
+    "top_searches": [
+      [
+        "Ambulans",
+        7
+      ],
+      [
+        "Çocuk",
+        5
+      ],
+      [
+        "Çocuk gelişimi",
+        5
+      ],
+      [
+        "sağlık bakanlığı",
+        5
+      ],
+      [
+        "memur",
+        5
+      ],
+      [
+        "sağlık",
+        4
+      ],
+      [
+        "Sağlık",
+        3
+      ],
+      [
+        "Paramedik",
+        3
+      ]
+    ],
+    "jobs_meta": {
+      "total_jobs": 1612,
+      "total_quota": 0,
+      "generated_at": "2026-11-20T14:44:29.594613+00:00"
+    },
+    "news_meta": {
+      "total_approved_news": 15,
+      "generated_at": "2026-11-20T21:57:53.134845+00:00"
+    }
+  }
+}

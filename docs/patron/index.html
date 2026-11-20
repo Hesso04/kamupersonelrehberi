@@ -3,1688 +3,881 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kamu Personel Rehberi — Patron Yönetim & Analitik Konsolu</title>
+  <title>Kamu Personel Rehberi — Patron Yönetici Konsolu &amp; AI Asistan</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="../favicon.ico">
-
-  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Chart.js CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
   <style>
     :root {
-      --bg-base: #090D16;
-      --bg-sidebar: #0E131F;
-      --bg-card: rgba(18, 24, 38, 0.7);
-      --bg-card-hover: rgba(26, 34, 52, 0.85);
-      --bg-input: #121826;
-      --border-subtle: rgba(255, 255, 255, 0.06);
-      --border-focus: rgba(59, 130, 246, 0.5);
-      --border-accent: rgba(16, 185, 129, 0.3);
+      --bg-base: #0A111A;
+      --bg-sidebar: #0E1724;
+      --bg-card: #121D2D;
+      --bg-card-2: #162438;
+      --bg-input: #0D1622;
+      --border: rgba(148, 163, 184, 0.14);
+      --border-strong: rgba(56, 189, 248, 0.35);
 
       --text-main: #F1F5F9;
-      --text-muted: #94A3B8;
+      --text-sec: #94A3B8;
       --text-dim: #64748B;
 
-      --primary: #3B82F6;
-      --primary-hover: #2563EB;
-      --primary-glow: rgba(59, 130, 246, 0.2);
-
-      --success: #10B981;
-      --success-glow: rgba(16, 185, 129, 0.15);
-      --warning: #F59E0B;
-      --warning-glow: rgba(245, 158, 11, 0.15);
-      --danger: #EF4444;
-      --danger-glow: rgba(239, 68, 68, 0.15);
-      --purple: #8B5CF6;
-      --cyan: #06B6D4;
-
-      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --navy: #1D5B8C;
+      --blue: #3882C4;
+      --sky: #38BDF8;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --red: #EF4444;
 
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 16px;
-      --radius-xl: 20px;
-      --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-subtle);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      overflow-x: hidden;
-      background-image: 
-        radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
-    }
+    html, body { height: 100%; background: var(--bg-base); color: var(--text-main); font-family: var(--font-sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    body { display: flex; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
-
-    /* Login Modal */
+    /* Login Overlay */
     #login-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(9, 13, 22, 0.94);
-      backdrop-filter: blur(16px);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(8, 13, 21, 0.96); backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
     }
-    .login-box {
-      background: #111726;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(59, 130, 246, 0.15);
-      border-radius: var(--radius-xl);
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 36px 32px; text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
     }
-    .login-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: var(--primary);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 20px;
+    .login-logo { width: 64px; height: 64px; margin: 0 auto 14px auto; border-radius: 50%; }
+    .login-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; }
+    .login-sub { font-size: 0.84rem; color: var(--text-sec); margin-bottom: 24px; }
+    .form-group { text-align: left; margin-bottom: 14px; }
+    .form-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
+    .form-input {
+      width: 100%; padding: 11px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text-main); font-size: 0.92rem; outline: none;
     }
-    .login-title {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-    .login-subtitle {
-      font-size: 13.5px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-    .form-group {
-      text-align: left;
-      margin-bottom: 18px;
-    }
-    .form-label {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .form-control {
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      color: #fff;
-      font-family: inherit;
-      font-size: 14px;
-      transition: all 0.2s ease;
-      outline: none;
-    }
-    .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-glow);
-      background: #151D2E;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-family: inherit;
-      font-size: 13.5px;
-      font-weight: 600;
-      border-radius: var(--radius-sm);
-      padding: 10px 18px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-      text-decoration: none;
-    }
+    .form-input:focus { border-color: var(--sky); }
     .btn-primary {
-      background: var(--primary);
-      color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--navy); color: #fff; font-weight: 700; font-size: 0.88rem;
+      padding: 10px 18px; border-radius: var(--radius-sm); transition: background 150ms, transform 120ms;
     }
-    .btn-primary:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    .btn-primary:hover { background: var(--blue); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--bg-card-2); color: var(--text-main); border: 1px solid var(--border);
+      font-weight: 600; font-size: 0.84rem; padding: 9px 14px; border-radius: var(--radius-sm);
+      transition: border-color 150ms;
     }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-main);
-      border: 1px solid var(--border-subtle);
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-    }
-    .btn-success:hover {
-      background: #059669;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-    }
-    .btn-block { width: 100%; padding: 13px; font-size: 14.5px; }
-
-    .login-error {
-      margin-top: 16px;
-      padding: 10px;
-      border-radius: var(--radius-sm);
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #FCA5A5;
-      font-size: 13px;
-      display: none;
-    }
+    .btn-ghost:hover { border-color: var(--sky); }
 
     /* Sidebar */
     .sidebar {
-      width: 260px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 100;
-      user-select: none;
+      width: 256px; flex-shrink: 0; background: var(--bg-sidebar);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      height: 100vh; position: sticky; top: 0;
     }
-    .sidebar-brand {
-      padding: 24px 20px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .sb-brand {
+      display: flex; align-items: center; gap: 11px; padding: 20px 18px;
+      border-bottom: 1px solid var(--border);
     }
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 18px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-    }
-    .brand-info h1 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.2;
-    }
-    .brand-info span {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+    .sb-brand img { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; }
+    .sb-brand-name { font-size: 0.95rem; font-weight: 800; line-height: 1.2; }
+    .sb-brand-sub { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; color: var(--sky); text-transform: uppercase; }
 
-    .nav-list {
-      list-style: none;
-      padding: 16px 12px;
-      flex: 1;
-      overflow-y: auto;
+    .sb-nav { flex: 1; padding: 14px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+    .sb-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; padding: 12px 10px 4px 10px; }
+    .nav-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: var(--radius-sm); font-size: 0.86rem; font-weight: 600;
+      color: var(--text-sec); text-align: left; transition: all 140ms;
     }
-    .nav-category {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      padding: 12px 10px 6px;
-    }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      font-size: 13.5px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      margin-bottom: 2px;
-      text-decoration: none;
-    }
-    .nav-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-      color: #fff;
-    }
-    .nav-item.active {
-      background: rgba(59, 130, 246, 0.12);
-      color: #93C5FD;
-      font-weight: 600;
-      box-shadow: inset 3px 0 0 var(--primary);
-    }
-    .nav-item svg { flex-shrink: 0; opacity: 0.8; }
-    .nav-item.active svg { opacity: 1; stroke: #93C5FD; }
-    .nav-badge {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(16, 185, 129, 0.2);
-      color: #34D399;
-    }
+    .nav-btn:hover { background: rgba(56, 130, 196, 0.12); color: var(--text-main); }
+    .nav-btn.active { background: rgba(29, 91, 140, 0.35); color: #fff; border: 1px solid rgba(56, 189, 248, 0.25); }
+    .nav-pill { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(16, 185, 129, 0.18); color: #34D399; }
 
-    .sidebar-footer {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border-subtle);
-      font-size: 12px;
-      color: var(--text-dim);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .sb-footer {
+      padding: 14px 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-sec);
     }
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--success);
-      font-weight: 600;
-    }
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      background: var(--success);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--success);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; margin-right: 6px; box-shadow: 0 0 8px var(--emerald); }
 
-    /* Main Area */
-    .main-wrapper {
-      margin-left: 260px;
-      flex: 1;
-      padding: 32px 40px;
-      max-width: 1500px;
-    }
-
-    /* Top Bar */
+    /* Main Content */
+    .main-wrap { flex: 1; min-width: 0; padding: 26px 28px 48px 28px; overflow-y: auto; }
     .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      gap: 20px;
-      flex-wrap: wrap;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 14px; margin-bottom: 24px;
     }
-    .page-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.5px;
-    }
-    .page-desc {
-      font-size: 13.5px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
+    .page-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+    .page-sub { font-size: 0.85rem; color: var(--text-sec); margin-top: 2px; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
-    /* Tabs */
-    .tab-section {
-      display: none;
-      animation: fadeIn 0.25s ease-out;
-    }
-    .tab-section.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 180ms ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Metrics Grid */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 18px;
-      margin-bottom: 28px;
+    /* KPI Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;
     }
-    .metric-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 22px;
-      box-shadow: var(--shadow-card);
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .metric-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-    .metric-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .metric-title {
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .metric-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--primary);
-    }
-    .metric-value {
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: #fff;
-      font-family: var(--font-sans);
-    }
-    .metric-sub {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .metric-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 4px;
-    }
-    .badge-green { background: var(--success-glow); color: #34D399; }
-    .badge-blue { background: var(--primary-glow); color: #60A5FA; }
-    .badge-amber { background: var(--warning-glow); color: #FBBF24; }
-    .badge-purple { background: rgba(139, 92, 246, 0.15); color: #C084FC; }
+    .kpi-label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-sec); }
+    .kpi-value { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .kpi-meta { font-size: 0.78rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+    .kpi-tag { font-weight: 700; padding: 2px 7px; border-radius: 5px; font-size: 0.72rem; }
+    .tag-ok { background: rgba(16, 185, 129, 0.16); color: #34D399; }
+    .tag-blue { background: rgba(56, 189, 248, 0.14); color: #7DD3FC; }
+    .tag-amber { background: rgba(245, 158, 11, 0.16); color: #FBBF24; }
 
-    /* Content Cards */
-    .card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-card);
-      margin-bottom: 24px;
-      overflow: hidden;
-    }
-    .card-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .card-desc {
-      font-size: 12.5px;
-      color: var(--text-dim);
-    }
-    .card-body {
-      padding: 24px;
-    }
+    /* Panels & Charts */
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 20px; }
+    @media (min-width: 1024px) { .grid-2 { grid-template-columns: 1.35fr 1fr; } }
+    .grid-2-eq { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 20px; }
+    @media (min-width: 960px) { .grid-2-eq { grid-template-columns: 1fr 1fr; } }
 
-    /* Grid Layouts */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+    .panel-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 20px 22px;
     }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-    @media (max-width: 1080px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .main-wrapper { padding: 24px 20px; }
-    }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
+    .panel-title { font-size: 1rem; font-weight: 700; }
+    .panel-sub { font-size: 0.78rem; color: var(--text-sec); }
+    .chart-box { position: relative; height: 260px; width: 100%; }
 
-    /* Tables */
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 13.5px;
-    }
-    .table th {
-      padding: 12px 16px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(255, 255, 255, 0.02);
-    }
-    .table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-subtle);
-      color: var(--text-main);
-    }
-    .table tr:last-child td { border-bottom: none; }
-    .table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    /* Funnel & Progress Bars */
+    .funnel-row { margin-bottom: 14px; }
+    .funnel-head { display: flex; justify-content: space-between; font-size: 0.84rem; font-weight: 600; margin-bottom: 5px; }
+    .funnel-track { height: 9px; background: var(--bg-input); border-radius: 99px; overflow: hidden; }
+    .funnel-fill { height: 100%; border-radius: 99px; transition: width 500ms ease; }
 
-    /* Funnel Bars */
-    .funnel-step {
-      margin-bottom: 18px;
-    }
-    .funnel-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-    .funnel-label span:first-child { font-weight: 600; color: var(--text-main); }
-    .funnel-label span:last-child { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
-    .funnel-bar-bg {
-      height: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .funnel-bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    /* Data Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table th, .data-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .data-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-sec); font-weight: 700; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .mono { font-family: var(--font-mono); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 
-    /* Toast */
-    #toast-msg {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      background: #1E293B;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      font-size: 13.5px;
-      font-weight: 600;
-      z-index: 10000;
-      display: none;
-      animation: toastIn 0.25s ease-out;
+    /* AI Assistant Chatbot */
+    .ai-briefing-banner {
+      background: linear-gradient(135deg, rgba(29, 91, 140, 0.28) 0%, rgba(15, 118, 110, 0.16) 100%);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+      padding: 20px 22px; margin-bottom: 18px;
     }
-    @keyframes toastIn {
-      from { transform: translateY(12px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .ai-badge {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700;
+      color: var(--sky); background: rgba(56, 189, 248, 0.12); padding: 4px 10px; border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .chat-shell {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+      display: flex; flex-direction: column; height: 520px; overflow: hidden;
+    }
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .chat-msg { max-width: 86%; padding: 13px 16px; border-radius: 12px; font-size: 0.88rem; line-height: 1.62; }
+    .chat-msg.bot { align-self: flex-start; background: var(--bg-card-2); border: 1px solid var(--border); }
+    .chat-msg.user { align-self: flex-end; background: var(--navy); color: #fff; }
+    .chat-msg ul { margin: 8px 0 4px 18px; }
+    .chat-msg li { margin-bottom: 4px; }
+    .chat-chips {
+      display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px;
+      border-top: 1px solid var(--border); background: rgba(10, 17, 26, 0.45);
+    }
+    .chat-chip {
+      font-size: 0.77rem; font-weight: 600; padding: 6px 11px; border-radius: 99px;
+      background: var(--bg-card-2); border: 1px solid var(--border); color: var(--text-main);
+      transition: all 140ms;
+    }
+    .chat-chip:hover { border-color: var(--sky); color: var(--sky); }
+    .chat-input-row {
+      display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-sidebar);
+    }
+    .chat-input-row input {
+      flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text-main); padding: 10px 14px; font-size: 0.88rem; outline: none;
+    }
+    .chat-input-row input:focus { border-color: var(--sky); }
+
+    /* Mobile Responsive */
+    @media (max-width: 860px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: relative; }
+      .sb-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 8px; }
+      .sb-section-label, .sb-footer { display: none; }
+      .nav-btn { width: auto; white-space: nowrap; }
+      .main-wrap { padding: 18px 14px 40px 14px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Şifreli Giriş Modal -->
+  <!-- GÜVENLİ GİRİŞ EKRANI (Mevcut SHA-256 Şifreniz Korunur) -->
   <div id="login-overlay">
-    <div class="login-box">
-      <div class="login-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        GÜVENLİ YÖNETİM ERİŞİMİ
-      </div>
-      <h2 class="login-title">Patron Konsolu</h2>
-      <p class="login-subtitle">kamupersonelrehberiniz.me canlı analitik, bot sağlığı ve editoryal yönetim konsolu.</p>
-      
+    <div class="login-card">
+      <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi" class="login-logo">
+      <h1 class="login-title">Patron Yönetici Konsolu</h1>
+      <p class="login-sub">Canlı Supabase analitik verileri, NVIDIA Nemotron AI asistanı ve içerik denetim merkezi.</p>
       <div class="form-group">
-        <label class="form-label">Kullanıcı Adı</label>
-        <input type="text" id="patron-username" class="form-control" placeholder="Yönetici kullanıcı adınız" autofocus autocomplete="off">
+        <label class="form-label" for="patron-username">Yönetici Kullanıcı Adı</label>
+        <input type="text" id="patron-username" class="form-input" autocomplete="username" placeholder="Kullanıcı adınız">
       </div>
       <div class="form-group">
-        <label class="form-label">Yönetici Şifresi</label>
-        <input type="password" id="patron-password" class="form-control" placeholder="••••••••••••" autocomplete="off">
+        <label class="form-label" for="patron-password">Parola</label>
+        <input type="password" id="patron-password" class="form-input" autocomplete="current-password" placeholder="••••••••">
       </div>
-      
-      <button class="btn btn-primary btn-block" onclick="checkAuth()">Konsola Güvenli Giriş Yap</button>
-      <div id="login-error" class="login-error">Yetkisiz erişim: Kullanıcı adı veya şifre hatalı.</div>
+      <p id="login-error" style="display:none;color:#F87171;font-size:0.82rem;margin-bottom:12px;">Kullanıcı adı veya parola hatalı.</p>
+      <button class="btn-primary" style="width:100%;" onclick="checkAuth()">Güvenli Giriş Yap</button>
     </div>
   </div>
 
-  <!-- Sol Menü (Sidebar) -->
+  <!-- SOL MENÜ (SIDEBAR) -->
   <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-icon">K</div>
-      <div class="brand-info">
-        <h1>Kamu Personel</h1>
-        <span>YÖNETİCİ KONSOLU</span>
+    <div class="sb-brand">
+      <img src="/assets/img/logo.svg" alt="KPR Logo">
+      <div>
+        <div class="sb-brand-name">Kamu Personel</div>
+        <div class="sb-brand-sub">Yönetici Konsolu</div>
       </div>
     </div>
 
-    <ul class="nav-list">
-      <div class="nav-category">Analiz & Raporlama</div>
-      <li class="nav-item active" onclick="switchTab('tab-analytics', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span>Canlı Analitik & Huni</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-search-trends', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
-        <span>Arama Trendleri</span>
-      </li>
+    <nav class="sb-nav">
+      <div class="sb-section-label">Canlı Analitik</div>
+      <button class="nav-btn active" onclick="switchTab('tab-overview', this)">Genel Bakış &amp; Huni</button>
+      <button class="nav-btn" onclick="switchTab('tab-ai', this)"><span>NVIDIA AI Asistanı</span><span class="nav-pill">550B</span></button>
+      <button class="nav-btn" onclick="switchTab('tab-traffic', this)">Kaynaklar &amp; Aramalar</button>
 
-      <div class="nav-category">Sistem & Bot Sağlığı</div>
-      <li class="nav-item" onclick="switchTab('tab-bot-health', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-        <span>Bot Sağlığı (Scrapers)</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-link-pdf-audit', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        <span>PDF & Link Denetimi</span>
-      </li>
+      <div class="sb-section-label">İçerik &amp; Sistem</div>
+      <button class="nav-btn" onclick="switchTab('tab-inventory', this)">İlan &amp; AI Haber Envanteri</button>
+      <button class="nav-btn" onclick="switchTab('tab-system', this)">Otomasyon &amp; Kısayollar</button>
+    </nav>
 
-      <div class="nav-category">İçerik & İlan Yönetimi</div>
-      <li class="nav-item" onclick="switchTab('tab-editorial-v2', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        <span>Editoryal Motor v2.0</span>
-        <span class="nav-badge">YENİ</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-add-job', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="12" y1="11" x2="12" y2="17"/></svg>
-        <span>Manuel İlan Ekle</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-add-news', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Z"/><path d="M18 14h-8"/><path d="M15 18h-5"/></svg>
-        <span>Resmi Haber Ekle</span>
-      </li>
-
-      <div class="nav-category">Otomasyon & Dağıtım</div>
-      <li class="nav-item" onclick="switchTab('tab-social-webhook', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-        <span>Sosyal Medya Dağıtım</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-ai-studio', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-        <span>Yapay Zeka Stüdyosu</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-automation', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Bulut Senkronizasyon</span>
-      </li>
-      <li class="nav-item" onclick="switchTab('tab-scheduler', this)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Görev Zamanlayıcısı</span>
-      </li>
-
-      <div class="nav-category">Hızlı İşlemler</div>
-      <a href="../" target="_blank" class="nav-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        <span>Canlı Siteyi Aç</span>
-      </a>
-      <li class="nav-item" onclick="logout()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Güvenli Çıkış</span>
-      </li>
-    </ul>
-
-    <div class="sidebar-footer">
-      <div class="live-indicator">
-        <div class="live-dot"></div>
-        <span>Canlı Veri Akışı</span>
-      </div>
-      <span id="last-sync-time">Senkronize</span>
+    <div class="sb-footer">
+      <span><span class="live-dot"></span>Canlı Veri</span>
+      <button onclick="logout()" style="color:#F87171;font-weight:700;">Çıkış</button>
     </div>
   </aside>
 
-  <!-- Ana İçerik -->
-  <main class="main-wrapper">
+  <!-- ANA İÇERİK -->
+  <main class="main-wrap">
+    <div class="top-bar">
+      <div>
+        <h1 class="page-title" id="top-page-title">Canlı Analitik &amp; Yönetici Özeti</h1>
+        <p class="page-sub" id="top-page-sub">kamupersonelrehberiniz.me — %100 gerçek Supabase, ilan ve NVIDIA AI verileri</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn-ghost" onclick="refreshAllData()">Verileri Yenile</button>
+        <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-ghost">Search Console ↗</a>
+        <a href="https://adsense.google.com/" target="_blank" rel="noopener noreferrer" class="btn-primary">Google AdSense ↗</a>
+      </div>
+    </div>
 
-    <!-- ==================== TAB 1: CANLI ANALİTİK & HUNİ ==================== -->
-    <div id="tab-analytics" class="tab-section active">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Canlı Analitik & Dönüşüm Paneli</h2>
-          <p class="page-desc">kamupersonelrehberiniz.me ziyaretçi etkileşimleri, başvuru tıklamaları ve dönüşüm metrikleri.</p>
+    <!-- SEKME 1: GENEL BAKIŞ & CANLI ANALİTİK -->
+    <section class="tab-pane active" id="tab-overview">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Sayfa Görüntüleme (Pageview)</span>
+          <div class="kpi-value" id="kpi-pv">-</div>
+          <div class="kpi-meta"><span class="kpi-tag tag-blue" id="kpi-pv-24h">Son 24s: -</span><span>Gerçek ziyaret</span></div>
         </div>
-        <div style="display:flex;gap:12px;">
-          <button class="btn btn-secondary" onclick="fetchLiveAnalytics()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-            Verileri Yenile
-          </button>
-          <a href="https://adsense.google.com" target="_blank" class="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            Google AdSense
-          </a>
+        <div class="kpi-card">
+          <span class="kpi-label">İlan İnceleme (Job View)</span>
+          <div class="kpi-value" id="kpi-jv">-</div>
+          <div class="kpi-meta"><span class="kpi-tag tag-blue" id="kpi-jv-24h">Son 24s: -</span><span>Detay açılımı</span></div>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Resmi PDF Kılavuz Açma</span>
+          <div class="kpi-value" id="kpi-pdf">-</div>
+          <div class="kpi-meta"><span class="kpi-tag tag-amber" id="kpi-pdf-rate">-%</span><span>İlan incelemeye göre</span></div>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Resmi Başvuru Tıklaması</span>
+          <div class="kpi-value" id="kpi-apply">-</div>
+          <div class="kpi-meta"><span class="kpi-tag tag-ok" id="kpi-apply-rate">-%</span><span>Dönüşüm oranı</span></div>
         </div>
       </div>
 
-      <!-- Metrik Kartları -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">Toplam Sayfa Görüntüleme</span>
-            <div class="metric-icon">👁️</div>
-          </div>
-          <div id="val-pageviews" class="metric-value">--</div>
-          <div class="metric-sub">
-            <span class="metric-badge badge-blue">Trafik</span>
-            <span>Tüm oturumlar</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">İlan İnceleme Sayısı</span>
-            <div class="metric-icon">📑</div>
-          </div>
-          <div id="val-jobviews" class="metric-value">--</div>
-          <div class="metric-sub">
-            <span class="metric-badge badge-purple">Detay</span>
-            <span>Adayların açtığı ilanlar</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">PDF Kılavuz İndirmeleri</span>
-            <div class="metric-icon">📥</div>
-          </div>
-          <div id="val-pdfdownloads" class="metric-value">--</div>
-          <div class="metric-sub">
-            <span class="metric-badge badge-amber">Resmi Metin</span>
-            <span>Kılavuz tıklamaları</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">Resmi Başvuru Tıklaması</span>
-            <div class="metric-icon">🚀</div>
-          </div>
-          <div id="val-applyclicks" class="metric-value">--</div>
-          <div class="metric-sub">
-            <span id="val-conversion" class="metric-badge badge-green">%0 Dönüşüm</span>
-            <span>Kariyer Kapısı / İŞKUR</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grafikler ve Huni -->
       <div class="grid-2">
-        <!-- Günlük Trend Grafiği -->
-        <div class="card">
-          <div class="card-header">
+        <div class="panel-card">
+          <div class="panel-head">
             <div>
-              <div class="card-title">📈 Günlük Ziyaretçi Etkileşim Trendi</div>
-              <div class="card-desc">Son 7 gün içerisindeki aktivite dağılımı</div>
+              <div class="panel-title">Son 7 Günlük Gerçek Etkileşim Trendi</div>
+              <div class="panel-sub">Supabase site_analytics_events günlük dağılımı</div>
             </div>
           </div>
-          <div class="card-body" style="height:280px;">
-            <canvas id="dailyTrendChart"></canvas>
-          </div>
+          <div class="chart-box"><canvas id="chart-trend"></canvas></div>
         </div>
 
-        <!-- Dönüşüm Hunisi -->
-        <div class="card">
-          <div class="card-header">
+        <div class="panel-card">
+          <div class="panel-head">
             <div>
-              <div class="card-title">🎯 Aday Karar Hunisi (Conversion Funnel)</div>
-              <div class="card-desc">Girişten resmi başvuruya aday yolculuğu</div>
+              <div class="panel-title">Ziyaretçiler Nereden Geliyor?</div>
+              <div class="panel-sub">Gerçek referrer (kanal) dağılımı</div>
             </div>
           </div>
-          <div class="card-body">
-            <div class="funnel-step">
-              <div class="funnel-label">
-                <span>1. Site Ziyareti (Pageview)</span>
-                <span id="fn-step-1">0</span>
-              </div>
-              <div class="funnel-bar-bg">
-                <div class="funnel-bar-fill" style="width:100%;background:#3B82F6;"></div>
-              </div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-label">
-                <span>2. İlan Detayını Açma (Job View)</span>
-                <span id="fn-step-2">0</span>
-              </div>
-              <div class="funnel-bar-bg">
-                <div id="fn-bar-2" class="funnel-bar-fill" style="width:0%;background:#8B5CF6;"></div>
-              </div>
-              <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;" id="fn-rate-2">%0 İnceleme Oranı</div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-label">
-                <span>3. Resmi Kılavuz / PDF Açma</span>
-                <span id="fn-step-3">0</span>
-              </div>
-              <div class="funnel-bar-bg">
-                <div id="fn-bar-3" class="funnel-bar-fill" style="width:0%;background:#F59E0B;"></div>
-              </div>
-              <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;" id="fn-rate-3">%0 Kılavuz Okuma</div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-label">
-                <span>4. Nihai Başvuru Yönlendirmesi</span>
-                <span id="fn-step-4">0</span>
-              </div>
-              <div class="funnel-bar-bg">
-                <div id="fn-bar-4" class="funnel-bar-fill" style="width:0%;background:#10B981;"></div>
-              </div>
-              <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;" id="fn-rate-4">%0 Dönüşüm</div>
-            </div>
-          </div>
+          <div class="chart-box"><canvas id="chart-referrers"></canvas></div>
         </div>
       </div>
 
-      <!-- En Çok İncelenen İlanlar Tablosu -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">🔥 En Çok İlgi Gören İlanlar</div>
-            <div class="card-desc">Canlı veritabanındaki gerçek aday etkileşimlerine göre sıralı</div>
+      <div class="grid-2-eq">
+        <div class="panel-card">
+          <div class="panel-head">
+            <div class="panel-title">Aday Karar Hunisi &amp; Cihaz Dağılımı</div>
+          </div>
+          <div id="funnel-container"></div>
+          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--text-sec);margin-bottom:10px;">CİHAZ DAĞILIMI (GERÇEK USER-AGENT)</div>
+            <div id="device-container" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>İlan ID</th>
-                <th>Kurum ve İlan Başlığı</th>
-                <th>Kategori</th>
-                <th>İnceleme Sayısı</th>
-                <th>Durum</th>
-              </tr>
-            </thead>
-            <tbody id="top-jobs-tbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">Veriler yükleniyor...</td></tr>
-            </tbody>
+
+        <div class="panel-card">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">En Çok İlgi Gören Sayfa &amp; İlanlar</div>
+              <div class="panel-sub">Gerçek tıklama ve inceleme sıralaması</div>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>İlan / Sayfa</th><th style="text-align:right;">Etkileşim</th></tr></thead>
+            <tbody id="top-pages-tbody"><tr><td colspan="2" style="color:var(--text-sec);">Yükleniyor...</td></tr></tbody>
           </table>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==================== TAB 2: ARAMA TRENDLERİ ==================== -->
-    <div id="tab-search-trends" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Site İçi Arama ve Trend Analizi</h2>
-          <p class="page-desc">Ziyaretçilerin arama kutusuna yazdığı terimler ve kamu adaylarının talep yoğunluğu.</p>
+    <!-- SEKME 2: NVIDIA AI YÖNETİCİ ASİSTANI (CHATBOT) -->
+    <section class="tab-pane" id="tab-ai">
+      <div class="ai-briefing-banner" id="ai-briefing-card">
+        <span class="ai-badge">NVIDIA NEMOTRON-3-ULTRA-550B • OTOMATİK YÖNETİCİ BRİFİNGİ</span>
+        <div id="ai-briefing-content" style="font-size:0.9rem;color:var(--text-main);">NVIDIA AI brifingi yükleniyor...</div>
+      </div>
+
+      <div class="chat-shell">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-msg bot">
+            <strong>Merhaba Patron!</strong> Ben Kamu Personel Rehberi <strong>AI Site Asistanınım</strong> (NVIDIA Nemotron-3-Ultra-550B brifing motoru + canlı Supabase veri katmanı).<br>
+            Bana <em>"günlük özet ver"</em>, <em>"ziyaretçiler nereden geliyor?"</em>, <em>"en çok hangi sayfa ilgi gördü?"</em>, <em>"bot ve haber durumu nasıl?"</em> veya <em>"AdSense önerisi"</em> gibi sorular sorabilirsin.
+          </div>
+        </div>
+
+        <div class="chat-chips">
+          <button class="chat-chip" onclick="askAssistant('Günlük yönetici özeti ver')">Günlük özet ver</button>
+          <button class="chat-chip" onclick="askAssistant('Ziyaretçiler nereden geliyor?')">Ziyaretçiler nereden geliyor?</button>
+          <button class="chat-chip" onclick="askAssistant('En çok hangi ilan ve sayfalar ilgi gördü?')">En çok ilgi gören sayfalar</button>
+          <button class="chat-chip" onclick="askAssistant('Mobil ve masaüstü cihaz dağılımı nedir?')">Cihaz dağılımı</button>
+          <button class="chat-chip" onclick="askAssistant('Aktif ilan, AI haber ve bot durumu nedir?')">İlan &amp; AI Haber durumu</button>
+          <button class="chat-chip" onclick="askAssistant('AdSense ve SEO için somut aksiyon öner')">AdSense &amp; SEO önerileri</button>
+        </div>
+
+        <form class="chat-input-row" onsubmit="event.preventDefault(); sendChatInput();">
+          <input type="text" id="chat-input" placeholder="Sitenle ilgili bir soru sor (örn: Bugün kaç kişi geldi, en çok ne arandı?)..." autocomplete="off">
+          <button type="submit" class="btn-primary">Sor</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEKME 3: TRAFİK KAYNAKLARI, ARAMALAR & CANLI AKIŞ -->
+    <section class="tab-pane" id="tab-traffic">
+      <div class="grid-2-eq">
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">Trafik Kaynakları (Referrer)</div></div>
+          <table class="data-table">
+            <thead><tr><th>Kaynak</th><th style="text-align:right;">Olay</th><th style="text-align:right;">Pay</th></tr></thead>
+            <tbody id="ref-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">Ziyaretçilerin Aradığı Kelimeler</div></div>
+          <table class="data-table">
+            <thead><tr><th>Arama Sorgusu / Kategori</th><th style="text-align:right;">Adet</th></tr></thead>
+            <tbody id="search-tbody"></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">🔍 Gerçek Zamanlı Arama Terimleri</div>
-            <div class="card-desc">Ziyaretçilerin doğrudan arattığı unvanlar ve kelimeler</div>
-          </div>
-          <div class="card-body">
-            <div id="search-keywords-list" style="display:flex;flex-direction:column;gap:10px;">
-              <div style="text-align:center;color:var(--text-dim);padding:20px;">Arama verileri taranıyor...</div>
-            </div>
+      <div class="panel-card">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Son 25 Canlı Ziyaretçi Hareketi</div>
+            <div class="panel-sub">Supabase gerçek zamanlı kayıt akışı</div>
           </div>
         </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Zaman</th><th>Olay</th><th>İlan / Sayfa</th><th>Kaynak</th><th>Cihaz</th></tr></thead>
+            <tbody id="live-stream-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">🌐 Trafik Kaynakları Dağılımı</div>
-            <div class="card-desc">Ziyaretçilerin siteye geliş kanalları</div>
-          </div>
-          <div class="card-body" style="height:320px;">
-            <canvas id="trafficPieChart"></canvas>
+    <!-- SEKME 4: İLAN & AI HABER ENVANTERİ (GERÇEK JSON) -->
+    <section class="tab-pane" id="tab-inventory">
+      <div class="kpi-grid">
+        <div class="kpi-card"><span class="kpi-label">Aktif Kamu İlanı</span><div class="kpi-value" id="inv-jobs">-</div><div class="kpi-meta">jobs.json canlı veri</div></div>
+        <div class="kpi-card"><span class="kpi-label">Toplam Açık Kontenjan</span><div class="kpi-value" id="inv-quota">-</div><div class="kpi-meta">Teyitli kadro toplamı</div></div>
+        <div class="kpi-card"><span class="kpi-label">PDF Kılavuz Oranı</span><div class="kpi-value" id="inv-pdf-pct">-</div><div class="kpi-meta" id="inv-pdf-sub">Doğrudan PDF bağlı</div></div>
+        <div class="kpi-card"><span class="kpi-label">NVIDIA AI Onaylı Haber</span><div class="kpi-value" id="inv-news">-</div><div class="kpi-meta">editorial_news.json</div></div>
+      </div>
+
+      <div class="grid-2-eq">
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">İlan Kaynağı Dağılımı (Bot Sağlığı)</div></div>
+          <table class="data-table">
+            <thead><tr><th>Resmi Kaynak</th><th style="text-align:right;">Aktif İlan</th></tr></thead>
+            <tbody id="source-health-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">NVIDIA Nemotron-550B AI Haberleri</div></div>
+          <table class="data-table">
+            <thead><tr><th>Başlık</th><th style="text-align:right;">Kelime</th></tr></thead>
+            <tbody id="ai-news-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEKME 5: OTOMASYON & SİSTEM DURUMU -->
+    <section class="tab-pane" id="tab-system">
+      <div class="grid-2-eq">
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">Otonom Pipeline Durumu</div></div>
+          <table class="data-table">
+            <tbody>
+              <tr><td>Otomatik Tarama Periyodu</td><td class="mono" style="text-align:right;">Günde 3 Kez (09:00 / 14:00 / 19:00 TSİ)</td></tr>
+              <tr><td>İlan Verisi Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-jobs-ts">-</td></tr>
+              <tr><td>AI Haber Merkezi Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-news-ts">-</td></tr>
+              <tr><td>NVIDIA AI Brifing Son Güncelleme</td><td class="mono" style="text-align:right;" id="sys-ai-ts">-</td></tr>
+              <tr><td>Aktif AI Modeli</td><td class="mono" style="text-align:right;" id="sys-ai-model">nvidia/nemotron-3-ultra-550b-a55b</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><div class="panel-title">Yönetici Hızlı Bağlantıları</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>GitHub Actions (Bot Çalışma Geçmişi)</span><span>↗</span></a>
+            <a href="https://github.com/Hesso04/kamupersonelrehberi/settings/secrets/actions" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>GitHub Secrets (NVIDIA_API_KEY)</span><span>↗</span></a>
+            <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fkamupersonelrehberiniz.me%2F" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>Google Search Console (Sitemap &amp; İndeks)</span><span>↗</span></a>
+            <a href="https://kamupersonelrehberiniz.me/" target="_blank" rel="noopener noreferrer" class="btn-ghost" style="justify-content:space-between;"><span>Canlı Web Sitesini Görüntüle</span><span>↗</span></a>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- ==================== TAB 3: BOT SAĞLIĞI ==================== -->
-    <div id="tab-bot-health" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Bot Sağlığı ve Scraper İzleme</h2>
-          <p class="page-desc">Resmi Gazete, SBB ve bakanlık botlarının canlı durumu ve sistem sürekliliği.</p>
-        </div>
-        <button class="btn btn-secondary" onclick="checkScraperHealth()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Kaynakları Kontrol Et
-        </button>
-      </div>
-
-      <div class="grid-3" id="bot-health-grid">
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">SBB Kamu İlan Portalı</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">kamuilan.sbb.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">846 Aktif İlan Yayında</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 280ms | Hata: 0</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">T.C. Resmi Gazete</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">resmigazete.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">119 Çeşitli İlan Yayında</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 190ms | Hata: 0</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">Basın İlan Kurumu (BİK)</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">ilan.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">146 Kamu Personeli İlanı</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 320ms | Hata: 0</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">Kariyer Kapısı (CBİKO)</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">isealimkariyerkapisi.cbiko.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">44 Başvuru Yönlendirmesi</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 210ms | Hata: 0</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">İŞKUR Kamu İlanları</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">esube.iskur.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">29 Sürekli İşçi Alımı</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 410ms | Hata: 0</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <strong style="color:#fff;font-size:15px;">Yerel Yönetimler / ÇSB</strong>
-              <span class="metric-badge badge-green">● 200 OK</span>
-            </div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">csb.gov.tr</div>
-            <div style="font-size:13px;color:#34D399;font-weight:600;">39 Belediye Kadrosu</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Gecikme: 340ms | Hata: 0</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 4: PDF & LİNK DENETİMİ ==================== -->
-    <div id="tab-link-pdf-audit" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">PDF Kılavuz & Bağlantı Doğrulama</h2>
-          <p class="page-desc">İlanlara ait resmi başvuru kılavuzlarının link sağlığı ve arşiv durumu.</p>
-        </div>
-        <button class="btn btn-primary" onclick="runPdfAudit()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Kılavuzları Denetle
-        </button>
-      </div>
-
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">Toplam İlan Havuzu</span>
-            <div class="metric-icon">📂</div>
-          </div>
-          <div class="metric-value">1.224</div>
-          <div class="metric-sub">Veri tabanında aktif ilanlar</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">PDF Kılavuzu Olan</span>
-            <div class="metric-icon">📄</div>
-          </div>
-          <div class="metric-value">673</div>
-          <div class="metric-sub"><span class="metric-badge badge-green">%55 Doğrudan PDF</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">Kariyer Kapısı / Doğrudan Bağlantı</span>
-            <div class="metric-icon">🔗</div>
-          </div>
-          <div class="metric-value">551</div>
-          <div class="metric-sub"><span class="metric-badge badge-blue">%45 Çevrim İçi Başvuru</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-header">
-            <span class="metric-title">Erişilebilirlik Oranı</span>
-            <div class="metric-icon">🛡️</div>
-          </div>
-          <div class="metric-value">%99.8</div>
-          <div class="metric-sub"><span class="metric-badge badge-green">Aktif & Sağlıklı</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 5: EDİTORYAL MOTOR V2.0 ==================== -->
-    <div id="tab-editorial-v2" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Editoryal Motor v2.0 (Kitle Odaklı İçerik)</h2>
-          <p class="page-desc">Protokol/bürokratik duyuruları eleyen, ÖSYM/MEB/TOKİ gibi yüksek kitleli ilanları öne çıkaran filtre motoru.</p>
-        </div>
-        <span class="metric-badge badge-green" style="font-size:12.5px;padding:6px 14px;">
-          ● MOTOR v2.0 AKTİF
-        </span>
-      </div>
-
-      <div class="card" style="border-color:rgba(59, 130, 246, 0.3);">
-        <div class="card-header">
-          <div class="card-title">🛡️ Akıllı Editoryal Filtre & Güvenlik Kalkanı</div>
-        </div>
-        <div class="card-body">
-          <p style="color:var(--text-muted);font-size:13.5px;margin-bottom:16px;">
-            Adayların ilgisini çekmeyen taziye, ziyaret, protokol kabulü gibi bürokratik bültenleri otomatik izole eder; doğrudan iş, kadro, atama ve kontenjan duyurularını manşete taşır.
-          </p>
-          <div class="grid-3" style="margin-top:16px;">
-            <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:11.5px;color:var(--text-dim);text-transform:uppercase;">Kabul Edilen İlanlar</div>
-              <div style="font-size:22px;font-weight:800;color:var(--success);margin-top:4px;" id="filter-accepted">128</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:11.5px;color:var(--text-dim);text-transform:uppercase;">Elenen Bürokratik Duyurular</div>
-              <div style="font-size:22px;font-weight:800;color:var(--warning);margin-top:4px;" id="filter-rejected">42</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:11.5px;color:var(--text-dim);text-transform:uppercase;">Filtre Doğruluk Oranı</div>
-              <div style="font-size:22px;font-weight:800;color:var(--primary);margin-top:4px;" id="filter-rate">%98.4</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 6: MANUEL İLAN EKLE ==================== -->
-    <div id="tab-add-job" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Manuel Kamu İlanı Ekle</h2>
-          <p class="page-desc">Özel veya acil duyuruları sisteme el ile tanımlayın.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label">Kurum Adı</label>
-              <input type="text" id="job-institution" class="form-control" placeholder="Örn: T.C. Sağlık Bakanlığı">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Kategori</label>
-              <select id="job-category" class="form-control">
-                <option value="Memur & Genel İdari Kadrolar">Memur & Genel İdari Kadrolar</option>
-                <option value="Akademik Kadrolar">Akademik Kadrolar</option>
-                <option value="Belediye Başkanlıkları">Belediye Başkanlıkları</option>
-                <option value="Sürekli İşçi Alımları">Sürekli İşçi Alımları</option>
-                <option value="Askeri & Emniyet Personeli">Askeri & Emniyet Personeli</option>
-                <option value="Bilişim & Teknik Kadrolar">Bilişim & Teknik Kadrolar</option>
-                <option value="Sağlık Personeli">Sağlık Personeli</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">İlan Başlığı</label>
-            <input type="text" id="job-title" class="form-control" placeholder="Örn: 8.000 Sürekli İşçi ve Sözleşmeli Personel Alımı">
-          </div>
-
-          <div class="grid-3">
-            <div class="form-group">
-              <label class="form-label">Kontenjan Sayısı</label>
-              <input type="number" id="job-quota" class="form-control" placeholder="Örn: 8000">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Son Başvuru Tarihi</label>
-              <input type="date" id="job-deadline" class="form-control">
-            </div>
-            <div class="form-group">
-              <label class="form-label">KPSS Şartı</label>
-              <input type="text" id="job-kpss" class="form-control" placeholder="Örn: En az 60 Puan veya Şartsız">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">İlan Açıklaması / Detayları</label>
-            <textarea id="job-desc" class="form-control" rows="4" placeholder="Başvuru detayları, özel koşullar ve şartlar..."></textarea>
-          </div>
-
-          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
-            <button class="btn btn-secondary" onclick="runAiJobAssistant()">🤖 Yapay Zeka ile Doldur</button>
-            <button class="btn btn-primary" onclick="saveManualJob()">💾 İlanı Onayla & Yayınla</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 7: RESMİ HABER EKLE ==================== -->
-    <div id="tab-add-news" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Resmi Haber & Kamu Bülteni Ekle</h2>
-          <p class="page-desc">Kamu çalışanları ve adaylar için mevzuat, duyuru veya kılavuz haberi yayınlayın.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Haber Başlığı</label>
-            <input type="text" id="news-title" class="form-control" placeholder="Örn: 2026/2 KPSS Tercih Kılavuzu ÖSYM Tarafından Yayımlandı">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Kısa Özet (Manşet Açıklaması)</label>
-            <input type="text" id="news-summary" class="form-control" placeholder="Adayların bilmesi gereken en önemli 1-2 cümlelik resmi detay...">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Haber Metni</label>
-            <textarea id="news-content" class="form-control" rows="5" placeholder="Resmi açıklama metni, mevzuat kararı veya başvuru detayları..."></textarea>
-          </div>
-
-          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
-            <button class="btn btn-secondary" onclick="runAiNewsImprover()">✨ AI Başlık & Özet İyileştir</button>
-            <button class="btn btn-primary" onclick="saveManualNews()">📢 Haberi Canlıya Al</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 8: SOSYAL MEDYA DAĞITIM ==================== -->
-    <div id="tab-social-webhook" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Sosyal Medya & Webhook Dağıtımı</h2>
-          <p class="page-desc">İlanları tek dokunuşla Telegram kanalına veya sosyal medya mecralarına servis edin.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Paylaşılacak İlanı Seçin</label>
-            <select id="social-job-select" class="form-control" onchange="previewSocialPost()">
-              <option value="1224">Sağlık Bakanlığı 8.000 Personel Alımı (Son Başvuru: 15 Kasım)</option>
-              <option value="1223">Milli Eğitim Bakanlığı Sözleşmeli Öğretmen Alımı</option>
-              <option value="1222">Jandarma Genel Komutanlığı Uzman Erbaş Alımı</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Oluşturulan Telegram & Sosyal Medya Mesajı</label>
-            <textarea id="social-tg-text" class="form-control" rows="6" style="font-family:var(--font-mono);font-size:13px;"></textarea>
-          </div>
-
-          <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="sendToTelegram()">🚀 Telegram Kanalına Gönder (@kamupersonelrehberi)</button>
-            <button class="btn btn-secondary" onclick="generateInstagramStory()">📸 Instagram Story Kartı Üret (1080x1920)</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 9: AI STÜDYOSU ==================== -->
-    <div id="tab-ai-studio" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Yapay Zeka Destekli Metin Analiz Stüdyosu</h2>
-          <p class="page-desc">Karışık kurum ilanlarını saniyeler içinde analiz edin, başvuru şartlarını ve KPSS detaylarını ayıklayın.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Resmi Gazete veya Kurum Duyuru Metni</label>
-            <textarea id="ai-studio-prompt" class="form-control" rows="5" placeholder="Kurum duyurusunu veya karmaşık şart metnini buraya yapıştırın..."></textarea>
-          </div>
-
-          <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="callNvidiaAI('summarize')">📋 Resmi Metni Özetle</button>
-            <button class="btn btn-secondary" onclick="callNvidiaAI('extract_conditions')">🎯 Başvuru Şartlarını Ayıkla</button>
-            <button class="btn btn-secondary" onclick="callNvidiaAI('seo_title')">🚀 SEO & Tıklama Başlığı Öner</button>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Yapay Zeka Analiz Sonucu</label>
-            <div id="ai-studio-response" style="background:var(--bg-input);padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);min-height:100px;font-family:var(--font-mono);font-size:13px;white-space:pre-wrap;color:#CBD5E1;">Analiz başlatılmayı bekliyor...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 10: BULUT SENKRONİZASYON ==================== -->
-    <div id="tab-automation" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Bulut Otopilot & Canlı Senkronizasyon</h2>
-          <p class="page-desc">GitHub Actions üzerinden çalışan otomatik tarama ve canlı site güncelleme altyapısı.</p>
-        </div>
-        <span class="metric-badge badge-green" style="font-size:12.5px;padding:6px 14px;">
-          ● CRON AKTİF (GÜNDE 3 KEZ)
-        </span>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border-subtle);margin-bottom:16px;">
-            <div>
-              <div style="font-weight:700;font-size:15px;color:#fff;">Otomatik Tarama ve GitHub Pages Dağıtımı</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Türkiye Saatiyle 09:00, 14:00 ve 19:00'da tetiklenir.</div>
-            </div>
-            <a href="https://github.com/Hesso04/kamupersonelrehberi/actions" target="_blank" class="btn btn-secondary">
-              GitHub Actions'ta Gör ↗
-            </a>
-          </div>
-
-          <div class="grid-3">
-            <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:12px;color:var(--text-dim);">SON TARAMA TARİHİ</div>
-              <div style="font-size:16px;font-weight:700;color:#fff;margin-top:4px;" id="auto-last-date">31 Ekim 2026 22:41</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:12px;color:var(--text-dim);">GÜNCEL İLAN HAVUZU</div>
-              <div style="font-size:16px;font-weight:700;color:var(--primary);margin-top:4px;">1.224 Aktif İlan</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-              <div style="font-size:12px;color:var(--text-dim);">RESMİ HABER SAYISI</div>
-              <div style="font-size:16px;font-weight:700;color:var(--success);margin-top:4px;">53 Kamu Haberi</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 11: GÖREV ZAMANLAYICISI ==================== -->
-    <div id="tab-scheduler" class="tab-section">
-      <div class="top-bar">
-        <div>
-          <h2 class="page-title">Görev Zamanlayıcısı (Scheduler)</h2>
-          <p class="page-desc">Kamu ilan ve haber toplama görevlerini yerel veya arka plan döngüsünde yönetin.</p>
-        </div>
-        <button id="global-sched-btn" class="btn btn-primary" data-running="false" onclick="toggleGlobalScheduler()">
-          ▶ Zamanlayıcıyı Başlat
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle);">
-            <div>
-              <div style="font-weight:700;font-size:15px;color:#fff;">KamuScheduler Arka Plan Motoru</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Bağımsız zamanlanmış tarama görevleri</div>
-            </div>
-            <div id="global-sched-status" style="font-weight:700;font-size:13px;color:var(--text-dim);">⏸️ DURDURULDU</div>
-          </div>
-
-          <div id="scheduler-tasks-container" style="display:flex;flex-direction:column;gap:12px;"></div>
-        </div>
-      </div>
-    </div>
-
+    </section>
   </main>
-
-  <div id="toast-msg"></div>
 
   <script>
     const SUPABASE_URL = 'https://lxffirosgbrfptnbjvdg.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_VHW7Sg89AM9NV6DqOHLTzQ_BMO4BBV9';
 
-    // SHA-256 Auth Hash
+    // Mevcut SHA-256 Yönetici Giriş Hash'leri
     const _AUTH_U = 'd9bf4c8f7292dd3faa9a1c0da0f9ca8116f0eca051ac775332692c70922f97b5';
     const _AUTH_K = 'e7c85779263d48cdad9fcc3704a218e156056b013fe8ab5d3c6f3c9ebe932315';
 
-    let trendChartInstance = null;
-    let pieChartInstance = null;
+    let STATE = {
+      events: [],
+      jobsData: null,
+      newsData: null,
+      aiBriefing: null,
+      computed: null
+    };
+    let trendChart = null;
+    let refChart = null;
 
-    function showToast(msg) {
-      const t = document.getElementById('toast-msg');
-      t.textContent = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     async function _digest(text) {
-      const msgBuffer = new TextEncoder().encode(text);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     async function checkAuth() {
-      const uInput = document.getElementById('patron-username').value.trim();
-      const pInput = document.getElementById('patron-password').value.trim();
-      const uHash = await _digest(uInput);
-      const pHash = await _digest(pInput);
-
-      if (uHash === _AUTH_U && pHash === _AUTH_K) {
-        sessionStorage.setItem('kpr_patron_auth', 'token_' + pHash.slice(0, 16));
+      const u = await _digest(document.getElementById('patron-username').value.trim());
+      const p = await _digest(document.getElementById('patron-password').value.trim());
+      if (u === _AUTH_U && p === _AUTH_K) {
+        sessionStorage.setItem('kpr_patron_auth', 'token_' + p.slice(0, 16));
         document.getElementById('login-overlay').style.display = 'none';
-        initDashboard();
+        refreshAllData();
       } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('patron-password').value = '';
       }
     }
 
-    document.getElementById('patron-username').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') document.getElementById('patron-password').focus();
-    });
-    document.getElementById('patron-password').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') checkAuth();
-    });
+    document.getElementById('patron-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('patron-password').focus(); });
+    document.getElementById('patron-password').addEventListener('keydown', e => { if (e.key === 'Enter') checkAuth(); });
 
     function logout() {
       sessionStorage.removeItem('kpr_patron_auth');
       location.reload();
     }
 
-    function switchTab(tabId, el) {
-      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const TAB_TITLES = {
+      'tab-overview': ['Canlı Analitik & Yönetici Özeti', 'kamupersonelrehberiniz.me — %100 gerçek Supabase ziyaretçi ve dönüşüm verileri'],
+      'tab-ai': ['NVIDIA Nemotron-550B AI Site Asistanı', 'Günlük brifing, trafik analizi ve interaktif yönetici sohbet asistanı'],
+      'tab-traffic': ['Ziyaretçi Kaynakları & Arama Trendleri', 'Trafik kanalları, aranan kelimeler ve son 25 canlı hareket'],
+      'tab-inventory': ['İlan & NVIDIA AI Haber Envanteri', 'Canlı jobs.json bot kaynak dağılımı ve onaylı AI haber arşivi'],
+      'tab-system': ['Otomasyon & Sistem Durumu', 'GitHub Actions zamanlaması ve veri tazelik takibi']
+    };
 
-      const target = document.getElementById(tabId);
-      if (target) target.classList.add('active');
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const el = document.getElementById(id);
       if (el) el.classList.add('active');
-
-      if (tabId === 'tab-scheduler') {
-        buildSchedulerPanel();
+      if (btn) btn.classList.add('active');
+      if (TAB_TITLES[id]) {
+        document.getElementById('top-page-title').textContent = TAB_TITLES[id][0];
+        document.getElementById('top-page-sub').textContent = TAB_TITLES[id][1];
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const auth = sessionStorage.getItem('kpr_patron_auth');
-      if (auth && auth.startsWith('token_')) {
-        document.getElementById('login-overlay').style.display = 'none';
-        initDashboard();
-      }
-      const d = new Date();
-      d.setDate(d.getDate() + 15);
-      const deadlineInput = document.getElementById('job-deadline');
-      if (deadlineInput) deadlineInput.value = d.toISOString().split('T')[0];
-    });
-
-    function initDashboard() {
-      fetchLiveAnalytics();
-      fetchJobsData();
+    function detectDevice(ua) {
+      const u = (ua || '').toLowerCase();
+      if (u.includes('instagram')) return 'Instagram İçi';
+      if (u.includes('iphone') || u.includes('ipad')) return 'Mobil (iOS)';
+      if (u.includes('android')) return 'Mobil (Android)';
+      if (u.includes('windows') || u.includes('macintosh') || u.includes('linux')) return 'Masaüstü';
+      return 'Diğer';
     }
 
-    // Gerçek Analitik Verilerini Çekme (Supabase)
-    async function fetchLiveAnalytics() {
+    async function refreshAllData() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/site_analytics_events?select=*&order=created_at.desc&limit=1000`, {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-          }
-        });
+        const [evResp, jobsResp, newsResp, aiResp] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/site_analytics_events?select=id,event_type,job_id,job_title,category,referrer,user_agent,created_at&order=created_at.desc&limit=2000`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+          }),
+          fetch('/data/jobs.json?t=' + Date.now()),
+          fetch('/data/editorial_news.json?t=' + Date.now()),
+          fetch('/data/ai_briefing.json?t=' + Date.now()).catch(() => null)
+        ]);
 
-        if (!res.ok) throw new Error('API yanıt vermedi');
-        const events = await res.json();
-        processAnalytics(events);
-        document.getElementById('last-sync-time').textContent = new Date().toLocaleTimeString('tr-TR');
+        STATE.events = evResp.ok ? await evResp.json() : [];
+        STATE.jobsData = jobsResp.ok ? await jobsResp.json() : { jobs: [], meta: {} };
+        STATE.newsData = newsResp.ok ? await newsResp.json() : { articles: [], meta: {} };
+        STATE.aiBriefing = (aiResp && aiResp.ok) ? await aiResp.json() : null;
+
+        computeAnalytics();
+        renderOverview();
+        renderTrafficTab();
+        renderInventoryTab();
+        renderAIBriefing();
+        renderSystemTab();
       } catch (err) {
-        console.error('Analitik verisi alınamadı:', err);
+        console.error('Veri yükleme hatası:', err);
       }
     }
 
-    // Yerel jobs.json'dan canlı ilan meta verilerini alma
-    async function fetchJobsData() {
-      try {
-        const res = await fetch('../data/jobs.json');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.jobs && data.jobs.length) {
-          const sel = document.getElementById('social-job-select');
-          if (sel) {
-            sel.innerHTML = data.jobs.slice(0, 15).map(j => 
-              `<option value="${j.id}">${j.institution} - ${j.position} (${j.date_interval || 'Güncel'})</option>`
-            ).join('');
-            previewSocialPost();
-          }
-        }
-      } catch (e) {
-        console.log('Jobs.json yerel yükleme:', e);
+    function computeAnalytics() {
+      const now = Date.now();
+      const dayMs = 86400000;
+      const counts = { PAGEVIEW: 0, JOB_VIEW: 0, PDF_DOWNLOAD: 0, APPLY_CLICK: 0, SEARCH: 0 };
+      const counts24 = { PAGEVIEW: 0, JOB_VIEW: 0, PDF_DOWNLOAD: 0, APPLY_CLICK: 0, SEARCH: 0 };
+      const byDay = {};
+      const byRef = {};
+      const byDev = {};
+      const byPage = {};
+      const bySearch = {};
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now - i * dayMs);
+        const key = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+        byDay[key] = 0;
       }
-    }
 
-    function processAnalytics(events) {
-      let pageviews = 0, jobviews = 0, applyclicks = 0, pdfdownloads = 0;
-      const sources = {};
-      const jobCounts = {};
-      const jobTitles = {};
-      const jobCategories = {};
-      const dailyMap = {};
-      const searchTerms = {};
+      STATE.events.forEach(ev => {
+        const t = ev.event_type || 'OTHER';
+        if (counts[t] !== undefined) counts[t]++;
 
-      events.forEach(e => {
-        if (e.event_type === 'PAGEVIEW') pageviews++;
-        else if (e.event_type === 'JOB_VIEW') jobviews++;
-        else if (e.event_type === 'APPLY_CLICK') applyclicks++;
-        else if (e.event_type === 'PDF_DOWNLOAD') pdfdownloads++;
-        else if (e.event_type === 'SEARCH') {
-          const q = (e.job_title || '').trim().toLowerCase();
-          if (q.length > 1) {
-            searchTerms[q] = (searchTerms[q] || 0) + 1;
-          }
+        const dt = new Date(ev.created_at);
+        if (!isNaN(dt.getTime())) {
+          if (now - dt.getTime() <= dayMs && counts24[t] !== undefined) counts24[t]++;
+          const key = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}`;
+          if (byDay[key] !== undefined) byDay[key]++;
         }
 
-        const ref = e.referrer || 'Doğrudan (Direct)';
-        sources[ref] = (sources[ref] || 0) + 1;
+        const ref = ev.referrer || 'Doğrudan (Direct)';
+        byRef[ref] = (byRef[ref] || 0) + 1;
 
-        if (e.job_id) {
-          jobCounts[e.job_id] = (jobCounts[e.job_id] || 0) + 1;
-          if (e.job_title) jobTitles[e.job_id] = e.job_title;
-          if (e.category) jobCategories[e.job_id] = e.category;
-        }
+        const dev = detectDevice(ev.user_agent);
+        byDev[dev] = (byDev[dev] || 0) + 1;
 
-        if (e.created_at) {
-          const day = e.created_at.split('T')[0];
-          dailyMap[day] = (dailyMap[day] || 0) + 1;
+        if (ev.job_title) {
+          if (t === 'SEARCH') bySearch[ev.job_title] = (bySearch[ev.job_title] || 0) + 1;
+          else byPage[ev.job_title] = (byPage[ev.job_title] || 0) + 1;
+        } else if (ev.category && t === 'SEARCH') {
+          bySearch[ev.category] = (bySearch[ev.category] || 0) + 1;
         }
       });
 
-      document.getElementById('val-pageviews').textContent = pageviews.toLocaleString('tr-TR');
-      document.getElementById('val-jobviews').textContent = jobviews.toLocaleString('tr-TR');
-      document.getElementById('val-applyclicks').textContent = applyclicks.toLocaleString('tr-TR');
-      document.getElementById('val-pdfdownloads').textContent = pdfdownloads.toLocaleString('tr-TR');
-
-      const conv = jobviews > 0 ? ((applyclicks / jobviews) * 100).toFixed(1) : '0';
-      document.getElementById('val-conversion').textContent = `↑ %${conv} Dönüşüm`;
-
-      // Huni Hesaplamaları
-      document.getElementById('fn-step-1').textContent = pageviews.toLocaleString('tr-TR');
-      document.getElementById('fn-step-2').textContent = jobviews.toLocaleString('tr-TR');
-      document.getElementById('fn-step-3').textContent = pdfdownloads.toLocaleString('tr-TR');
-      document.getElementById('fn-step-4').textContent = applyclicks.toLocaleString('tr-TR');
-
-      const rate2 = pageviews > 0 ? Math.min(100, ((jobviews / pageviews) * 100).toFixed(1)) : 0;
-      const rate3 = jobviews > 0 ? Math.min(100, ((pdfdownloads / jobviews) * 100).toFixed(1)) : 0;
-      const rate4 = jobviews > 0 ? Math.min(100, ((applyclicks / jobviews) * 100).toFixed(1)) : 0;
-
-      document.getElementById('fn-rate-2').textContent = `%${rate2} İnceleme Oranı`;
-      document.getElementById('fn-bar-2').style.width = `${rate2}%`;
-      document.getElementById('fn-rate-3').textContent = `%${rate3} Kılavuz Oranı`;
-      document.getElementById('fn-bar-3').style.width = `${rate3}%`;
-      document.getElementById('fn-rate-4').textContent = `%${rate4} Nihai Dönüşüm`;
-      document.getElementById('fn-bar-4').style.width = `${rate4}%`;
-
-      renderCharts(dailyMap, sources);
-      renderTopJobs(jobCounts, jobTitles, jobCategories);
-      renderSearchTerms(searchTerms);
+      const sortObj = obj => Object.entries(obj).sort((a, b) => b[1] - a[1]);
+      STATE.computed = {
+        totalEvents: STATE.events.length,
+        counts, counts24, byDay,
+        referrers: sortObj(byRef),
+        devices: sortObj(byDev),
+        topPages: sortObj(byPage).slice(0, 10),
+        topSearches: sortObj(bySearch).slice(0, 12)
+      };
     }
 
-    function renderCharts(dailyMap, sources) {
-      const sortedDays = Object.keys(dailyMap).sort().slice(-7);
-      const dayValues = sortedDays.map(d => dailyMap[d]);
+    function renderOverview() {
+      const c = STATE.computed;
+      const pv = c.counts.PAGEVIEW, jv = c.counts.JOB_VIEW, pdf = c.counts.PDF_DOWNLOAD, ap = c.counts.APPLY_CLICK;
+      document.getElementById('kpi-pv').textContent = pv.toLocaleString('tr-TR');
+      document.getElementById('kpi-jv').textContent = jv.toLocaleString('tr-TR');
+      document.getElementById('kpi-pdf').textContent = pdf.toLocaleString('tr-TR');
+      document.getElementById('kpi-apply').textContent = ap.toLocaleString('tr-TR');
+      document.getElementById('kpi-pv-24h').textContent = `Son 24s: +${c.counts24.PAGEVIEW}`;
+      document.getElementById('kpi-jv-24h').textContent = `Son 24s: +${c.counts24.JOB_VIEW}`;
+      const pdfRate = jv ? ((pdf / jv) * 100).toFixed(1) : '0.0';
+      const apRate = jv ? ((ap / jv) * 100).toFixed(1) : '0.0';
+      document.getElementById('kpi-pdf-rate').textContent = `%${pdfRate}`;
+      document.getElementById('kpi-apply-rate').textContent = `%${apRate}`;
 
-      const ctxTrend = document.getElementById('dailyTrendChart').getContext('2d');
-      if (trendChartInstance) trendChartInstance.destroy();
-      trendChartInstance = new Chart(ctxTrend, {
+      // 7 Gün Trend Grafiği
+      const trendCtx = document.getElementById('chart-trend').getContext('2d');
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(trendCtx, {
         type: 'bar',
         data: {
-          labels: sortedDays.map(d => {
-            const parts = d.split('-');
-            return `${parts[2]}/${parts[1]}`;
-          }),
+          labels: Object.keys(c.byDay),
           datasets: [{
-            label: 'Etkileşimler',
-            data: dayValues,
-            backgroundColor: '#3B82F6',
+            label: 'Günlük Etkileşim',
+            data: Object.values(c.byDay),
+            backgroundColor: '#3882C4',
             borderRadius: 6
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#64748B' } },
-            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748B' } }
+            x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
+            y: { grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { color: '#94A3B8' } }
           }
         }
       });
 
-      const ctxPie = document.getElementById('trafficPieChart').getContext('2d');
-      if (pieChartInstance) pieChartInstance.destroy();
-      pieChartInstance = new Chart(ctxPie, {
+      // Trafik Kaynakları Doughnut
+      const refCtx = document.getElementById('chart-referrers').getContext('2d');
+      if (refChart) refChart.destroy();
+      const topRefs = c.referrers.slice(0, 6);
+      refChart = new Chart(refCtx, {
         type: 'doughnut',
         data: {
-          labels: Object.keys(sources),
+          labels: topRefs.map(x => x[0]),
           datasets: [{
-            data: Object.values(sources),
-            backgroundColor: ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4'],
+            data: topRefs.map(x => x[1]),
+            backgroundColor: ['#3882C4', '#10B981', '#F59E0B', '#38BDF8', '#8B5CF6', '#64748B'],
             borderWidth: 0
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#94A3B8', boxWidth: 12, font: { size: 11.5 } } }
-          }
+          responsive: true, maintainAspectRatio: false, cutout: '64%',
+          plugins: { legend: { position: 'right', labels: { color: '#CBD5E1', boxWidth: 12, font: { size: 11 } } } }
         }
       });
+
+      // Huni
+      const maxVal = Math.max(pv, jv, 1);
+      const funnelSteps = [
+        ['1. Site Ziyareti (Pageview)', pv, '#3882C4'],
+        ['2. İlan Detayı Açma (Job View)', jv, '#38BDF8'],
+        ['3. Resmi PDF Kılavuz Açma', pdf, '#F59E0B'],
+        ['4. Resmi Başvuru Yönlendirmesi', ap, '#10B981']
+      ];
+      document.getElementById('funnel-container').innerHTML = funnelSteps.map(([lbl, val, col]) => {
+        const pct = Math.min(100, Math.round((val / maxVal) * 100));
+        return `<div class="funnel-row"><div class="funnel-head"><span>${lbl}</span><span class="mono">${val.toLocaleString('tr-TR')}</span></div><div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:${col};"></div></div></div>`;
+      }).join('');
+
+      // Cihaz Dağılımı
+      const totalDev = c.devices.reduce((s, x) => s + x[1], 0) || 1;
+      document.getElementById('device-container').innerHTML = c.devices.map(([dev, cnt]) => {
+        const p = ((cnt / totalDev) * 100).toFixed(1);
+        return `<span class="kpi-tag tag-blue">${esc(dev)}: ${cnt} (%${p})</span>`;
+      }).join('');
+
+      // En Çok İlgi Gören Sayfalar/İlanlar
+      const tbody = document.getElementById('top-pages-tbody');
+      tbody.innerHTML = c.topPages.length
+        ? c.topPages.map(([title, cnt]) => `<tr><td>${esc(title)}</td><td class="mono" style="text-align:right;font-weight:700;color:#7DD3FC;">${cnt}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:var(--text-sec);">Henüz kayıt yok.</td></tr>';
     }
 
-    function renderTopJobs(jobCounts, jobTitles, jobCategories) {
-      const tbody = document.getElementById('top-jobs-tbody');
-      tbody.innerHTML = '';
+    function renderTrafficTab() {
+      const c = STATE.computed;
+      const tot = c.totalEvents || 1;
+      document.getElementById('ref-tbody').innerHTML = c.referrers.map(([ref, cnt]) =>
+        `<tr><td>${esc(ref)}</td><td class="mono" style="text-align:right;">${cnt}</td><td class="mono" style="text-align:right;color:#34D399;">%${((cnt/tot)*100).toFixed(1)}</td></tr>`
+      ).join('');
 
-      const sortedIds = Object.keys(jobCounts).sort((a,b) => jobCounts[b] - jobCounts[a]).slice(0, 8);
-      if (sortedIds.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Henüz ilan tıklama verisi oluşmadı.</td></tr>';
+      document.getElementById('search-tbody').innerHTML = c.topSearches.length
+        ? c.topSearches.map(([q, cnt]) => `<tr><td>${esc(q)}</td><td class="mono" style="text-align:right;">${cnt}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:var(--text-sec);">Henüz arama sorgusu kaydedilmedi.</td></tr>';
+
+      document.getElementById('live-stream-tbody').innerHTML = STATE.events.slice(0, 25).map(ev => {
+        const dt = new Date(ev.created_at);
+        const ts = isNaN(dt.getTime()) ? '-' : dt.toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+        return `<tr><td class="mono">${ts}</td><td><span class="kpi-tag tag-blue">${esc(ev.event_type)}</span></td><td>${esc(ev.job_title || ev.category || 'Ana Sayfa')}</td><td>${esc(ev.referrer || 'Doğrudan')}</td><td>${esc(detectDevice(ev.user_agent))}</td></tr>`;
+      }).join('');
+    }
+
+    function renderInventoryTab() {
+      const jobs = (STATE.jobsData && STATE.jobsData.jobs) || [];
+      const activeJobs = jobs.filter(j => !j.is_cancellation);
+      const news = (STATE.newsData && STATE.newsData.articles) || [];
+      const withPdf = activeJobs.filter(j => j.has_pdf || j.pdf_url).length;
+      const pdfPct = activeJobs.length ? ((withPdf / activeJobs.length) * 100).toFixed(1) : '0';
+
+      document.getElementById('inv-jobs').textContent = activeJobs.length.toLocaleString('tr-TR');
+      document.getElementById('inv-quota').textContent = ((STATE.jobsData.meta && STATE.jobsData.meta.total_quota) || 0).toLocaleString('tr-TR') + '+';
+      document.getElementById('inv-pdf-pct').textContent = `%${pdfPct}`;
+      document.getElementById('inv-pdf-sub').textContent = `${withPdf} / ${activeJobs.length} ilanda PDF kılavuz`;
+      document.getElementById('inv-news').textContent = news.length;
+
+      const bySrc = {};
+      activeJobs.forEach(j => { const s = j.source_name || 'Diğer Resmi Kaynak'; bySrc[s] = (bySrc[s] || 0) + 1; });
+      document.getElementById('source-health-tbody').innerHTML = Object.entries(bySrc).sort((a,b) => b[1]-a[1]).map(([src, cnt]) =>
+        `<tr><td>${esc(src)}</td><td class="mono" style="text-align:right;font-weight:700;color:#34D399;">${cnt}</td></tr>`
+      ).join('');
+
+      document.getElementById('ai-news-tbody').innerHTML = news.slice(0, 12).map(a =>
+        `<tr><td><a href="/haber/${esc(a.slug)}/" target="_blank" style="color:#7DD3FC;">${esc(a.headline)} ↗</a></td><td class="mono" style="text-align:right;">${a.word_count || '-'}</td></tr>`
+      ).join('');
+    }
+
+    function renderAIBriefing() {
+      const box = document.getElementById('ai-briefing-content');
+      if (!STATE.aiBriefing || !STATE.aiBriefing.briefing) {
+        box.innerHTML = 'Otomatik NVIDIA AI brifingi henüz oluşturulmadı; alttaki sohbet alanından canlı verilerle anlık soru sorabilirsiniz.';
         return;
       }
-
-      sortedIds.forEach(id => {
-        const title = jobTitles[id] || `Kamu İlanı #${id}`;
-        const cat = jobCategories[id] || 'Kamu Alımı';
-        const cnt = jobCounts[id];
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong style="color:var(--text-dim);font-family:var(--font-mono);">#${id}</strong></td>
-          <td><a href="../?ilan=${id}" target="_blank" style="color:#60A5FA;text-decoration:none;font-weight:600;">${title}</a></td>
-          <td><span style="font-size:12.5px;color:var(--text-muted);">${cat}</span></td>
-          <td><span class="metric-badge badge-blue">${cnt} İnceleme</span></td>
-          <td><span class="metric-badge badge-green">Aktif</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
+      const b = STATE.aiBriefing.briefing;
+      const actions = (b.action_items || []).map(x => `<li>${esc(x)}</li>`).join('');
+      box.innerHTML = `
+        <p style="margin-bottom:8px;"><strong>Yönetici Özeti (${esc(STATE.aiBriefing.generated_at_tr || '')}):</strong> ${esc(b.executive_summary || '')}</p>
+        <p style="margin-bottom:8px;color:var(--text-sec);"><strong>Trafik &amp; Kanal:</strong> ${esc(b.traffic_insight || '')}</p>
+        ${b.content_insight ? `<p style="margin-bottom:8px;color:var(--text-sec);"><strong>İçerik &amp; İlgi:</strong> ${esc(b.content_insight)}</p>` : ''}
+        ${actions ? `<div style="margin-top:8px;"><strong>Öncelikli Aksiyonlar:</strong><ul style="margin:4px 0 0 18px;color:#CBD5E1;">${actions}</ul></div>` : ''}
+      `;
     }
 
-    function renderSearchTerms(searchTerms) {
-      const container = document.getElementById('search-keywords-list');
-      const sorted = Object.keys(searchTerms).sort((a,b) => searchTerms[b] - searchTerms[a]).slice(0, 10);
-      if (sorted.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:16px;">Henüz arama verisi kaydedilmedi.</div>';
-        return;
+    function renderSystemTab() {
+      const fmt = ts => ts ? new Date(ts).toLocaleString('tr-TR') : '-';
+      document.getElementById('sys-jobs-ts').textContent = fmt(STATE.jobsData && STATE.jobsData.meta && STATE.jobsData.meta.generated_at);
+      document.getElementById('sys-news-ts').textContent = fmt(STATE.newsData && STATE.newsData.meta && STATE.newsData.meta.generated_at);
+      document.getElementById('sys-ai-ts').textContent = (STATE.aiBriefing && STATE.aiBriefing.generated_at_tr) || '-';
+      if (STATE.aiBriefing && STATE.aiBriefing.model) {
+        document.getElementById('sys-ai-model').textContent = STATE.aiBriefing.model;
+      }
+    }
+
+    /* =====================================================================
+       İNTERAKTİF AI SITE ASİSTANI (CANLI VERİ + NVIDIA BRİFİNG SENTEZİ)
+       ===================================================================== */
+    function appendChat(role, htmlText) {
+      const wrap = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'chat-msg ' + role;
+      div.innerHTML = htmlText;
+      wrap.appendChild(div);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    function buildAssistantAnswer(question) {
+      const q = question.toLocaleLowerCase('tr-TR');
+      const c = STATE.computed;
+      if (!c) return 'Veriler henüz yükleniyor, birkaç saniye sonra tekrar sorabilirsiniz.';
+
+      const jobs = ((STATE.jobsData && STATE.jobsData.jobs) || []).filter(j => !j.is_cancellation);
+      const news = (STATE.newsData && STATE.newsData.articles) || [];
+      const b = STATE.aiBriefing && STATE.aiBriefing.briefing;
+
+      if (q.includes('nereden') || q.includes('kaynak') || q.includes('referrer') || q.includes('trafik')) {
+        const tot = c.totalEvents || 1;
+        const rows = c.referrers.slice(0, 6).map(([r, n]) => `<li><strong>${esc(r)}:</strong> ${n} etkileşim (%${((n/tot)*100).toFixed(1)})</li>`).join('');
+        return `<strong>Ziyaretçi Trafik Kaynakları (Canlı Supabase):</strong><ul>${rows}</ul>` + (b && b.traffic_insight ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA AI Yorumu:</em> ${esc(b.traffic_insight)}</p>` : '');
       }
 
-      container.innerHTML = sorted.map((term, i) => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
-          <span style="font-weight:600;font-size:13.5px;color:#fff;">${i+1}. ${term.toUpperCase()}</span>
-          <span class="metric-badge badge-purple">${searchTerms[term]} Arama</span>
-        </div>
-      `).join('');
+      if (q.includes('ilgi') || q.includes('popüler') || q.includes('en çok') || q.includes('sayfa') || q.includes('ilan')) {
+        const rows = c.topPages.slice(0, 6).map(([t, n]) => `<li><strong>${esc(t)}:</strong> ${n} görüntüleme/tıklama</li>`).join('');
+        return `<strong>En Çok İlgi Gören Sayfa &amp; İlanlar:</strong><ul>${rows || '<li>Henüz yeterli veri birikmedi.</li>'}</ul>` + (b && b.content_insight ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA AI Yorumu:</em> ${esc(b.content_insight)}</p>` : '');
+      }
+
+      if (q.includes('cihaz') || q.includes('mobil') || q.includes('masaüstü') || q.includes('telefon')) {
+        const tot = c.devices.reduce((s, x) => s + x[1], 0) || 1;
+        const rows = c.devices.map(([d, n]) => `<li><strong>${esc(d)}:</strong> ${n} oturum (%${((n/tot)*100).toFixed(1)})</li>`).join('');
+        return `<strong>Canlı Cihaz Dağılımı:</strong><ul>${rows}</ul>`;
+      }
+
+      if (q.includes('bot') || q.includes('haber') || q.includes('envanter')) {
+        return `<strong>İlan &amp; AI Haber Envanter Özeti:</strong><ul>
+          <li><strong>Aktif Kamu İlanı:</strong> ${jobs.length.toLocaleString('tr-TR')} ilan (${((STATE.jobsData.meta && STATE.jobsData.meta.total_quota) || 0).toLocaleString('tr-TR')}+ kontenjan)</li>
+          <li><strong>NVIDIA Nemotron-550B AI Haberleri:</strong> ${news.length} adet onaylı özgün haber</li>
+          <li><strong>Statik Rehber &amp; Sayfalar:</strong> 12 derin rehber + KPSS Puan Hesaplama aracı + 94 temiz sitemap URL'si</li>
+        </ul>`;
+      }
+
+      if (q.includes('adsense') || q.includes('seo') || q.includes('öneri') || q.includes('aksiyon')) {
+        const acts = (b && b.action_items && b.action_items.length)
+          ? b.action_items.map(x => `<li>${esc(x)}</li>`).join('')
+          : '<li>Google Search Console’da indekslenen sayfa sayısının 30-50 üzerine çıkmasını bekleyin.</li><li>Telegram ve Instagram trafiğini doğrudan yeni /rehber/ ve /haber/ sayfalarına yönlendirin.</li>';
+        return `<strong>NVIDIA AI AdSense &amp; SEO Aksiyon Önerileri:</strong><ul>${acts}</ul>`;
+      }
+
+      // Varsayılan: Kapsamlı Günlük Yönetici Özeti
+      const apRate = c.counts.JOB_VIEW ? ((c.counts.APPLY_CLICK / c.counts.JOB_VIEW) * 100).toFixed(1) : '0.0';
+      const topRef = c.referrers[0] ? `${c.referrers[0][0]} (${c.referrers[0][1]})` : '-';
+      const topPage = c.topPages[0] ? `${c.topPages[0][0]} (${c.topPages[0][1]})` : '-';
+      return `<strong>Günlük Yönetici Özeti (Canlı Veriler):</strong>
+        <ul>
+          <li><strong>Toplam İncelenen Hareket:</strong> ${c.totalEvents.toLocaleString('tr-TR')} (Son 24 saatte ${c.counts24.PAGEVIEW} sayfa görüntüleme, ${c.counts24.JOB_VIEW} ilan inceleme)</li>
+          <li><strong>Dönüşüm:</strong> ${c.counts.APPLY_CLICK} resmi başvuru tıklaması (%${apRate} dönüşüm) ve ${c.counts.PDF_DOWNLOAD} PDF kılavuz açılımı</li>
+          <li><strong>Lider Trafik Kanalı:</strong> ${esc(topRef)}</li>
+          <li><strong>En Çok İlgi Gören İçerik:</strong> ${esc(topPage)}</li>
+          <li><strong>Aktif Envanter:</strong> ${jobs.length.toLocaleString('tr-TR')} ilan &amp; ${news.length} NVIDIA AI haber makalesi</li>
+        </ul>` + (b && b.executive_summary ? `<p style="margin-top:8px;color:#94A3B8;"><em>NVIDIA Nemotron-550B Brifingi:</em> ${esc(b.executive_summary)}</p>` : '');
     }
 
-    // Sosyal Medya Önizleme
-    function previewSocialPost() {
-      const sel = document.getElementById('social-job-select');
-      if (!sel || !sel.options[sel.selectedIndex]) return;
-      const text = sel.options[sel.selectedIndex].text;
-      const msg = `🚨 YENİ KAMU PERSONELİ ALIMI DUYURUSU\n\n📌 Kurum & İlan: ${text}\n📋 Şartlar: KPSS ve Yaş Koşulları Kılavuzda Yer Almaktadır.\n\n🔗 Başvuru ve PDF Kılavuzu İncele:\nhttps://kamupersonelrehberiniz.me/?utm_source=telegram\n\n@kamupersonelrehberi — Güvenilir ve Doğrulanmış Kamu Rehberi`;
-      document.getElementById('social-tg-text').value = msg;
-    }
-
-    function sendToTelegram() {
-      showToast('Telegram Kanalına İletiliyor (@kamupersonelrehberi)...');
-      setTimeout(() => { showToast('✅ İlan Telegram Kanalında Başarıyla Paylaşıldı!'); }, 1000);
-    }
-
-    function generateInstagramStory() {
-      showToast('Instagram Story Kartı Hazırlanıyor (1080x1920 HD)...');
-      setTimeout(() => { showToast('✅ Instagram Story görseli indirildi!'); }, 1200);
-    }
-
-    function checkScraperHealth() {
-      showToast('Tüm resmi kurum kaynakları denetleniyor...');
-      setTimeout(() => { showToast('✅ 6 Kaynak 200 OK | Sistem Sağlıklı'); }, 800);
-    }
-
-    function runPdfAudit() {
-      showToast('Kılavuz bağlantıları taranıyor...');
-      setTimeout(() => { showToast('✅ 673 PDF Kılavuzu Doğrulandı | Hata: 0'); }, 1000);
-    }
-
-    // AI İşlevleri
-    function runAiJobAssistant() {
-      showToast('Yapay Zeka formu ayrıştırıyor...');
+    function askAssistant(q) {
+      appendChat('user', esc(q));
       setTimeout(() => {
-        document.getElementById('job-institution').value = 'T.C. Sağlık Bakanlığı';
-        document.getElementById('job-title').value = '8.000 Sürekli İşçi Alımı İlanı';
-        document.getElementById('job-category').value = 'Sürekli İşçi Alımları';
-        document.getElementById('job-quota').value = '8000';
-        document.getElementById('job-kpss').value = 'KPSS Şartsız (Kura Usulü)';
-        document.getElementById('job-desc').value = 'Sağlık Bakanlığı taşra teşkilatında istihdam edilmek üzere Türkiye İş Kurumu (İŞKUR) üzerinden 8.000 sürekli işçi alımı yapılacaktır.';
-        showToast('✅ Yapay Zeka formu başarıyla doldurdu.');
-      }, 700);
+        appendChat('bot', buildAssistantAnswer(q));
+      }, 180);
     }
 
-    function runAiNewsImprover() {
-      const title = document.getElementById('news-title').value.trim();
-      showToast('Başlık ve editoryal özet optimize ediliyor...');
-      setTimeout(() => {
-        if (title) document.getElementById('news-title').value = '📢 ' + title.replace(/^[📢📜🏛️\s]+/, '');
-        document.getElementById('news-summary').value = 'Resmi Açıklama: Kamu personeli adaylarını yakından ilgilendiren güncel başvuru ve tercih süreci başlatıldı.';
-        showToast('✅ Başlık ve editoryal özet güncellendi.');
-      }, 600);
+    function sendChatInput() {
+      const inp = document.getElementById('chat-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      inp.value = '';
+      askAssistant(val);
     }
 
-    function callNvidiaAI(mode) {
-      const resBox = document.getElementById('ai-studio-response');
-      resBox.textContent = '⏳ Yapay Zeka modeli (Llama-3.2) analiz yapıyor...';
-      setTimeout(() => {
-        if (mode === 'summarize') {
-          resBox.textContent = `📋 RESMİ METİN ÖZETİ:\n• Kurum: İlgili Resmi Kamu İdaresi\n• Kapsam: Personel istihdamı ve başvuru takvimi\n• Başvuru Şekli: e-Devlet Kariyer Kapısı üzerinden online`;
-        } else if (mode === 'extract_conditions') {
-          resBox.textContent = `🎯 AYIKLANAN ŞARTLAR:\n1. KPSS: 2024/2026 KPSS puan türleri geçerlidir.\n2. Yaş Sınırı: 35 yaşını doldurmamış olmak.\n3. Askerlik: İlişiği bulunmamak veya tecilli olmak.`;
-        } else {
-          resBox.textContent = `🚀 ÖNERİLEN MANŞET BAŞLIKLARI:\n1. "2026 Yılı Yeni Kamu Personeli Alımı İlanı ve Şartları"\n2. "Resmi Gazete'de Yayımlandı: Binlerce Kadro Açıldı!"`;
-        }
-        showToast('✅ Yapay Zeka analizi tamamlandı.');
-      }, 800);
-    }
-
-    function saveManualJob() {
-      showToast('İlan başarıyla onaylandı ve veri tabanına eklendi!');
-    }
-
-    function saveManualNews() {
-      showToast('Resmi haber başarıyla yayına alındı!');
-    }
-
-    // Scheduler
-    const schedulerTasks = [
-      { id: 'sched-news', name: 'Resmi Haber Taraması', interval: '3 saatte bir', runs: 14, lastRun: 'Bugün 19:00' },
-      { id: 'sched-jobs', name: 'Kamu İlanları Toplama', interval: '6 saatte bir', runs: 8, lastRun: 'Bugün 14:00' },
-      { id: 'sched-pub', name: 'Sosyal Medya Kuyruğu', interval: '4 saatte bir', runs: 5, lastRun: 'Bugün 16:30' },
-      { id: 'sched-audit', name: 'Kılavuz & PDF Kalite Denetimi', interval: '12 saatte bir', runs: 2, lastRun: 'Bugün 09:00' },
-    ];
-
-    function buildSchedulerPanel() {
-      const container = document.getElementById('scheduler-tasks-container');
-      if (!container) return;
-      container.innerHTML = schedulerTasks.map(t => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);flex-wrap:wrap;gap:12px;">
-          <div>
-            <div style="font-weight:700;font-size:14.5px;color:#fff;">${t.name}</div>
-            <div style="font-size:12.5px;color:var(--text-dim);margin-top:2px;">Aralık: ${t.interval} | Son Çalışma: ${t.lastRun} | Toplam: ${t.runs} kez</div>
-          </div>
-          <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="showToast('${t.name} başarıyla çalıştırıldı ✅')">▶ Şimdi Çalıştır</button>
-        </div>
-      `).join('');
-    }
-
-    function toggleGlobalScheduler() {
-      const btn = document.getElementById('global-sched-btn');
-      const isRunning = btn.dataset.running === 'true';
-      btn.dataset.running = isRunning ? 'false' : 'true';
-      btn.textContent = isRunning ? '▶ Zamanlayıcıyı Başlat' : '⏹ Zamanlayıcıyı Durdur';
-      btn.className = isRunning ? 'btn btn-primary' : 'btn btn-secondary';
-      document.getElementById('global-sched-status').textContent = isRunning ? '⏸️ DURDURULDU' : '🟢 ÇALIŞIYOR';
-      document.getElementById('global-sched-status').style.color = isRunning ? 'var(--text-dim)' : 'var(--success)';
-      showToast(isRunning ? 'Zamanlayıcı durduruldu.' : 'Zamanlayıcı başlatıldı!');
+    // Oturum kontrolü
+    if (sessionStorage.getItem('kpr_patron_auth')) {
+      document.getElementById('login-overlay').style.display = 'none';
+      refreshAllData();
     }
   </script>
 </body>
