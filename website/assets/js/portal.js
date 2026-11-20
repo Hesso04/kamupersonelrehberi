@@ -163,6 +163,59 @@
     fill("grid-sozlesmeli", "sozlesmeli");
   }
 
+  var CAT_LABELS = {
+    all: "Tüm Kategoriler",
+    kpss_sartsiz: "KPSS'siz Alımlar",
+    memur: "Kadrolu Memur Alımları",
+    sozlesmeli: "4/B Sözleşmeli Personel",
+    belediye: "Belediye & Zabıta Alımları",
+    universite: "Üniversite Personel Alımları",
+    bilisim: "Bilişim Personeli Alımları",
+    akademik: "Öğretmen & Akademik Kadrolar",
+    saglik: "Sağlık Personeli Alımları",
+    guvenlik: "Zabıta, Polis & Güvenlik"
+  };
+
+  var EDU_LABELS = {
+    all: "Tüm Mezuniyetler",
+    ilkokul: "İlkokul / Ortaokul",
+    lise: "Lise (Ortaöğretim)",
+    onlisans: "Önlisans",
+    lisans: "Lisans"
+  };
+
+  function syncActiveFilterUI() {
+    var bar = document.getElementById("active-filter-bar");
+    var txt = document.getElementById("active-filter-text");
+    var heading = document.getElementById("active-list-heading");
+
+    var parts = [];
+    if (ACTIVE_CAT !== "all") parts.push("Kategori: " + (CAT_LABELS[ACTIVE_CAT] || ACTIVE_CAT));
+    if (ACTIVE_EDU !== "all") parts.push("Mezuniyet: " + (EDU_LABELS[ACTIVE_EDU] || ACTIVE_EDU));
+    if (SEARCH_QUERY.trim()) parts.push('Arama: "' + SEARCH_QUERY.trim() + '"');
+
+    if (bar && txt) {
+      if (parts.length) {
+        txt.textContent = "Aktif Filtre — " + parts.join(" • ");
+        bar.classList.add("visible");
+      } else {
+        bar.classList.remove("visible");
+      }
+    }
+
+    if (heading) {
+      if (ACTIVE_CAT !== "all") heading.textContent = CAT_LABELS[ACTIVE_CAT] || "Filtrelenmiş İlanlar";
+      else if (ACTIVE_EDU !== "all") heading.textContent = (EDU_LABELS[ACTIVE_EDU] || "") + " İlanları";
+      else heading.textContent = "Tüm Güncel Kamu İlanları";
+    }
+
+    // "Ne Mezunusunuz?" kartlarında aktif durumu senkronize et
+    var eduCards = document.querySelectorAll(".edu-pill-card[data-edu]");
+    eduCards.forEach(function (card) {
+      card.classList.toggle("active", card.getAttribute("data-edu") === ACTIVE_EDU);
+    });
+  }
+
   function applyFilters(resetCount) {
     if (resetCount) SHOWN_COUNT = 24;
     var q = norm(SEARCH_QUERY);
@@ -175,8 +228,24 @@
       }
       return true;
     });
+    syncActiveFilterUI();
     renderJobsList();
   }
+
+  window.resetAllFilters = function () {
+    ACTIVE_CAT = "all";
+    ACTIVE_EDU = "all";
+    SEARCH_QUERY = "";
+    var s1 = document.getElementById("main-search-input");
+    var s2 = document.getElementById("header-search-input");
+    var c1 = document.getElementById("main-cat-select");
+    var e1 = document.getElementById("main-edu-select");
+    if (s1) s1.value = "";
+    if (s2) s2.value = "";
+    if (c1) c1.value = "all";
+    if (e1) e1.value = "all";
+    applyFilters(true);
+  };
 
   function renderJobsList() {
     var container = document.getElementById("main-jobs-list");
@@ -269,7 +338,11 @@
         '<div style="background:var(--bg-subtle);padding:12px;border-radius:8px;"><div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">KPSS Şartı</div><div style="font-weight:700;">' + esc(job.kpss_requirement || "Kılavuzda") + '</div></div>' +
         '<div style="background:var(--bg-subtle);padding:12px;border-radius:8px;"><div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Şehir / Öğrenim</div><div style="font-weight:700;">' + esc(job.city || "Türkiye Geneli") + ' • ' + esc(job.education_level || "Kılavuzda") + '</div></div>' +
       '</div>' +
-      '<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Bu ilan <strong>' + esc(job.source_name || "Resmi Kaynak") + '</strong> üzerinden teyit edilmiştir. Özel başvuru şartları, nitelik kodları ve istenen belgeler için aşağıdaki resmi kılavuz bağlantısını açınız.</p>';
+      '<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Bu ilan <strong>' + esc(job.source_name || "Resmi Kaynak") + '</strong> üzerinden teyit edilmiştir. Özel başvuru şartları, nitelik kodları ve istenen belgeler için aşağıdaki resmi kılavuz bağlantısını açınız.</p>' +
+      '<div class="share-btn-row">' +
+        '<a class="share-chip-btn" href="https://wa.me/?text=' + encodeURIComponent((job.institution || "") + " — " + (job.title || "") + " https://kamupersonelrehberiniz.me/") + '" target="_blank" rel="noopener noreferrer">WhatsApp\'ta Paylaş</a>' +
+        '<button type="button" class="share-chip-btn" id="copy-job-link-btn" onclick="copyJobSummary(' + Number(job.id) + ')">İlan Bilgisini Kopyala</button>' +
+      '</div>';
 
     var btns = "";
     if (job.pdf_url) {
@@ -282,11 +355,23 @@
     btns += '<button onclick="closeJobModal()" style="padding:10px 16px;border:1px solid var(--border-color);border-radius:8px;font-weight:600;">Kapat</button>';
     document.getElementById("modal-job-foot").innerHTML = btns;
     modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+  };
+
+  window.copyJobSummary = function (jobId) {
+    var job = ALL_JOBS.find(function (j) { return Number(j.id) === Number(jobId); });
+    if (!job || !navigator.clipboard) return;
+    var text = (job.institution || "") + " — " + (job.title || "") + " (" + (job.quota_display || "") + ") | https://kamupersonelrehberiniz.me/";
+    navigator.clipboard.writeText(text).then(function () {
+      var btn = document.getElementById("copy-job-link-btn");
+      if (btn) { btn.textContent = "Kopyalandı ✓"; setTimeout(function () { btn.textContent = "İlan Bilgisini Kopyala"; }, 1800); }
+    }).catch(function () {});
   };
 
   window.closeJobModal = function () {
     var modal = document.getElementById("job-modal");
     if (modal) modal.classList.remove("open");
+    document.body.style.overflow = "";
   };
 
   window.portalFilter = function (cat) {
@@ -373,6 +458,42 @@
         if (e.target === modal) closeJobModal();
       });
     }
+
+    // ESC ile modal kapatma
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeJobModal();
+    });
+
+    // Klavye erişilebilirliği (role="button" kartlar için Enter / Space)
+    document.querySelectorAll('[role="button"][tabindex="0"]').forEach(function (el) {
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+
+    // Mobil arama butonu -> arama alanına kaydır ve odakla
+    var mobSearch = document.getElementById("mobile-search-btn");
+    if (mobSearch && searchIn) {
+      mobSearch.addEventListener("click", function () {
+        var target = document.getElementById("tum-ilanlar");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        setTimeout(function () { searchIn.focus(); }, 350);
+      });
+    }
+
+    // Yukarı çık butonu
+    var topBtn = document.getElementById("back-to-top-btn");
+    if (topBtn) {
+      window.addEventListener("scroll", function () {
+        topBtn.classList.toggle("visible", window.scrollY > 420);
+      }, { passive: true });
+      topBtn.addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
   }
 
   function boot() {
@@ -384,6 +505,11 @@
       .then(function (data) {
         ALL_JOBS = (data.jobs || []).filter(function (j) { return !j.is_cancellation; });
         ALL_JOBS.sort(function (a, b) { return (b.sort_key || 0) - (a.sort_key || 0); });
+        var trustEl = document.getElementById("trust-meta-updated");
+        if (trustEl) {
+          var qTot = (data.meta && data.meta.total_quota) ? Number(data.meta.total_quota).toLocaleString("tr-TR") + "+ Kontenjan" : "";
+          trustEl.textContent = ALL_JOBS.length.toLocaleString("tr-TR") + " Aktif İlan" + (qTot ? " • " + qTot : "");
+        }
         renderTicker(ALL_JOBS);
         updateCounters(ALL_JOBS);
         renderCategoryShowcases(ALL_JOBS);

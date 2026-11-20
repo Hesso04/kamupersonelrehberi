@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Kamu Personel Rehberi Logosu">
+  <defs>
+    <!-- Kurumsal Lacivert Dairesel Zemin -->
+    <radialGradient id="kprBg" cx="35%" cy="28%" r="75%">
+      <stop offset="0%" stop-color="#1D4E78"/>
+      <stop offset="58%" stop-color="#112E49"/>
+      <stop offset="100%" stop-color="#091B2D"/>
+    </radialGradient>
+    <!-- Dış Halka İnce Kurumsal Parıltı -->
+    <linearGradient id="kprRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <!-- Metalik Beyaz/Gümüş K Harfi -->
+    <linearGradient id="kprLetter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#E2E8F0"/>
+      <stop offset="100%" stop-color="#CBD5E1"/>
+    </linearGradient>
+    <!-- Modern Kurumsal Mavi-Turkuaz Kağıt Uçak -->
+    <linearGradient id="kprPlane" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="55%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#BAE6FD"/>
+    </linearGradient>
+    <filter id="kprDrop" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#040D17" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Ana Dairesel Rozet -->
+  <circle cx="128" cy="128" r="120" fill="url(#kprBg)"/>
+  <circle cx="128" cy="128" r="118" fill="none" stroke="url(#kprRing)" stroke-width="5.5"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.2"/>
+
+  <!-- Orijinal Logodaki Güçlü Geometrik K Harfi -->
+  <g filter="url(#kprDrop)">
+    <!-- K'nın sol dikey gövdesi (alttan kağıt uçak için kesimli) -->
+    <path d="M74 52 H106 V101 L154 52 H194 L138 112 L198 182 H158 L116 130 L106 140 V126 L74 139 Z" fill="url(#kprLetter)"/>
+  </g>
+
+  <!-- Sol Alttan Yukarı Uçan Kağıt Uçak (Orijinal DNA'nın Kurumsal Mavi Modern Yorumu) -->
+  <g filter="url(#kprDrop)">
+    <!-- Üst kanat -->
+    <path d="M56 154 L134 114 L92 174 L86 158 Z" fill="url(#kprPlane)"/>
+    <!-- Orta kat gölgesi -->
+    <path d="M134 114 L92 174 L106 184 Z" fill="#1D4ED8"/>
+    <!-- Alt küçük kuyruk detayı -->
+    <path d="M92 174 L95 190 L108 179 Z" fill="#0F2D4A"/>
+  </g>
+
+  <!-- Alt Kurumsal İnce Ayırıcı Çizgi -->
+  <line x1="68" y1="204" x2="188" y2="204" stroke="url(#kprRing)" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+  <text x="128" y="222" text-anchor="middle" fill="#E2E8F0" font-family="Plus Jakarta Sans, Segoe UI, Arial, sans-serif" font-size="15" font-weight="800" letter-spacing="2.2">REHBER</text>
+</svg>

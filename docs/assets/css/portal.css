@@ -176,12 +176,15 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
   white-space: nowrap;
   position: relative;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
 }
 
 .ticker-track {
   display: inline-flex;
-  gap: 28px;
-  animation: tickerScroll 48s linear infinite;
+  gap: 32px;
+  animation: tickerScroll 62s linear infinite;
+  will-change: transform;
 }
 
 .ticker-track:hover {
@@ -244,19 +247,27 @@ img { max-width: 100%; display: block; }
 }
 
 .brand-emblem {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: var(--brand-navy);
-  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-  border: 2px solid var(--brand-blue);
   flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(19, 59, 92, 0.22);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.brand-lockup:hover .brand-emblem {
+  transform: scale(1.05);
+}
+
+.brand-emblem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-text-wrap {
@@ -1057,15 +1068,25 @@ html.dark .popular-count { color: #93C5FD; }
 .portal-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease, visibility 200ms ease;
 }
 
-.portal-modal-backdrop.open { display: flex; }
+.portal-modal-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 
 .portal-modal-dialog {
   background: var(--bg-surface);
@@ -1076,6 +1097,202 @@ html.dark .popular-count { color: #93C5FD; }
   max-height: 88vh;
   overflow-y: auto;
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.portal-modal-backdrop.open .portal-modal-dialog {
+  transform: translateY(0) scale(1);
+}
+
+/* ==========================================================================
+   9. İNCE İŞÇİLİK: GÜVEN ŞERİDİ, AKTİF FİLTRE BARI, SKELETON, BACK-TO-TOP
+   ========================================================================== */
+.bento-title,
+.job-visual-title,
+.job-row-title {
+  text-wrap: balance;
+}
+
+.bento-count-badge,
+.cat-tile-count,
+.edu-pill-count,
+.popular-count,
+.job-row-quota {
+  font-variant-numeric: tabular-nums;
+}
+
+.bento-card img,
+.cat-tile img,
+.job-visual-media img {
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+  outline-offset: -1px;
+}
+
+.btn-portal-primary:active,
+.icon-tool-btn:active,
+.edu-pill-card:active {
+  transform: scale(0.97);
+}
+
+.mobile-search-trigger {
+  display: inline-flex;
+}
+
+@media (min-width: 900px) {
+  .mobile-search-trigger { display: none; }
+}
+
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.trust-strip-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.trust-dot-ok {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+}
+
+.active-filter-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--brand-blue-soft);
+  border: 1px solid rgba(29, 91, 140, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  margin-bottom: 14px;
+  font-size: 0.84rem;
+  color: var(--brand-navy);
+}
+
+html.dark .active-filter-bar { color: #BFDBFE; }
+.active-filter-bar.visible { display: flex; }
+
+.clear-filter-btn {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: all 140ms;
+}
+
+.clear-filter-btn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.skeleton-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 268px;
+}
+
+.skeleton-shimmer {
+  height: 158px;
+  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-hover) 50%, var(--bg-subtle) 75%);
+  background-size: 200% 100%;
+  animation: shimmerAnim 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmerAnim {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--brand-navy);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 180ms ease, transform 200ms ease, visibility 180ms ease, background 150ms ease;
+}
+
+.back-to-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top-btn:hover { background: var(--brand-blue); }
+
+.share-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.share-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 140ms;
+}
+
+.share-chip-btn:hover {
+  border-color: var(--brand-blue);
+  color: var(--brand-blue);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track,
+  .skeleton-shimmer { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
 
 .portal-modal-head {

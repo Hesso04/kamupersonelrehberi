@@ -105,8 +105,8 @@ def render_page_shell(
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/portal.css?v=8.0.0">
-  <link rel="stylesheet" href="/assets/css/editorial.css?v=8.0.0">
+  <link rel="stylesheet" href="/assets/css/portal.css?v=8.1.0">
+  <link rel="stylesheet" href="/assets/css/editorial.css?v=8.1.0">
   {ld_script}
   <script>
     (function(){{
@@ -133,7 +133,9 @@ def render_page_shell(
     <div class="portal-container">
       <div class="header-main-row">
         <a href="/" class="brand-lockup">
-          <div class="brand-emblem" aria-hidden="true">KPR</div>
+          <div class="brand-emblem">
+            <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi Logosu" width="46" height="46">
+          </div>
           <div class="brand-text-wrap">
             <span class="brand-name">Kamu Personel Rehberi</span>
             <span class="brand-tagline">Kamu İlanlarının Güncel Adresi | KPSS'siz Alım, Atama &amp; Rehber</span>
@@ -174,7 +176,10 @@ def render_page_shell(
     <div class="portal-container">
       <div class="portal-footer-grid">
         <div>
-          <div class="footer-brand">Kamu Personel Rehberi</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi" width="42" height="42" style="border-radius:50%;flex-shrink:0;">
+            <div class="footer-brand" style="margin-bottom:0;">Kamu Personel Rehberi</div>
+          </div>
           <p class="footer-desc">
             T.C. Resmi Gazete, SBB Kamu İlan Portalı, Kariyer Kapısı ve resmi bakanlık duyurularını tek merkezde sunan bağımsız kamu istihdam ve kariyer rehberlik portalı.
           </p>
@@ -1044,7 +1049,7 @@ def sync_website_to_docs(website_dir: Path, docs_dir: Path) -> None:
     dirs_to_sync = [
         "hakkimizda", "iletisim", "gizlilik-politikasi", "kullanim-kosullari",
         "sss", "araclar", "rehber", "haberler", "haber", "ilan",
-        "assets/css", "assets/js", "assets/img/covers", "assets/img/categories", "data",
+        "assets/css", "assets/js", "assets/img", "data",
     ]
     for rel in dirs_to_sync:
         src = website_dir / rel

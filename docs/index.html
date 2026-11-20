@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/portal.css?v=8.0.0">
+  <link rel="stylesheet" href="/assets/css/portal.css?v=8.1.0">
 
   <script type="application/ld+json">
   {
@@ -96,10 +96,12 @@
     <div class="portal-container">
       <div class="header-main-row">
         <a href="/" class="brand-lockup">
-          <div class="brand-emblem" aria-hidden="true">KPR</div>
+          <div class="brand-emblem">
+            <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi Logosu" width="46" height="46">
+          </div>
           <div class="brand-text-wrap">
             <span class="brand-name">Kamu Personel Rehberi</span>
-            <span class="brand-tagline">Kamu İlanlarının Güncel Adresi | KPSS'siz Alım, Atama & Rehber</span>
+            <span class="brand-tagline">Kamu İlanlarının Güncel Adresi | KPSS'siz Alım, Atama &amp; Rehber</span>
           </div>
         </a>
 
@@ -108,6 +110,10 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input type="search" id="header-search-input" placeholder="Kurum, kadro veya şehir ara..." aria-label="İlan ara">
           </form>
+
+          <button class="icon-tool-btn mobile-search-trigger" id="mobile-search-btn" aria-label="İlan Ara" title="İlan Ara">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </button>
 
           <a href="https://t.me/kamupersonelrehberi" target="_blank" rel="noopener noreferrer" class="header-tg-btn" title="Telegram İlan Kanalı">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
@@ -235,6 +241,16 @@
             <span class="cat-tile-count" id="cnt-saglik">...</span>
           </div>
         </div>
+
+        <!-- Kurumsal Güven & Canlı Durum Şeridi -->
+        <div class="trust-strip" role="status" aria-live="polite">
+          <div class="trust-strip-items">
+            <span class="trust-item"><span class="trust-dot-ok"></span> Resmi Gazete &amp; SBB Teyitli</span>
+            <span class="trust-item">Doğrudan Resmi PDF Kılavuzları</span>
+            <span class="trust-item">Ücretsiz &amp; Üyeliksiz Erişim</span>
+          </div>
+          <span id="trust-meta-updated" style="font-weight:600;color:var(--brand-navy);">Güncel Resmi Arşiv</span>
+        </div>
       </div>
     </section>
 
@@ -277,7 +293,11 @@
             <span class="section-header-tab">Öne Çıkan &amp; Bilişim Alımları</span>
             <a href="#tum-ilanlar" class="section-header-more" onclick="portalFilter('bilisim')">Tüm Bilişim Alımları →</a>
           </div>
-          <div class="jobs-visual-grid" id="grid-bilisim"></div>
+          <div class="jobs-visual-grid" id="grid-bilisim">
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+          </div>
         </section>
 
         <!-- Blok B: Belediye & Zabıta Alımları -->
@@ -286,7 +306,11 @@
             <span class="section-header-tab">Belediye &amp; Zabıta Alımları</span>
             <a href="#tum-ilanlar" class="section-header-more" onclick="portalFilter('belediye')">Tüm Belediye İlanları →</a>
           </div>
-          <div class="jobs-visual-grid" id="grid-belediye"></div>
+          <div class="jobs-visual-grid" id="grid-belediye">
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+          </div>
         </section>
 
         <!-- Blok C: Üniversite & Sözleşmeli (4/B) Alımları -->
@@ -295,7 +319,11 @@
             <span class="section-header-tab">Üniversite &amp; Sözleşmeli (4/B) Alımları</span>
             <a href="#tum-ilanlar" class="section-header-more" onclick="portalFilter('sozlesmeli')">Tüm Sözleşmeli İlanlar →</a>
           </div>
-          <div class="jobs-visual-grid" id="grid-sozlesmeli"></div>
+          <div class="jobs-visual-grid" id="grid-sozlesmeli">
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+          </div>
         </section>
 
         <!-- Blok D: Tüm Güncel Kamu İlanları (Canlı Arama & Filtreleme) -->
@@ -303,6 +331,11 @@
           <div class="section-header-bar">
             <span class="section-header-tab" id="active-list-heading">Tüm Güncel Kamu İlanları</span>
             <span class="section-header-more" id="filtered-count-label">Yükleniyor...</span>
+          </div>
+
+          <div class="active-filter-bar" id="active-filter-bar">
+            <span id="active-filter-text">Aktif Filtre</span>
+            <button type="button" class="clear-filter-btn" onclick="resetAllFilters()">Filtreyi Temizle ✕</button>
           </div>
 
           <div class="filter-toolbar">
@@ -461,7 +494,10 @@
     <div class="portal-container">
       <div class="portal-footer-grid">
         <div>
-          <div class="footer-brand">Kamu Personel Rehberi</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <img src="/assets/img/logo.svg" alt="Kamu Personel Rehberi" width="42" height="42" style="border-radius:50%;flex-shrink:0;">
+            <div class="footer-brand" style="margin-bottom:0;">Kamu Personel Rehberi</div>
+          </div>
           <p class="footer-desc">
             T.C. Resmi Gazete, SBB Kamu İlan Portalı, Kariyer Kapısı ve resmi bakanlık duyurularını tek merkezde sunan bağımsız kamu istihdam ve kariyer rehberlik portalı.
           </p>
@@ -507,6 +543,10 @@
     </div>
   </footer>
 
-  <script src="/assets/js/portal.js?v=8.0.0"></script>
+  <button class="back-to-top-btn" id="back-to-top-btn" aria-label="Yukarı Çık" title="Yukarı Çık">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script src="/assets/js/portal.js?v=8.1.0"></script>
 </body>
 </html>
